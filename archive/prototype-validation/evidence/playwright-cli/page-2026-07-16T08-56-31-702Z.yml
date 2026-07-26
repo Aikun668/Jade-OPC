@@ -1,0 +1,19 @@
+- main [ref=e2]:
+  - generic [ref=e48]:
+    - generic [ref=e49]:
+      - button "回到开始" [ref=e50] [cursor=pointer]: ←
+      - strong [ref=e51]: 留念余温
+      - button "随时暂停" [ref=e52] [cursor=pointer]
+    - generic [ref=e53]:
+      - paragraph [ref=e54]: 根据刚才的内容整理，仍可修改。
+      - generic [ref=e55]:
+        - text: 日常片段
+        - heading "窗边的中午" [level=2] [ref=e56]
+        - paragraph [ref=e57]: 它会在窗边打很久的盹。
+      - generic [ref=e58]:
+        - text: 小习惯
+        - heading "阳光落下来时" [level=2] [ref=e59]
+        - paragraph [ref=e60]: 阳光落下来时，它常常安静地待在那里。
+      - button "修改原话" [ref=e61] [cursor=pointer]
+      - button "保存这两段" [ref=e62] [cursor=pointer]
+      - button "今天先到这里" [ref=e63] [cursor=pointer]

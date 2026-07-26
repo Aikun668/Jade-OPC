@@ -1,0 +1,10 @@
+- main [ref=e2]:
+  - generic [ref=e125]:
+    - strong [ref=e127]: 留念余温
+    - generic [ref=e128]:
+      - paragraph [ref=e129]: 沫沫的示例记忆
+      - heading "今天就到这里。" [level=1] [ref=e130]
+      - paragraph [ref=e131]: 今天可以先停在这里。你随时都可以再回来看看。
+      - generic [ref=e132]:
+        - button "再体验一次" [ref=e133] [cursor=pointer]
+        - button "今天就到这里" [ref=e134] [cursor=pointer]

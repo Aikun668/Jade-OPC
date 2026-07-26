@@ -1,0 +1,21 @@
+- main [ref=e2]:
+  - generic [ref=e91]:
+    - generic [ref=e92]:
+      - button "回到开始" [ref=e93] [cursor=pointer]: ←
+      - strong [ref=e94]: 留念余温
+      - button "随时暂停" [ref=e95] [cursor=pointer]
+    - generic [ref=e96]:
+      - paragraph [ref=e97]: 沫沫的记忆
+      - heading "今天留下了两段记忆。" [level=1] [ref=e98]
+      - article [ref=e99]:
+        - text: 日常片段
+        - heading "窗边的中午" [level=3] [ref=e100]
+        - paragraph [ref=e101]: 它总喜欢在午后晒太阳。
+      - article [ref=e102]:
+        - text: 小习惯
+        - heading "阳光落下来时" [level=3] [ref=e103]
+        - paragraph [ref=e104]: 阳光落下来时，它常常安静地待在那里。
+      - generic [ref=e105]:
+        - button "再记一段" [ref=e106] [cursor=pointer]
+        - button "以后再继续" [ref=e107] [cursor=pointer]
+        - button "今天就到这里" [ref=e108] [cursor=pointer]

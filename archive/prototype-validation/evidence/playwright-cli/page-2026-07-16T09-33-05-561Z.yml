@@ -1,0 +1,21 @@
+- main [ref=e2]:
+  - generic [ref=e66]:
+    - strong [ref=e68]: 留念余温
+    - generic [ref=e69]:
+      - paragraph [ref=e70]: 用示例体验一次
+      - heading "今天想从哪里开始？" [level=1] [ref=e71]
+      - paragraph [ref=e72]: 不同的开始方式，会带你想起不同的片段。
+      - generic [ref=e73]:
+        - button "日常 从它平时的一个小习惯开始" [ref=e74] [cursor=pointer]:
+          - generic [ref=e75]: 日常
+          - generic [ref=e76]: 从它平时的一个小习惯开始
+        - button "相遇 回想第一次见到它的样子" [ref=e77] [cursor=pointer]:
+          - generic [ref=e78]: 相遇
+          - generic [ref=e79]: 回想第一次见到它的样子
+        - button "你们的关系 用一句话说说你们" [ref=e80] [cursor=pointer]:
+          - generic [ref=e81]: 你们的关系
+          - generic [ref=e82]: 用一句话说说你们
+        - button "一张照片 让照片帮你打开一个片段" [ref=e83] [cursor=pointer]:
+          - generic [ref=e84]: 一张照片
+          - generic [ref=e85]: 让照片帮你打开一个片段
+      - button "先不体验了" [ref=e86] [cursor=pointer]

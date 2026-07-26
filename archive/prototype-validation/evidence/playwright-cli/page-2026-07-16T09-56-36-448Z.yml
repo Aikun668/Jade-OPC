@@ -1,0 +1,14 @@
+- main [ref=e2]:
+  - generic [ref=e85]:
+    - generic [ref=e86]:
+      - strong [ref=e87]: 留念余温
+      - button "回到记忆空间" [ref=e88] [cursor=pointer]
+    - generic [ref=e89]:
+      - paragraph [ref=e90]: 想到一点点就够了
+      - heading "如果愿意，还可以再留下一句。" [level=2] [ref=e91]
+      - paragraph [ref=e92]: 不想继续也没有关系。
+      - button "Ta 总喜欢在午后晒太阳。" [ref=e93] [cursor=pointer]
+      - textbox "也可以写下自己的测试回答" [ref=e94]: Ta 听见开罐头的声音就会跑来。
+      - generic [ref=e95]:
+        - button "整理刚才的内容" [ref=e96] [cursor=pointer]
+        - button "今天先到这里" [ref=e97] [cursor=pointer]

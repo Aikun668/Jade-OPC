@@ -1,0 +1,14 @@
+- main [ref=e2]:
+  - generic [ref=e49]:
+    - generic [ref=e50]:
+      - button "回到开始" [ref=e51] [cursor=pointer]: ←
+      - strong [ref=e52]: 留念余温
+      - button "随时暂停" [ref=e53] [cursor=pointer]
+    - generic [ref=e54]:
+      - paragraph [ref=e55]: 想到一点点就够了
+      - heading "你想从“从声音开始”开始，也可以只留下一句话。" [level=2] [ref=e56]
+      - button "它总喜欢在午后晒太阳。" [ref=e57] [cursor=pointer]
+      - textbox "也可以写下自己的测试回答" [ref=e58]
+      - generic [ref=e59]:
+        - button "跳过这个问题" [ref=e60] [cursor=pointer]
+        - button "今天先到这里" [ref=e61] [cursor=pointer]

@@ -1,0 +1,24 @@
+- main [ref=e2]:
+  - generic [ref=e43]:
+    - generic [ref=e44]:
+      - button "换个入口" [ref=e45] [cursor=pointer]
+      - strong [ref=e46]: 留念余温
+      - button "今天先到这里" [ref=e47] [cursor=pointer]
+    - generic [ref=e48]:
+      - paragraph [ref=e49]: 虚构示例：沫沫 · 本次不会保存
+      - heading "先停在一张照片上。" [level=1] [ref=e50]
+      - paragraph [ref=e51]: 选一张最想多看一会儿的照片。
+      - generic [ref=e52]:
+        - button "黑白花猫沫沫看向镜头的示例照片 靠近镜头的沫沫 示例照片" [ref=e53] [cursor=pointer]:
+          - img "黑白花猫沫沫看向镜头的示例照片" [ref=e54]
+          - generic [ref=e55]: 靠近镜头的沫沫
+          - generic [ref=e56]: 示例照片
+        - button "虎斑猫沫沫趴在沙发上的示例照片 沙发上的沫沫 示例照片" [ref=e57] [cursor=pointer]:
+          - img "虎斑猫沫沫趴在沙发上的示例照片" [ref=e58]
+          - generic [ref=e59]: 沙发上的沫沫
+          - generic [ref=e60]: 示例照片
+        - button "长毛猫沫沫靠近节日树的示例照片 冬天的沫沫 示例照片" [ref=e61] [cursor=pointer]:
+          - img "长毛猫沫沫靠近节日树的示例照片" [ref=e62]
+          - generic [ref=e63]: 冬天的沫沫
+          - generic [ref=e64]: 示例照片
+      - button "暂时不想选" [ref=e65] [cursor=pointer]

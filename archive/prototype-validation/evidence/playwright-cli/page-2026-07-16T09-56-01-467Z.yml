@@ -1,0 +1,15 @@
+- main [ref=e2]:
+  - generic [ref=e57]:
+    - generic [ref=e58]:
+      - button "换个入口" [ref=e59] [cursor=pointer]
+      - strong [ref=e60]: 留念余温
+      - button "回到记忆空间" [ref=e61] [cursor=pointer]
+    - generic [ref=e62]:
+      - heading "没关系，不需要现在想起来。" [level=1] [ref=e63]
+      - paragraph [ref=e64]: 我们可以换一个更轻的入口，或者先停在这里。
+      - generic [ref=e65]:
+        - button "从声音开始" [ref=e66] [cursor=pointer]
+        - button "从动作开始" [ref=e67] [cursor=pointer]
+        - button "从常待的地方开始" [ref=e68] [cursor=pointer]
+        - button "看看其他照片" [ref=e69] [cursor=pointer]
+      - button "今天就到这里" [ref=e70] [cursor=pointer]

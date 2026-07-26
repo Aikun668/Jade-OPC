@@ -1,0 +1,17 @@
+- main [ref=e2]:
+  - generic [ref=e114]:
+    - strong [ref=e116]: 留念余温
+    - generic [ref=e117]:
+      - paragraph [ref=e118]: 示例记忆空间
+      - heading "今天留下的两段记忆。" [level=1] [ref=e119]
+      - paragraph [ref=e120]: 这些片段会一直留在这里，想看的时候再回来看看。
+      - article [ref=e121]:
+        - text: 留下的一句话
+        - heading "窗边的中午" [level=2] [ref=e122]
+        - paragraph [ref=e123]: Ta 听见开罐头的声音就会跑来。
+      - article [ref=e124]:
+        - text: 慢慢想起的细节
+        - heading "阳光落下来时" [level=2] [ref=e125]
+        - paragraph [ref=e126]: 阳光落下来时，Ta 常常安静地待在那里。
+      - button "再留一段" [ref=e127] [cursor=pointer]
+      - paragraph [ref=e128]: 示例内容只在当前浏览器会话中可见

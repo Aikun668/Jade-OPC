@@ -1,0 +1,31 @@
+# Build outputs
+dist/
+unpackage/
+
+# Dependencies
+node_modules/
+
+# Hidden tool directories (local dev process data)
+.codegraph/
+.omo/
+.playwright-cli/
+.superpowers/
+
+# Design prototype (not the official app)
+apps/pet-memory-design-prototype/node_modules/
+apps/pet-memory-design-prototype/dist/
+
+# Secrets & local config
+.env*
+.openai/
+.last-token
+.last-port
+# .npmrc — only ignore if it contains auth tokens; project config files are tracked
+
+# Local Claude Code settings
+.claude/settings.local.json
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp

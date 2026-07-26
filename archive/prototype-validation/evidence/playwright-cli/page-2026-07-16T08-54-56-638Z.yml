@@ -1,0 +1,18 @@
+- main [ref=e2]:
+  - generic [ref=e18]:
+    - generic [ref=e19]:
+      - button "回到开始" [ref=e20] [cursor=pointer]: ←
+      - strong [ref=e21]: 留念余温
+      - button "随时暂停" [ref=e22] [cursor=pointer]
+    - generic [ref=e23]:
+      - paragraph [ref=e24]: 从一张照片开始
+      - generic [ref=e25]:
+        - img "沫沫在窗边晒太阳的示例照片" [ref=e26]
+        - generic [ref=e27]: 示例照片
+      - heading "这张照片里的沫沫，正在做什么？" [level=2] [ref=e28]
+      - textbox "想到一点点也可以写下来" [ref=e29]
+      - button "继续" [ref=e30] [cursor=pointer]
+      - generic [ref=e31]:
+        - button "想不起来" [ref=e32] [cursor=pointer]
+        - button "换一个问题" [ref=e33] [cursor=pointer]
+        - button "暂时跳过" [ref=e34] [cursor=pointer]

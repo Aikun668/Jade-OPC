@@ -1,0 +1,14 @@
+- main [ref=e2]:
+  - generic [ref=e35]:
+    - generic [ref=e36]:
+      - button "回到开始" [ref=e37] [cursor=pointer]: ←
+      - strong [ref=e38]: 留念余温
+      - button "随时暂停" [ref=e39] [cursor=pointer]
+    - generic [ref=e40]:
+      - paragraph [ref=e41]: 想到一点点就够了
+      - heading "还有什么小习惯，是你一想到就会认出它的？" [level=2] [ref=e42]
+      - button "它总喜欢在午后晒太阳。" [ref=e43] [cursor=pointer]
+      - textbox "也可以写下自己的测试回答" [ref=e44]: 它会在窗边打很久的盹。
+      - generic [ref=e45]:
+        - button "跳过这个问题" [ref=e46] [cursor=pointer]
+        - button "今天先到这里" [ref=e47] [cursor=pointer]

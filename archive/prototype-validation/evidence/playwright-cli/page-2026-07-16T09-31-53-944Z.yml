@@ -1,0 +1,9 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - strong [ref=e5]: 留念余温
+    - generic [ref=e6]:
+      - paragraph [ref=e7]: 宠物记忆空间
+      - heading "留住那些你不想忘记的小事。" [level=1] [ref=e8]
+      - paragraph [ref=e9]: 一个私密的宠物记忆空间。你可以从一张照片、第一次相遇，或一个普通日常开始，慢慢留下真实片段。
+      - button "用示例体验一次" [ref=e10] [cursor=pointer]
+      - paragraph [ref=e11]: 无需账号 · 不会上传或保存你的内容

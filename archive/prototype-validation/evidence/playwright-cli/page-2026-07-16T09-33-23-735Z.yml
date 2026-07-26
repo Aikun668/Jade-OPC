@@ -1,0 +1,11 @@
+- main [ref=e2]:
+  - generic [ref=e87]:
+    - generic [ref=e88]:
+      - button "换个入口" [ref=e89] [cursor=pointer]
+      - strong [ref=e90]: 留念余温
+    - generic [ref=e91]:
+      - paragraph [ref=e92]: 日常
+      - heading "先用沫沫体验一次。" [level=1] [ref=e93]
+      - paragraph [ref=e94]: 沫沫是一只虚构的示例猫。接下来看到的内容不是你的记忆，也不会被保存。
+      - button "继续看看" [ref=e95] [cursor=pointer]
+      - button "换一种开始方式" [ref=e96] [cursor=pointer]

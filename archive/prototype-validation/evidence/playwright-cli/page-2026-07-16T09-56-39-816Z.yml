@@ -1,0 +1,19 @@
+- main [ref=e2]:
+  - generic [ref=e98]:
+    - generic [ref=e99]:
+      - strong [ref=e100]: 留念余温
+      - button "回到记忆空间" [ref=e101] [cursor=pointer]
+    - generic [ref=e102]:
+      - paragraph [ref=e103]: 根据刚才的内容整理，仍可修改。
+      - article [ref=e104]:
+        - text: 留下的一句话
+        - heading "窗边的中午" [level=2] [ref=e105]
+        - paragraph [ref=e106]: Ta 听见开罐头的声音就会跑来。
+      - article [ref=e107]:
+        - text: 慢慢想起的细节
+        - heading "阳光落下来时" [level=2] [ref=e108]
+        - paragraph [ref=e109]: 阳光落下来时，Ta 常常安静地待在那里。
+      - generic [ref=e110]:
+        - button "换一个入口" [ref=e111] [cursor=pointer]
+        - button "今天先到这里" [ref=e112] [cursor=pointer]
+      - button "保存这两段" [ref=e113] [cursor=pointer]

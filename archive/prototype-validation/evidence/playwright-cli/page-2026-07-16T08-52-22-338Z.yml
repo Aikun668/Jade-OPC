@@ -1,0 +1,16 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - button "回到开始" [ref=e5] [cursor=pointer]: ←
+      - strong [ref=e6]: 留念余温
+      - button "随时暂停" [ref=e7] [cursor=pointer]
+    - generic [ref=e8]:
+      - paragraph [ref=e9]: 给沫沫留下一点点
+      - heading "从一个你还记得的小细节开始。" [level=1] [ref=e10]
+      - paragraph [ref=e11]: 不用一次讲完，想从哪里开始都可以。
+      - generic [ref=e12]:
+        - button "日常" [ref=e13] [cursor=pointer]
+        - button "相遇" [ref=e14] [cursor=pointer]
+        - button "你们的关系" [ref=e15] [cursor=pointer]
+        - button "一张照片" [ref=e16] [cursor=pointer]
+      - paragraph [ref=e17]: ⌁ 默认私密 · 随时可以暂停

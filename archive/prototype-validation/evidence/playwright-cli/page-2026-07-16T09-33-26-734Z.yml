@@ -1,0 +1,15 @@
+- main [ref=e2]:
+  - generic [ref=e97]:
+    - generic [ref=e98]:
+      - button "换个入口" [ref=e99] [cursor=pointer]
+      - strong [ref=e100]: 留念余温
+      - button "今天先到这里" [ref=e101] [cursor=pointer]
+    - generic [ref=e102]:
+      - paragraph [ref=e103]: 虚构示例：沫沫 · 本次不会保存
+      - heading "沫沫最喜欢待在家里的哪个地方？" [level=2] [ref=e104]
+      - textbox "想到一点点也可以写下来" [ref=e105]
+      - button "继续" [ref=e106] [cursor=pointer]
+      - generic [ref=e107]:
+        - button "想不起来" [ref=e108] [cursor=pointer]
+        - button "换一个入口" [ref=e109] [cursor=pointer]
+        - button "今天就到这里" [ref=e110] [cursor=pointer]

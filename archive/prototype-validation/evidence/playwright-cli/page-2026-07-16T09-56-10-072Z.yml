@@ -1,0 +1,15 @@
+- main [ref=e2]:
+  - generic [ref=e71]:
+    - generic [ref=e72]:
+      - button "换个入口" [ref=e73] [cursor=pointer]
+      - strong [ref=e74]: 留念余温
+      - button "回到记忆空间" [ref=e75] [cursor=pointer]
+    - generic [ref=e76]:
+      - paragraph [ref=e77]: 示例体验 · 本次不会保存
+      - heading "你还记得 Ta 发出过什么特别的声音吗？" [level=2] [ref=e78]
+      - textbox "想到一点点也可以写下来" [ref=e79]
+      - button "继续" [ref=e80] [cursor=pointer]
+      - generic [ref=e81]:
+        - button "想不起来" [ref=e82] [cursor=pointer]
+        - button "换一个入口" [ref=e83] [cursor=pointer]
+        - button "今天就到这里" [ref=e84] [cursor=pointer]

@@ -1,0 +1,11 @@
+- main [ref=e2]:
+  - generic [ref=e33]:
+    - generic [ref=e34]:
+      - button "换个入口" [ref=e35] [cursor=pointer]
+      - strong [ref=e36]: 留念余温
+    - generic [ref=e37]:
+      - paragraph [ref=e38]: 日常
+      - heading "从 Ta 的一个片段开始。" [level=1] [ref=e39]
+      - paragraph [ref=e40]: 接下来请按你和 Ta 的真实记忆，感受这些问题。 无需输入真实内容，本次体验也不会保存任何内容。
+      - button "继续看看" [ref=e41] [cursor=pointer]
+      - button "换一种开始方式" [ref=e42] [cursor=pointer]
