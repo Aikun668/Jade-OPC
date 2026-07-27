@@ -1,0 +1,41 @@
+// ==========================================
+// M0 Global base styles — box model, CSS variables, accessibility
+// Task 2, Section 5
+//
+// WXSS compatibility: no universal selectors (*), no :root.
+// Use explicit element selectors and page for CSS variables.
+// ==========================================
+
+@import './tokens.scss';
+
+// Box-sizing reset using explicit WXSS-supported element selectors.
+// WXSS does not support the universal * selector.
+page,
+view,
+text,
+image,
+button,
+input,
+textarea,
+scroll-view,
+swiper,
+swiper-item {
+  box-sizing: border-box;
+}
+
+// ---- 5.3 Platform CSS variables (filled by adapter at runtime) ----
+// WXSS does not support :root; page is the document root in WXSS.
+page {
+  --pm-viewport-width: 100vw;
+  --pm-viewport-height: 100vh;
+  --pm-status-bar-height: 0px;
+  --pm-safe-bottom: 0px;
+  --pm-capsule-top: 0px;
+  --pm-capsule-left: 0px;
+  --pm-capsule-width: 0px;
+  --pm-capsule-height: 0px;
+  --pm-keyboard-height: 0px;
+}
+
+// Reduced-motion: apply per-component where animation actually exists.
+// Global reduced-motion via * selector is not WXSS-compatible.

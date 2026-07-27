@@ -1,0 +1,143 @@
+// ==========================================
+// M0 Design Tokens — single source of truth
+// Task 2, Sections 4.1–4.6, 5.2, 8.1, 9.1
+// Pages and components MUST NOT define
+// private colors, font sizes, spacing, radii,
+// shadows, or animation values.
+// ==========================================
+
+// ---- 4.1 Colors ----
+$pm-color-canvas: #f7f4eb;
+$pm-color-surface: #fffdf8;
+$pm-color-ink: #393a31;
+$pm-color-muted: #706f64;
+$pm-color-line: #dfddd0;
+$pm-color-olive: #68735f;
+$pm-color-olive-pressed: #596452;
+$pm-color-olive-soft: #edf0e9;
+$pm-color-danger: #9a5d56;
+$pm-color-danger-pressed: #804d47;
+$pm-color-overlay: rgba(46, 48, 43, 0.76);
+$pm-color-on-primary: #fffdf8;
+
+// ---- 4.2 Typography ----
+$pm-font-family:
+  -apple-system,
+  BlinkMacSystemFont,
+  "PingFang SC",
+  "Microsoft YaHei",
+  sans-serif;
+
+$pm-font-display: 50rpx;
+$pm-font-page-title: 48rpx;
+$pm-font-section-title: 36rpx;
+$pm-font-item-title: 32rpx;
+$pm-font-body: 30rpx;
+$pm-font-support: 26rpx;
+$pm-font-meta: 24rpx;
+
+$pm-weight-regular: 400;
+$pm-weight-medium: 500;
+$pm-weight-semibold: 600;
+
+$pm-leading-title: 1.40;
+$pm-leading-compact: 1.55;
+$pm-leading-body: 1.75;
+
+// ---- 4.3 Spacing ----
+$pm-space-1: 8rpx;
+$pm-space-2: 16rpx;
+$pm-space-3: 24rpx;
+$pm-space-4: 32rpx;
+$pm-space-5: 40rpx;
+$pm-space-6: 48rpx;
+$pm-space-8: 64rpx;
+$pm-space-10: 80rpx;
+$pm-space-12: 96rpx;
+$pm-space-16: 128rpx;
+
+$pm-page-inline: $pm-space-5;
+$pm-section-gap: $pm-space-8;
+$pm-content-gap: $pm-space-6;
+$pm-control-gap: $pm-space-4;
+$pm-text-gap: $pm-space-2;
+$pm-safe-bottom-extra: $pm-space-6;
+
+// ---- 4.4 Borders, radii & shadows ----
+$pm-radius-sm: 16rpx;
+$pm-radius-md: 24rpx;
+$pm-radius-lg: 36rpx;
+$pm-radius-dialog: 40rpx;
+$pm-radius-round: 999rpx;
+
+$pm-border-hairline: 1px;
+$pm-shadow-paper: 0 8rpx 24rpx rgba(57, 58, 49, 0.045);
+
+// ---- 4.5 Controls & hit targets ----
+$pm-control-height-primary: 96rpx;
+$pm-control-height-regular: 88rpx;
+$pm-hit-target-min: 88rpx;
+$pm-icon-sm: 32rpx;
+$pm-icon-md: 40rpx;
+
+// ---- 4.6 Motion ----
+$pm-motion-fast: 120ms;
+$pm-motion-base: 180ms;
+$pm-motion-sheet: 240ms;
+$pm-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+// ---- 5.2 Layout constants ----
+$pm-nav-row-height: 88rpx;
+$pm-nav-content-gap: 24rpx;
+$pm-page-bottom: 96rpx;
+$pm-reading-bottom: 112rpx;
+$pm-form-action-gap: 64rpx;
+$pm-keyboard-content-gap: 24rpx;
+$pm-layout-max-width: 480px;
+
+// ---- 7.1 Feedback timing ----
+$pm-feedback-delay: 150ms;
+$pm-feedback-min-visible: 300ms;
+$pm-success-visible: 1200ms;
+
+// ---- 6.5 Textarea sizes ----
+$pm-textarea-short: 176rpx;
+$pm-textarea-regular: 360rpx;
+$pm-textarea-long: 480rpx;
+
+// ---- 8.1 Photo tokens ----
+$pm-photo-space-list: 144rpx;
+$pm-photo-space-create: 224rpx;
+$pm-photo-space-home: 176rpx;
+$pm-photo-memory-thumb: 144rpx;
+$pm-photo-editor-thumb: 112rpx;
+
+$pm-photo-preview-ratio: 1.25; // 5:4
+$pm-photo-detail-ratio: 1.18;
+
+$pm-photo-radius-thumb: 24rpx;
+$pm-photo-radius-large: 36rpx;
+$pm-photo-radius-stack: 44rpx;
+
+$pm-photo-stack-reserve-x: 64rpx;
+$pm-photo-stack-reserve-y: 32rpx;
+
+$pm-photo-viewer-bg: rgba(46, 48, 43, 0.96);
+
+// ---- 9.1 Draft material dimensions ----
+$pm-draft-notice-width: 670rpx;
+$pm-draft-notice-height: 208rpx;
+$pm-draft-notice-padding-left: 48rpx;
+$pm-draft-notice-padding-right: 40rpx;
+
+// ---- Z-index scale ----
+$pm-z-header: 10;
+$pm-z-sheet: 90;
+$pm-z-dialog: 100;
+$pm-z-viewer: 110;
+
+// ---- Component size tokens ----
+$pm-button-content-min-width: 376rpx;
+$pm-empty-min-height: 320rpx;
+$pm-dialog-max-width: 640rpx;
+$pm-photo-count-badge-bg: rgba(46, 48, 43, 0.68);

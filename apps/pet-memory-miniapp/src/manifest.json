@@ -1,0 +1,19 @@
+{
+  "name": "宠物记忆",
+  "appid": "wxac1de095a05ff01a",
+  "description": "给已经离开一段时间的 Ta，留一个可以慢慢回来的记忆空间。",
+  "versionName": "0.1.0",
+  "versionCode": 1,
+  "transformPx": false,
+  "uniStatistics": {
+    "enable": false
+  },
+  "mp-weixin": {
+    "appid": "wxac1de095a05ff01a",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "minified": false
+    }
+  }
+}

@@ -27,13 +27,17 @@
 
 执行计划位于 [product/plans](product/plans/)。
 
-当前的 [M0 工程骨架实施计划](product/plans/2026-07-23-m0-engineering-skeleton-implementation-plan.md) 已完成 Task 1–10 的计划编写、Task 2 专项规格确认和 2026-07-26 开工前审计。CLI 目录、Node 支持周期、Repository 写入类型与原子性、共享组件归属、页面文件影响、导航与返回栈、HBuilderX / 微信开发者工具预览分级和最终视觉验收均已同步；71 个实施步骤仍全部未执行，正式实施须由用户另行明确授权。
+当前的 [M0 工程骨架实施计划](product/plans/2026-07-23-m0-engineering-skeleton-implementation-plan.md) 已完成 Task 1–10 的计划编写、Task 2 专项规格确认和 2026-07-26 开工前审计。CLI 目录、Node 支持周期、Repository 写入类型与原子性、共享组件归属、页面文件影响、导航与返回栈、HBuilderX / 微信开发者工具预览分级和最终视觉验收均已同步。Task 1 CLI 基线已通过（1.1–1.6 完成，typecheck/test/build 均通过），S 阶段模拟器验证待微信开发者工具就绪（1.7 外部阻塞）；Task 2 self-verified（2.1–2.9 全部通过，197 tests，9 个修复批次完成，13 组件进入微信构建路径，归一化脚本真实运行，0 warnings，typecheck/build 全部通过，等待独立复核）。Task 3–10 尚未实施。总计：15 已执行，1 外部阻塞，55 未执行。
 
-[M0 设计原型与视觉基准计划](product/plans/2026-07-23-m0-design-prototype-and-visual-baseline-plan.md) 已完成独立设计原型、13 张标准页面图和浏览器视觉 QA。用户已确认最终空间首页图片，并将其设为唯一视觉母版；其余 12 张页面图继续以浏览器原型截图为准。页面图位于 [M0 页面视觉基准](product/assets/m0-page-baselines/README.md)。Task 2 专项规格现已完成，正式小程序代码尚未实施。
+[M0 设计原型与视觉基准计划](product/plans/2026-07-23-m0-design-prototype-and-visual-baseline-plan.md) 已完成独立设计原型、13 张标准页面图和浏览器视觉 QA。用户已确认最终空间首页图片，并将其设为唯一视觉母版；其余 12 张页面图继续以浏览器原型截图为准。页面图位于 [M0 页面视觉基准](product/assets/m0-page-baselines/README.md)。Task 2 专项规格确认并完成代码实施（tokens/globals/13 组件/visual regression script），197 测试通过，self-verified。
 
 ## 工程决策
 
 [微信小程序工程决策](product/technical/2026-07-20-wechat-miniapp-engineering-decision.md) 已锁定 `uni-app + Vue 3 + HBuilderX` 与腾讯云 CloudBase 的职责边界。后续工程与页面实现必须遵守该文档。
+
+## 项目执行与复盘
+
+[Task 1 工程执行复盘](project/retrospectives/2026-07-26-task-1-execution-retrospective.md) 记录工程骨架实施中暴露的执行与收口问题，并约束后续 Builder 如何划清 Task 边界、验证真实工具链、同步文档状态和报告完成结论。
 
 ## 进行中的页面与设计决策
 

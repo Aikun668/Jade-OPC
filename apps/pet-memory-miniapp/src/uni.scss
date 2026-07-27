@@ -1,0 +1,10 @@
+@import '@/styles/tokens.scss';
+
+page {
+  font-family: $pm-font-family;
+  background-color: $pm-color-canvas;
+  color: $pm-color-ink;
+  font-size: $pm-font-body;
+  line-height: $pm-leading-body;
+  -webkit-font-smoothing: antialiased;
+}

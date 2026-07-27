@@ -101,6 +101,7 @@ $pm-color-olive: #68735f;
 $pm-color-olive-pressed: #596452;
 $pm-color-olive-soft: #edf0e9;
 $pm-color-danger: #9a5d56;
+$pm-color-danger-pressed: #804d47;
 $pm-color-overlay: rgba(46, 48, 43, 0.76);
 $pm-color-on-primary: #fffdf8;
 ```

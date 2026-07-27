@@ -3,7 +3,7 @@
 版本：v0.3  
 首次确认：2026-07-20  
 更新：2026-07-26  
-状态：已确认的 M0/M1 工程基线；M0 开工前计划复核已完成，代码尚未实施
+状态：已确认的 M0/M1 工程基线；Task 1 CLI 工程骨架已建立，基线验证通过（typecheck/test/build），S 阶段模拟器导入待微信开发者工具就绪；Task 2 设计系统与核心展示组件已完成（162 tests / 13 组件 / 归一化 / 0 warnings）
 
 阶段：本文同时约束 `M0 — 本地 Mock 骨架`的可替换客户端边界，以及 `M1 — CloudBase Private Alpha`的真实后端、安全与环境边界。各小节必须明确其适用阶段，不能把 M1 能力提前伪装进 M0。
 
@@ -51,7 +51,7 @@ My-OPC/
 │     ├─ package.json               # CLI 构建、类型检查与测试脚本
 │     ├─ vite.config.ts
 │     ├─ tsconfig.json
-│     └─ .gitignore                 # 忽略 dist、私密配置与本地文件
+│     └─ (app 级 .gitignore 由仓库根 .gitignore 统一管理)
 │
 ├─ services/
 │  └─ cloudbase/
@@ -64,7 +64,7 @@ My-OPC/
 └─ .gitignore                       # 仓库级私密文件与构建产物规则
 ```
 
-当前 `apps/` 和 `services/` 为空是正确状态。验证原型只保留在 `archive/`，不复制到正式工程。
+`apps/pet-memory-miniapp/` 已建立（Task 1）；`services/cloudbase/` 待 M1 阶段创建。验证原型只保留在 `archive/`，不复制到正式工程。
 
 ## 4. 客户端与预览工作流
 
@@ -183,6 +183,39 @@ M0 的状态管理、Repository、本地快照、路由白名单、设计令牌�
 - 不用真实用户数据进行开发测试；
 - 不让 Claude Code 在没有规格的情况下自行扩展产品能力。
 
-## 12. 当前实施入口
+## 12. M0 Task 1 已验证的工具版本
 
-[《M0 工程骨架实施计划》](../plans/2026-07-23-m0-engineering-skeleton-implementation-plan.md) 已经形成，Task 2 的视觉工程规格、导航合同和开工前一致性复核也已确认。创建 `apps/pet-memory-miniapp` 前，只剩取得用户对正式实施的明确授权。
+以下版本已在 Windows 11 + Node.js 22.23.1 LTS 环境下通过 `npm install`、`npm run typecheck`、`npm run test:run` 和 `npm run build:mp-weixin` 验证（2026-07-26）。
+
+| 包 | 锁定版本 | 说明 |
+|---|---|---|
+| vue | 3.4.21 | uni-app 锁定 |
+| pinia | 2.2.4 | 最后兼容 Vue 3.4 的版本 |
+| @dcloudio/uni-app | 3.0.0-alpha-5020220260725001 | 当前官方 vue3 dist-tag，peer dependency 已核对 |
+| @dcloudio/uni-mp-weixin | 3.0.0-alpha-5020220260725001 | 与 uni-app 同版本 |
+| @dcloudio/vite-plugin-uni | 3.0.0-alpha-5020220260725001 | uni-app CLI 构建插件，精确要求 Vite 5.2.8 |
+| @dcloudio/types | 3.4.31 | uni-app 3.0.0-alpha peer dep 精确版本 |
+| vite | 5.2.8 | uni-app 锁定版本 |
+| vitest | 2.1.9 | 已验证兼容 Vite 5.2.8 |
+| vue-tsc | 2.2.12 | TypeScript 类型检查 |
+| typescript | 5.9.3 | lockfile 解析值 |
+| jsdom | 25.0.1 | lockfile 解析值，测试 DOM 环境 |
+| @vue/test-utils | 2.4.11 | |
+| @pinia/testing | 0.1.6 | |
+
+已验证命令：
+```bash
+npm run typecheck        # 退出码 0，零类型错误
+npm run test:run         # 退出码 0，1 test passed
+npm run build:mp-weixin  # 退出码 0，生成 dist/build/mp-weixin
+```
+
+Node 版本兼容说明：Node 18 已 EOL（2025-03），不再使用。2026 年 7 月，Node 22 处于 Maintenance LTS，Node 24 处于 Active LTS。两者均通过构建验证。
+
+## 13. 当前实施入口
+
+[《M0 工程骨架实施计划》](../plans/2026-07-23-m0-engineering-skeleton-implementation-plan.md) 已经形成，Task 2 的视觉工程规格、导航合同和开工前一致性复核也已确认。
+
+Task 1 进度：CLI 工程骨架已建立，lockfile 存在，无 peer dependency 强制覆盖，typecheck / test / build 均通过。S 阶段模拟器导入验证待微信开发者工具就绪后完成。详见实施计划 Task 1 复选框。
+
+Task 2 进度：设计系统与核心展示组件已全部完成（2026-07-26）。13 个共享组件全部进入微信构建路径，162 项测试通过，typecheck 零错误，生产构建成功，视觉回归归一化脚本真实运行（pngjs 逐像素处理 13 张 PNG + manifest.json），测试输出零 Vue 警告、零 SCSS 弃用警告。详见实施计划 Task 2 复选框。

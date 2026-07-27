@@ -1,0 +1,36 @@
+{
+  "name": "pet-memory-miniapp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "宠物记忆 M0 本地 Mock 骨架",
+  "scripts": {
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "dev:mp-weixin": "uni -p mp-weixin",
+    "build:mp-weixin": "uni build -p mp-weixin && node scripts/check-wxss-compat.mjs",
+    "build:verify-components": "node scripts/build-verify-components.mjs",
+    "clean:test-artifacts": "node -e \"var f=require('fs');['scripts/visual-regression/test-input','scripts/visual-regression/test-output'].forEach(d=>{if(f.existsSync(d))f.rmSync(d,{recursive:true})})\""
+  },
+  "dependencies": {
+    "pinia": "2.2.4",
+    "vue": "3.4.21"
+  },
+  "devDependencies": {
+    "@dcloudio/types": "3.4.31",
+    "@dcloudio/uni-app": "3.0.0-alpha-5020220260725001",
+    "@dcloudio/uni-mp-weixin": "3.0.0-alpha-5020220260725001",
+    "@dcloudio/vite-plugin-uni": "3.0.0-alpha-5020220260725001",
+    "@pinia/testing": "0.1.6",
+    "@types/node": "^26.1.1",
+    "@types/pngjs": "^6.0.5",
+    "@vue/test-utils": "2.4.11",
+    "jsdom": "^25.0.0",
+    "pngjs": "^7.0.0",
+    "sass": "^1.78.0",
+    "typescript": "^5.6.0",
+    "vite": "5.2.8",
+    "vitest": "2.1.9",
+    "vue-tsc": "2.2.12"
+  }
+}

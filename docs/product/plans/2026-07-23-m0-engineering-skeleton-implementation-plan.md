@@ -1,10 +1,10 @@
 # 宠物记忆 M0 工程骨架实施计划
 
-> **当前状态：完整实施计划，尚未开始执行。**
+> **当前状态：Task 1 完成，Task 2 self-verified（2026-07-27 全部 9 个修复批次完成，197 测试通过，typecheck 通过，等待独立复核）。Task 3–10 尚未实施。**
 >
-> Task 2“设计系统与核心展示组件”已经完成专项讨论、逐项确认和正式规格编写。任何执行者不得自行推断或改写 Task 2 的颜色、字体、间距、组件视觉、页面展示和视觉验收规则。
+> Task 2”设计系统与核心展示组件”已经完成专项讨论、逐项确认和正式规格编写。任何执行者不得自行推断或改写 Task 2 的颜色、字体、间距、组件视觉、页面展示和视觉验收规则。
 >
-> 本文中的 71 个复选框记录正式小程序的实施进度，不记录计划编写进度；当前均未勾选是准确状态。2026-07-26 开工前审计中的 B0 阻断项、B1 模糊决策、导航合同和状态清理均已确认并写入；正式实施仍须用户另行明确授权。
+> 本文中的 71 个复选框记录正式小程序的实施进度。2026-07-26 开工前审计中的 B0 阻断项、B1 模糊决策、导航合同和状态清理均已确认并写入；Task 1 已获用户授权并开始实施。
 >
 > **执行要求：** 实施阶段必须逐个 Task 执行并在每个检查点复核。若使用自动化代理执行，应使用适合逐任务实施和复核的工作流，不得一次性生成全部页面后再统一修正。
 
@@ -324,7 +324,7 @@ export interface MemoryRepository {
 
 ### 实施步骤
 
-- [ ] **1.1 检查本机 Node、npm、HBuilderX 和微信开发者工具环境**
+- [x] **1.1 检查本机 Node、npm、HBuilderX 和微信开发者工具环境**
 
 运行：
 
@@ -337,7 +337,7 @@ npm --version
 
 Node 必须处于 Node.js 官方仍支持的 `Active LTS` 或 `Maintenance LTS` 周期，并与本次锁定的 uni-app、Vite、Vitest 和 `vue-tsc` 版本实际兼容。检测到 EOL 或非 LTS Node 时停止创建工程，先切换到兼容的受支持 LTS；不得仅因当前 `npm install` 暂时成功就继续。
 
-- [ ] **1.2 查询 uni-app Vue 3 CLI 依赖的兼容关系**
+- [x] **1.2 查询 uni-app Vue 3 CLI 依赖的兼容关系**
 
 运行：
 
@@ -351,7 +351,7 @@ npm view @vue/test-utils version peerDependencies --json
 
 只选择彼此 peer dependency 与本机 Node 版本兼容的稳定版本。不得通过 `--force` 或 `--legacy-peer-deps` 掩盖冲突。
 
-- [ ] **1.3 创建官方 Vue 3 + Vite + TypeScript CLI 骨架**
+- [x] **1.3 创建官方 Vue 3 + Vite + TypeScript CLI 骨架**
 
 使用 DCloud 官方当前推荐的 CLI 创建方式，目标目录必须是：
 
@@ -370,7 +370,7 @@ apps/pet-memory-miniapp
 5. `dist/dev/mp-weixin` 是开发预览产物，`dist/build/mp-weixin` 是生产构建产物，两者都不能手工编辑；
 6. AppID、开发者工具服务端口和真机权限按 1.7 的阶段门槛处理。
 
-- [ ] **1.4 安装并锁定已批准的开发依赖**
+- [x] **1.4 安装并锁定已批准的开发依赖**
 
 允许的测试依赖范围：
 
@@ -384,7 +384,7 @@ vue-tsc
 
 若实际 uni-app 兼容矩阵要求不同测试环境，应先记录原因；不得替换核心技术栈来迎合测试工具。
 
-- [ ] **1.5 写入最小启动测试**
+- [x] **1.5 写入最小启动测试**
 
 测试必须验证：
 
@@ -400,7 +400,7 @@ describe('M0 application bootstrap', () => {
 
 此测试只验证测试链路，不把业务逻辑塞进应用入口。
 
-- [ ] **1.6 配置脚本并执行完整基线验证**
+- [x] **1.6 配置脚本并执行完整基线验证**
 
 `package.json` 至少暴露：
 
@@ -426,13 +426,13 @@ npm run build:mp-weixin
 
 预期：三个命令退出码均为 `0`，且生成 `dist/build/mp-weixin`。
 
-- [ ] **1.7 检查开发产物导入路径**
+- [ ] **1.7 检查开发产物导入路径** ⬅ 外部阻塞：微信开发者工具尚未安装，模拟器导入待用户安装后验证
 
 运行开发构建，确认 `dist/dev/mp-weixin` 可被微信开发者工具导入。打开与预览分为三个阶段：
 
 | 阶段 | 目标 | 前置条件 | 本轮处理 |
 |---|---|---|---|
-| S 模拟器开发 | 在微信开发者工具模拟器查看页面和交互 | 开发产物可导入；可使用开发工具允许的测试模式 | Task 1 必须打通 |
+| S 模拟器开发 | 在微信开发者工具模拟器查看页面和交互 | 开发产物可导入；可使用开发工具允许的测试模式 | 优先打通；外部工具不可用时允许记录唯一阻碍 |
 | P 真机预览 | 在用户手机微信中预览 | 用户提供或确认可用 AppID，且微信账号具备项目权限 | 到需要真机预览时再配置 |
 | A 自动化采集 | Codex/脚本控制开发者工具并尝试截图 | 可用 AppID、开发者工具服务端口、实际兼容的自动化能力 | Task 2/10 现场探测，不提前承诺 |
 
@@ -455,7 +455,7 @@ npm run build:mp-weixin
 
 ## Task 2：设计系统与核心展示组件
 
-**状态：专项规格已完成并确认；代码尚未实施。**
+**状态：self-verified。2026-07-27 全部 9 个修复批次（A–I）完成，197 测试通过，typecheck 通过，等待独立复核。**
 
 Task 2 将独立定义设计令牌、排版算法、间距节奏、组件状态、照片展示、草稿材质、响应式规则、视觉回归基准和第三方 AI 实现约束。Task 3–10 只能依赖 Task 2 最终公开的组件接口，不得在业务页面中自行实现替代视觉。
 
@@ -468,7 +468,7 @@ Task 2 将独立定义设计令牌、排版算法、间距节奏、组件状态�
 - 创建：`src/styles/tokens.scss`
 - 创建：`src/styles/globals.scss`
 - 创建：`src/styles/texture.scss`
-- 创建：`src/assets/ui/draft-notice-paper.png`
+- 创建：`static/ui/draft-notice-paper.png`
 - 创建：`src/components/PageShell.vue`
 - 创建：`src/components/PrimaryButton.vue`
 - 创建：`src/components/TextAction.vue`
@@ -481,6 +481,7 @@ Task 2 将独立定义设计令牌、排版算法、间距节奏、组件状态�
 - 创建：`src/components/PhotoStack.vue`
 - 创建：`src/components/PhotoViewer.vue`
 - 创建：`src/components/MissingContentState.vue`
+- 创建：`src/components/DevPanel.vue`
 - 创建：`tests/components/design-system-contracts.test.ts`
 - 创建：`tests/components/PageShell.test.ts`
 - 创建：`tests/components/content-components.test.ts`
@@ -492,7 +493,7 @@ Task 2 将独立定义设计令牌、排版算法、间距节奏、组件状态�
 
 ### 实施步骤
 
-- [ ] **2.1 落地全局令牌与基础样式**
+- [x] **2.1 落地全局令牌与基础样式**
 
 将规格第 4 节的颜色、排版、间距、圆角、边框、阴影、控件与动效令牌逐项写入 `tokens.scss`。`globals.scss` 只建立画布、系统字体、盒模型、文本继承和减少动态效果规则；不得增加页面私有视觉值或全局纸纹。
 
@@ -502,7 +503,7 @@ Task 2 将独立定义设计令牌、排版算法、间距节奏、组件状态�
 - 禁止的中间字号、额外阴影和页面背景纹理没有出现；
 - 危险色、禁用状态和最小点击热区规则可追溯到共享令牌。
 
-- [ ] **2.2 实现 PageShell 与四类布局模板**
+- [x] **2.2 实现 PageShell 与四类布局模板**
 
 按规格第 5、6.2 节实现导航、安全区、微信胶囊避让、原生页面滚动和：
 
@@ -515,7 +516,7 @@ ReadingLayout
 
 `PageShell.test.ts` 必须覆盖 `320 / 393 / 480px`、键盘打开与关闭、底部操作下沉、长内容滚动、覆盖层滚动锁定和返回后的滚动恢复。
 
-- [ ] **2.3 实现基础操作与表单组件**
+- [x] **2.3 实现基础操作与表单组件**
 
 先写失败测试，再实现：
 
@@ -525,7 +526,7 @@ ReadingLayout
 
 覆盖默认、按下、禁用、等待、错误、两行文案、危险语义、焦点、说明文本、点击热区和单次事件纪律。组件不得读取 Store、调用 Repository 或执行导航。
 
-- [ ] **2.4 实现内容与缺失状态组件**
+- [x] **2.4 实现内容与缺失状态组件**
 
 实现：
 
@@ -535,7 +536,7 @@ ReadingLayout
 
 覆盖有图、无图、照片失效、长摘要、空列表、内容不存在和完整行点击语义。列表只渲染调用方数据，不自行排序、格式化日期或读取详情。
 
-- [ ] **2.5 实现弹窗与底部面板**
+- [x] **2.5 实现弹窗与底部面板**
 
 实现 `ConfirmDialog` 与 `BottomSheet`，覆盖：
 
@@ -546,7 +547,7 @@ ReadingLayout
 - 草稿冲突、删除范围和保存失败恢复；
 - 安全区与 `80%` 有效视口最大高度。
 
-- [ ] **2.6 实现照片展示基础组件**
+- [x] **2.6 实现照片展示基础组件**
 
 实现 `PhotoStack` 与 `PhotoViewer` 的纯展示和交互合同：
 
@@ -560,7 +561,7 @@ ReadingLayout
 
 本步骤只实现组件合同；相册选择、页面索引状态和照片生命周期在 Task 7 接入。
 
-- [ ] **2.7 制作草稿材质并实现 DraftNotice**
+- [x] **2.7 制作草稿材质并实现 DraftNotice**
 
 依据最终首页母版制作单张透明 PNG 草稿材质：
 
@@ -572,7 +573,7 @@ ReadingLayout
 
 将材质资产与最终首页母版放在同一比较输入中复核轮廓、胶带、纹理、阴影和文字层级。
 
-- [ ] **2.8 建立视觉回归归一化与能力探测**
+- [x] **2.8 建立视觉回归归一化与能力探测**
 
 实现并测试规格第 11 节的基准归一化：
 
@@ -583,7 +584,7 @@ ReadingLayout
 
 同时探测微信开发者工具 CLI 和自动截图能力。探测失败必须记录真实原因并启用用户提供 13 张标准截图的通道，不得伪造自动化成功，也不得因此阻断组件实现。
 
-- [ ] **2.9 运行 Task 2 组件与构建验证**
+- [x] **2.9 运行 Task 2 组件与构建验证**
 
 ```powershell
 npm run test:run -- tests/components/design-system-contracts.test.ts tests/components/PageShell.test.ts tests/components/content-components.test.ts tests/components/overlay-components.test.ts tests/components/photo-components.test.ts tests/components/DraftNotice.test.ts tests/unit/visual-baseline-normalization.test.ts
