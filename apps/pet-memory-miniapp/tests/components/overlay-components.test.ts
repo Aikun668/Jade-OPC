@@ -1,9 +1,16 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import ConfirmDialog from '../../src/components/ConfirmDialog.vue'
 import BottomSheet from '../../src/components/BottomSheet.vue'
 
 describe('ConfirmDialog', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
   const baseProps = {
     open: true,
     title: '确认删除',
@@ -45,20 +52,46 @@ describe('ConfirmDialog', () => {
     expect(wrapper.emitted('cancel')).toBeTruthy()
   })
 
-  it('disables cancel when pending', () => {
+  it('keeps cancel enabled during pending-hidden phase (first 150ms)', () => {
     const wrapper = mount(ConfirmDialog, {
       props: { ...baseProps, pending: true },
     })
     const textActions = wrapper.findAllComponents({ name: 'TextAction' })
     const cancelBtn = textActions[textActions.length - 1]
-    expect(cancelBtn.props('disabled')).toBe(true)
+    // Layout preserved during pending-hidden
+    expect(cancelBtn.props('disabled')).toBe(false)
   })
 
-  it('passes loading to primary button when pending', () => {
+  it('disables cancel after 150ms pending-visible phase', async () => {
     const wrapper = mount(ConfirmDialog, {
       props: { ...baseProps, pending: true },
     })
+    vi.advanceTimersByTime(160)
+    await wrapper.vm.$nextTick()
+    const textActions = wrapper.findAllComponents({ name: 'TextAction' })
+    const cancelBtn = textActions[textActions.length - 1]
+    expect(cancelBtn.props('disabled')).toBe(true)
+  })
+
+  it('does not emit cancel during pending-hidden phase', async () => {
+    const wrapper = mount(ConfirmDialog, {
+      props: { ...baseProps, pending: true },
+    })
+    const actions = wrapper.findAllComponents({ name: 'TextAction' })
+    await actions[actions.length - 1].vm.$emit('press')
+    expect(wrapper.emitted('cancel')).toBeFalsy()
+  })
+
+  it('shows loading on primary button after 150ms pending-visible', async () => {
+    const wrapper = mount(ConfirmDialog, {
+      props: { ...baseProps, pending: true },
+    })
+    // During pending-hidden, loading not yet visible
     const primary = wrapper.findComponent({ name: 'PrimaryButton' })
+    expect(primary.props('loading')).toBe(false)
+
+    vi.advanceTimersByTime(160)
+    await wrapper.vm.$nextTick()
     expect(primary.props('loading')).toBe(true)
   })
 
