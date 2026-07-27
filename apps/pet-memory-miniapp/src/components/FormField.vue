@@ -9,7 +9,7 @@
     </view>
 
     <!-- control area -->
-    <view class="form-field__control">
+    <view class="form-field__control" :class="{ 'form-field__control--error': error }">
       <slot />
     </view>
 
@@ -96,6 +96,13 @@ const displayMessage = computed(() => {
     > textarea,
     > input {
       border-color: $pm-color-olive;
+    }
+  }
+
+  &--error {
+    > textarea,
+    > input {
+      border-color: $pm-color-ink;
     }
   }
 }

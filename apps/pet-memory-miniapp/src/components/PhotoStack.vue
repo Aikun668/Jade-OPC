@@ -152,7 +152,7 @@ function handleOpen() {
 .photo-stack__canvas {
   position: relative;
   width: 100%;
-  aspect-ratio: calc(1 / #{$pm-photo-detail-ratio});
+  aspect-ratio: #{$pm-photo-detail-ratio}; // 1.18
 }
 
 .photo-layer-position {

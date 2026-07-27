@@ -103,7 +103,10 @@ defineEmits<{
 
 const slots = useSlots()
 
-const hitTarget = 44 // 88rpx in CSS px
+// JS cannot reference SCSS variables; these constants mirror
+// $pm-space-4 (32rpx) + $pm-form-action-gap (64rpx) = 96rpx, and $pm-nav-content-gap (24rpx).
+const TASK_FORM_BOTTOM_SPACE_RPX = '96rpx'
+const NAV_CONTENT_GAP_RPX = '24rpx'
 
 const hasIntro = computed(() => !!slots.intro)
 const hasActions = computed(() => !!slots.actions)
@@ -113,7 +116,7 @@ const statusBarStyle = computed(() => ({
 }))
 
 const navRowStyle = computed(() => ({
-  minHeight: 'var(--pm-nav-row-height, 44px)',
+  minHeight: 'var(--pm-nav-row-height, 88rpx)',
 }))
 
 const navRightStyle = computed(() => ({
@@ -122,7 +125,7 @@ const navRightStyle = computed(() => ({
 
 const columnStyle= computed(() => {
   if (props.layout === 'task-form' && !props.keyboardOpen) {
-    const minHeight = `calc(var(--pm-viewport-height, 100vh) - ${headerHeight()} - var(--pm-safe-bottom, 0px) - 96rpx - 24rpx)`
+    const minHeight = `calc(var(--pm-viewport-height, 100vh) - ${headerHeight()} - var(--pm-safe-bottom, 0px) - ${TASK_FORM_BOTTOM_SPACE_RPX} - ${NAV_CONTENT_GAP_RPX})`
     return { minHeight }
   }
   return {}

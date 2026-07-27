@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import PrimaryButton from '../../src/components/PrimaryButton.vue'
+import TextAction from '../../src/components/TextAction.vue'
 import FormField from '../../src/components/FormField.vue'
 
 describe('PrimaryButton', () => {
@@ -131,6 +132,63 @@ describe('PrimaryButton', () => {
       // CSS check: the danger active state should not use darken()
       // We verify via the danger-pressed token existing in tokens.scss
     })
+  })
+})
+
+describe('TextAction', () => {
+  it('renders default tone class', () => {
+    const wrapper = mount(TextAction, {
+      slots: { default: '操作' },
+    })
+    expect(wrapper.find('.text-action--default').exists()).toBe(true)
+  })
+
+  it('renders muted tone class', () => {
+    const wrapper = mount(TextAction, {
+      props: { tone: 'muted' },
+      slots: { default: '取消' },
+    })
+    expect(wrapper.find('.text-action--muted').exists()).toBe(true)
+  })
+
+  it('renders danger tone class', () => {
+    const wrapper = mount(TextAction, {
+      props: { tone: 'danger' },
+      slots: { default: '删除' },
+    })
+    expect(wrapper.find('.text-action--danger').exists()).toBe(true)
+  })
+
+  it('applies disabled class', () => {
+    const wrapper = mount(TextAction, {
+      props: { disabled: true },
+      slots: { default: '操作' },
+    })
+    expect(wrapper.find('.text-action--disabled').exists()).toBe(true)
+  })
+
+  it('does not emit press when disabled', async () => {
+    const wrapper = mount(TextAction, {
+      props: { disabled: true },
+      slots: { default: '操作' },
+    })
+    await wrapper.trigger('click')
+    expect(wrapper.emitted('press')).toBeFalsy()
+  })
+
+  it('emits press on click when enabled', async () => {
+    const wrapper = mount(TextAction, {
+      slots: { default: '操作' },
+    })
+    await wrapper.trigger('click')
+    expect(wrapper.emitted('press')).toHaveLength(1)
+  })
+
+  it('renders slot content', () => {
+    const wrapper = mount(TextAction, {
+      slots: { default: '继续写' },
+    })
+    expect(wrapper.text()).toContain('继续写')
   })
 })
 

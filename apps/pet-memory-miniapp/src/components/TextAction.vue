@@ -22,7 +22,7 @@ export interface TextActionProps {
   disabled?: boolean
 }
 
-withDefaults(defineProps<TextActionProps>(), {
+const props = withDefaults(defineProps<TextActionProps>(), {
   tone: 'default',
 })
 
@@ -31,6 +31,7 @@ const emit = defineEmits<{
 }>()
 
 function handlePress() {
+  if (props.disabled) return
   emit('press')
 }
 </script>
