@@ -7,12 +7,14 @@
     <view
       class="bottom-sheet__mask"
       :class="{ 'bottom-sheet__mask--interactive': closeOnMask }"
-      @click.stop="closeOnMask && $emit('close')"
+      @click.stop="closeOnMask && !pending && $emit('close')"
     />
 
     <view class="bottom-sheet__panel">
       <text v-if="title" class="bottom-sheet__title">{{ title }}</text>
       <text v-if="description" class="bottom-sheet__desc">{{ description }}</text>
+
+      <text v-if="error" class="bottom-sheet__error">{{ error }}</text>
 
       <view class="bottom-sheet__body">
         <slot />
@@ -33,10 +35,13 @@ export interface BottomSheetProps {
   title?: string
   description?: string
   closeOnMask?: boolean
+  pending?: boolean
+  error?: string
 }
 
 const props = withDefaults(defineProps<BottomSheetProps>(), {
   closeOnMask: true,
+  pending: false,
 })
 
 const emit = defineEmits<{
@@ -96,6 +101,13 @@ watch(() => props.open, (val) => {
 .bottom-sheet__desc {
   font-size: $pm-font-support;
   color: $pm-color-muted;
+  line-height: $pm-leading-body;
+  margin-bottom: $pm-space-4;
+}
+
+.bottom-sheet__error {
+  font-size: $pm-font-support;
+  color: $pm-color-danger;
   line-height: $pm-leading-body;
   margin-bottom: $pm-space-4;
 }

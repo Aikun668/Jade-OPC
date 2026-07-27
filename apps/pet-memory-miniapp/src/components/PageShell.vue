@@ -133,7 +133,7 @@ const columnStyle= computed(() => {
 
 function headerHeight(): string {
   if (props.layout === 'quiet-landing') return '0px'
-  return 'calc(var(--pm-status-bar-height, 0px) + var(--pm-nav-row-height, 44px))'
+  return 'calc(var(--pm-status-bar-height, 0px) + var(--pm-nav-row-height, 88rpx))'
 }
 </script>
 

@@ -9,10 +9,13 @@
       <text class="confirm-dialog__title">{{ title }}</text>
       <text v-if="description" class="confirm-dialog__desc">{{ description }}</text>
 
+      <!-- error message -->
+      <text v-if="error" class="confirm-dialog__error">{{ error }}</text>
+
       <view class="confirm-dialog__actions">
         <PrimaryButton
-          :loading="pending"
-          :loading-label="pending ? pendingLabel : undefined"
+          :loading="pendingPhase === 'pending-visible'"
+          :loading-label="pendingPhase !== 'idle' ? pendingLabel : undefined"
           :variant="tone === 'danger' ? 'danger' : 'primary'"
           @press="$emit('confirm')"
         >
@@ -20,8 +23,8 @@
         </PrimaryButton>
         <TextAction
           tone="muted"
-          :disabled="pending"
-          @press="$emit('cancel')"
+          :disabled="pendingPhase === 'pending-visible' || !!error"
+          @press="handleCancel"
         >
           {{ cancelLabel }}
         </TextAction>
@@ -31,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, ref, watch, onBeforeUnmount } from 'vue'
 import PrimaryButton from './PrimaryButton.vue'
 import TextAction from './TextAction.vue'
 
@@ -45,6 +48,7 @@ export interface ConfirmDialogProps {
   cancelLabel: string
   tone?: ConfirmDialogTone
   pending?: boolean
+  error?: string
 }
 
 const props = withDefaults(defineProps<ConfirmDialogProps>(), {
@@ -58,13 +62,51 @@ const emit = defineEmits<{
   closed: []
 }>()
 
+const PENDING_HIDDEN_MS = 150
+
+const pendingPhase = ref<'idle' | 'pending-hidden' | 'pending-visible'>('idle')
+let pendingTimer: ReturnType<typeof setTimeout> | null = null
+
+function clearPendingTimer() {
+  if (pendingTimer !== null) {
+    clearTimeout(pendingTimer)
+    pendingTimer = null
+  }
+}
+
+watch(() => props.pending, (val) => {
+  clearPendingTimer()
+  if (val) {
+    pendingPhase.value = 'pending-hidden'
+    pendingTimer = setTimeout(() => {
+      pendingPhase.value = 'pending-visible'
+      pendingTimer = null
+    }, PENDING_HIDDEN_MS)
+  } else {
+    pendingPhase.value = 'idle'
+  }
+})
+
+watch(() => props.open, (val) => {
+  if (!val) {
+    clearPendingTimer()
+    pendingPhase.value = 'idle'
+    emit('closed')
+  }
+})
+
+onBeforeUnmount(() => {
+  clearPendingTimer()
+})
+
 const pendingLabel = computed(() => {
   return props.tone === 'danger' ? '正在删除...' : '保存中...'
 })
 
-watch(() => props.open, (val) => {
-  if (!val) emit('closed')
-})
+function handleCancel() {
+  if (pendingPhase.value !== 'idle') return
+  emit('cancel')
+}
 </script>
 
 <style lang="scss" scoped>
@@ -108,6 +150,12 @@ watch(() => props.open, (val) => {
 .confirm-dialog__desc {
   font-size: $pm-font-support;
   color: $pm-color-muted;
+  line-height: $pm-leading-body;
+}
+
+.confirm-dialog__error {
+  font-size: $pm-font-support;
+  color: $pm-color-danger;
   line-height: $pm-leading-body;
 }
 
