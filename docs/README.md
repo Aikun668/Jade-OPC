@@ -39,6 +39,10 @@
 
 [Task 1 工程执行复盘](project/retrospectives/2026-07-26-task-1-execution-retrospective.md) 记录工程骨架实施中暴露的执行与收口问题，并约束后续 Builder 如何划清 Task 边界、验证真实工具链、同步文档状态和报告完成结论。
 
+## 项目验收标准
+
+[Task 2 设计系统与核心展示组件验收标准](project/acceptance/2026-07-27-task-2-design-system-acceptance-standard.md) 与 [Task 3 领域模型、单快照与 LocalMemoryRepository 验收标准](project/acceptance/2026-07-27-task-3-domain-repository-acceptance-standard.md) 将正式规格转换为 Builder 自证、独立 Reviewer 反证和小批次收口所使用的验收门；它们不替代产品规格和实施计划。
+
 ## 进行中的页面与设计决策
 
 [M0 工程骨架与设计系统决策记录](product/specs/2026-07-21-initial-engineering-skeleton-and-design-system-decisions.md) 汇总当前已确认的页面范围、草稿规则、AI mock、视觉、按钮和照片细节；未确认项仍按“先提案、后确认、再落档”的顺序处理。

@@ -23,7 +23,7 @@
         </PrimaryButton>
         <TextAction
           tone="muted"
-          :disabled="pendingPhase === 'pending-visible' || !!error"
+          :disabled="pendingPhase === 'pending-visible'"
           @press="handleCancel"
         >
           {{ cancelLabel }}
@@ -85,7 +85,7 @@ watch(() => props.pending, (val) => {
   } else {
     pendingPhase.value = 'idle'
   }
-})
+}, { immediate: true })
 
 watch(() => props.open, (val) => {
   if (!val) {
