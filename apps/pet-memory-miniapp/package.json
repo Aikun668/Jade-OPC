@@ -11,6 +11,7 @@
     "build:mp-weixin": "uni build -p mp-weixin && node scripts/check-wxss-compat.mjs",
     "build:verify-components": "node scripts/build-verify-components.mjs",
     "verify:task3": "npm run test:run -- tests/unit/snapshot-validation.test.ts tests/unit/local-memory-repository.test.ts && npm run typecheck && npm run build:mp-weixin && node scripts/verify-task3.mjs",
+    "verify:task4": "npm run test:run -- tests/unit/route-params.test.ts tests/unit/navigation.test.ts tests/unit/app-store.test.ts tests/unit/memory-store.test.ts tests/unit/dev-scenarios.test.ts && npm run typecheck && npm run build:mp-weixin && node scripts/verify-task4.mjs",
     "clean:test-artifacts": "node -e \"var f=require('fs');['scripts/visual-regression/test-input','scripts/visual-regression/test-output'].forEach(d=>{if(f.existsSync(d))f.rmSync(d,{recursive:true})})\""
   },
   "dependencies": {

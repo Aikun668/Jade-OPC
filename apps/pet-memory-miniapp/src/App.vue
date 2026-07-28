@@ -1,6 +1,11 @@
 <script setup lang="ts">
-// M0 application lifecycle entry point.
-// App.vue is NOT a page — no <template> view elements per uni-app spec.
+import { onLaunch } from '@dcloudio/uni-app'
+import { useAppStore } from './stores/app'
+
+onLaunch(() => {
+  const appStore = useAppStore()
+  appStore.bootstrap()
+})
 </script>
 
 <style lang="scss">

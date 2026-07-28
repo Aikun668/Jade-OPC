@@ -13,7 +13,9 @@
     "setting": {
       "urlCheck": false,
       "es6": true,
-      "minified": false
+      "minified": false,
+      "ignoreDevUnusedFiles": false,
+      "ignoreUploadUnusedFiles": false
     }
   }
 }
