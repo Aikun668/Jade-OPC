@@ -2,6 +2,8 @@ export type SampleMode = 'empty' | 'complete'
 
 export type RecordEntry = 'daily' | 'photo' | 'meeting' | 'relationship'
 
+export type TextRecordEntry = RecordEntry
+
 export type AssetPersistence = 'session-only' | 'bundled'
 
 export interface MemorySpace {

@@ -615,10 +615,11 @@ useMemoryStore
 ├─ spaces
 ├─ memories
 ├─ drafts
+├─ assets
 └─ 领域读取与写入 actions
 ```
 
-`useAppStore` 只负责应用初始化、`empty / complete` 样本模式、数据版本和开发模式。`useMemoryStore` 负责空间、正式记忆、每空间一条进行中草稿，以及调用 Repository 的业务动作。不得把领域内容复制到两个 Store。
+`useAppStore` 只负责应用初始化、`empty / complete` 样本模式、数据版本和开发模式。`useMemoryStore` 负责空间、正式记忆、每空间一条进行中草稿、资产索引，以及调用 Repository 的业务动作。不得把领域内容复制到两个 Store。
 
 弹窗是否打开、保存中、当前输入、当前错误和底部面板等短生命周期 UI 状态使用页面内的 `ref / reactive` 管理，不建立 `useUiStore`。页面卸载时这些状态自然释放，避免跨页面残留。只有确实需要跨路由保持的业务内容才能进入 `useMemoryStore`。
 

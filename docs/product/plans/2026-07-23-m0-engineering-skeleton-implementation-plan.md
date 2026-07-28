@@ -743,6 +743,10 @@ npm run typecheck
 
 **文件：**
 
+- 修改：`package.json`，增加 Task 4 单一验证入口，不新增生产依赖
+- 修改：`src/main.ts`，注册唯一 Pinia 实例
+- 修改：`src/App.vue`，只接入应用生命周期 bootstrap，不添加页面视图
+- 修改：`src/pages/index/index.vue`，在 Task 5 替换正式页面前作为仅开发态 `DevPanel` 宿主
 - 创建：`src/stores/app.ts`
 - 创建：`src/stores/memory.ts`
 - 创建：`src/types/routes.ts`
@@ -765,7 +769,8 @@ npm run typecheck
 - `spaceId` / `memoryId` 缺失；
 - ID 不符合内部格式；
 - `entry` 只接受 `daily|photo|meeting|relationship`；
-- `entry=photo` 只允许从照片记录的“继续讲述”路径进入，照片引用从 Store/草稿读取，不进入路由；
+- `entry=photo` 在参数层属于合法白名单值；“只能从照片记录的继续讲述进入”由照片页的路由构造与后续页面集成测试保证，不能由只接收 query 的解析函数猜测上一页；
+- 照片引用始终从 Store/草稿读取，不进入路由；
 - 不读取任何序列化对象参数。
 
 实现：
@@ -825,6 +830,7 @@ Actions 与 `MemoryRepository` 一一对应。每个 action 必须等待 Reposit
 
 ```text
 App 启动
+→ main.ts 注册唯一 Pinia 实例
 → appStore 标记 loading
 → repository.bootstrap()
 → memoryStore 接收完整快照
@@ -846,7 +852,7 @@ bootstrap 完成前不得显示“内容不存在”。
 - 模拟无权限；
 - 查看当前路由、实体 ID 和 schemaVersion。
 
-生产条件编译后，入口和调试信息均不得出现在产物中。
+Task 4 在当前临时启动页挂载仅开发态入口，使上述场景可以被真实操作；Task 5 替换临时页时必须把入口迁移到正式页面的开发态宿主。生产条件编译后，入口、场景控制代码和调试信息均不得出现在产物中。
 
 - [ ] **4.6 运行状态与路由验证**
 
