@@ -41,7 +41,7 @@
 
 ## 项目验收标准
 
-[Task 2 设计系统与核心展示组件验收标准](project/acceptance/2026-07-27-task-2-design-system-acceptance-standard.md)、[Task 3 领域模型、单快照与 LocalMemoryRepository 验收标准](project/acceptance/2026-07-27-task-3-domain-repository-acceptance-standard.md) 与 [Task 4 Pinia、应用初始化、路由导航与开发工具验收标准](project/acceptance/2026-07-28-task-4-state-routing-devtools-acceptance-standard.md) 将正式规格转换为 Builder 自证、独立 Reviewer 反证和小批次收口所使用的验收门；它们不替代产品规格和实施计划。
+[Task 2 设计系统与核心展示组件验收标准](project/acceptance/2026-07-27-task-2-design-system-acceptance-standard.md)、[Task 3 领域模型、单快照与 LocalMemoryRepository 验收标准](project/acceptance/2026-07-27-task-3-domain-repository-acceptance-standard.md)、[Task 4 Pinia、应用初始化、路由导航与开发工具验收标准](project/acceptance/2026-07-28-task-4-state-routing-devtools-acceptance-standard.md)、[Task 5A 空间回看基础构建及验收标准](project/acceptance/2026-07-28-task-5a-space-browsing-acceptance-standard.md)与 [Task 5B 首次进入、隐私与创建空间构建及验收标准](project/acceptance/2026-07-28-task-5b-onboarding-space-creation-acceptance-standard.md) 将正式规格转换为 Builder 自证、独立 Reviewer 反证和小批次收口所使用的验收门；它们不替代产品规格和实施计划。
 
 ## 进行中的页面与设计决策
 

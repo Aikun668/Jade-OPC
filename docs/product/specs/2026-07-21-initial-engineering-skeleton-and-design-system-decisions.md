@@ -88,6 +88,8 @@ Ta 的空间首页
 
 首次说明页点击“开始”后，直接进入“给 Ta 留一个空间”的创建页，不经过“我的记忆空间”的空状态列表。空状态列表只用于用户删除最后一个空间后，或用户日后主动回到空间列表但尚未拥有空间的情形；首次路径应当开门见山。
 
+首次说明只展示一次。应用 bootstrap 完成后，`hasCompletedOnboarding: false` 才停留在首次说明；为 `true` 时进入“我的记忆空间”。用户点击“开始”时先持久化完成状态，成功后进入创建页；以后即使没有空间或删除最后一个空间，也进入空间列表空状态，不重新显示首次说明。
+
 创建页当场提供“添加一张照片（可选）”入口，方便愿意使用照片建立归属感的用户；该入口为低强调操作。用户不选照片也可直接创建，系统不得将其提示为资料缺失或未完成。创建成功后直接进入 Ta 的空间首页，让用户先看到已经准备好的私人空间与自然可见的“留下一段”主操作；不得弹出教学遮罩、连续追问，或以任何方式催促其立刻记录。
 
 创建空间时，Ta 的名字仅做最小校验：提交前去除首尾空格、不得为空、最多 20 个字符；不限制昵称形式、中英文或物种相关信息。名称为空时，在输入框下以中性文案提示“先写下 Ta 的名字。”，不使用红色、感叹号、“必填项”等工具化报错表达。
@@ -518,11 +520,12 @@ M0 不实现真实微信登录、CloudBase、真实照片持久化、真实 AI�
 
 | 样本 | 内容 | 用途 |
 |---|---|---|
-| 空状态样本 | 没有任何 Ta 的空间 | 验收首次说明、隐私同意、创建空间流程 |
-| 完整样本 | 团团：有空间照片、两段正式记忆、一段草稿，其中一段有多张照片；豆豆：无空间照片、无正式记忆 | 验收空间列表、草稿续写、最近留下、空空间与多图详情 |
+| 空状态样本 | `hasCompletedOnboarding: false`，没有任何 Ta 的空间 | 验收真正首次进入、隐私说明和创建空间流程 |
+| 完整样本 | `hasCompletedOnboarding: true`；团团：有空间照片、两段正式记忆、一段草稿，其中一段有多张照片；豆豆：无空间照片、无正式记忆 | 验收空间列表、草稿续写、最近留下、空空间与多图详情 |
 
 - 用户首次体验默认使用空状态，不出现虚构示例宠物；
 - 完整样本只能通过开发者重置工具启用，用于内部验收；
+- “已完成首次说明但没有空间”通过空样本点击“开始”、在创建页取消后进入 02 复现，不新增第三套样本；
 - 两套样本足以覆盖 M0 状态，不额外堆砌假数据。
 
 ## 16. 身份与登录时机
@@ -609,6 +612,7 @@ useAppStore
 ├─ bootstrapStatus
 ├─ sampleMode
 ├─ schemaVersion
+├─ hasCompletedOnboarding
 └─ devMode
 
 useMemoryStore
@@ -619,7 +623,7 @@ useMemoryStore
 └─ 领域读取与写入 actions
 ```
 
-`useAppStore` 只负责应用初始化、`empty / complete` 样本模式、数据版本和开发模式。`useMemoryStore` 负责空间、正式记忆、每空间一条进行中草稿、资产索引，以及调用 Repository 的业务动作。不得把领域内容复制到两个 Store。
+`useAppStore` 只负责应用初始化、`empty / complete` 样本模式、数据版本、首次说明完成状态和开发模式。`useMemoryStore` 负责空间、正式记忆、每空间一条进行中草稿、资产索引，以及调用 Repository 的业务动作。不得把领域内容复制到两个 Store。
 
 弹窗是否打开、保存中、当前输入、当前错误和底部面板等短生命周期 UI 状态使用页面内的 `ref / reactive` 管理，不建立 `useUiStore`。页面卸载时这些状态自然释放，避免跨页面残留。只有确实需要跨路由保持的业务内容才能进入 `useMemoryStore`。
 
@@ -691,6 +695,7 @@ interface RepositoryWriteResult<T> {
 
 interface MemoryRepository {
   bootstrap(): Promise<MemorySnapshot>
+  completeOnboarding(): Promise<MemorySnapshot>
 
   createSpace(input: CreateSpaceInput): Promise<RepositoryWriteResult<MemorySpace>>
   updateSpace(input: UpdateSpaceInput): Promise<RepositoryWriteResult<MemorySpace>>
@@ -735,6 +740,7 @@ M0 使用一个版本化快照键 `pet-memory:m0:snapshot`，不把业务数据�
 interface MemorySnapshot {
   schemaVersion: 1
   sampleMode: 'empty' | 'complete'
+  hasCompletedOnboarding: boolean
   spaces: MemorySpace[]
   memories: MemoryItem[]
   drafts: MemoryDraft[]
@@ -743,6 +749,10 @@ interface MemorySnapshot {
 ```
 
 - `bootstrap()` 负责读取、校验和迁移快照；无法识别的未来版本不得被当前程序静默覆盖；
+- `hasCompletedOnboarding` 只表示用户是否已离开首次说明。用户点击 01 的“开始”时先通过 Repository 原子写入 `true`，成功后才进入 03；查看隐私说明不改变它；
+- `completeOnboarding()` 写入超过 `150ms` 时主按钮显示“正在准备…”；失败时停留 01 并显示“刚才没有准备好，可以再试一次。”，不得先导航再补写；
+- M0 发布前继续收口在 `schemaVersion: 1`。旧 v1 快照缺少该字段时：已有空间归一化为 `true`，无空间归一化为 `false`；发现已有空间但字段为 `false` 时必须保留数据并修正为 `true`；
+- `resetSample('empty')` 固定恢复 `hasCompletedOnboarding: false`；`resetSample('complete')` 固定为 `true`；
 - 每个 `spaceId` 最多存在一条进行中的记录草稿；Repository 写入时再次校验，不只依赖页面限制；
 - 页面保留当前输入，Repository 写入成功后 Store 才提交正式状态并导航；失败时页面输入仍在，Store 不伪装保存成功；
 - `sampleMode` 只用于开发数据选择，不成为用户业务字段；

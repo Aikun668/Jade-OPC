@@ -60,7 +60,7 @@ Task 4 不得为了证明来源而增加私人内容、完整草稿、照片 URI
 
 ### 2.3 Store 领域范围
 
-`useMemoryStore` 管理完整快照中的：
+`useAppStore` 额外管理快照中的 `hasCompletedOnboarding`；`useMemoryStore` 管理完整快照中的：
 
 ```text
 spaces
@@ -366,6 +366,7 @@ export type BootstrapStatus = 'idle' | 'loading' | 'ready' | 'error'
 |---|---|
 | `T4C-M06` | 初始状态为 `idle` |
 | `T4C-M07` | Store 只管理 bootstrap 状态、sampleMode、schemaVersion、devMode 和初始化错误分类 |
+| `T4C-M43` | appStore 同步管理 `hasCompletedOnboarding`，不复制其他领域实体 |
 | `T4C-M08` | 不复制 spaces、memories、drafts 或 assets |
 | `T4C-M09` | loading、ready、error 转换由明确 action 完成 |
 | `T4C-M10` | 初始化错误分类可转换成用户可理解状态，不保存原始私人快照 |
@@ -395,6 +396,7 @@ Actions 与 `MemoryRepository` 写操作一一对应：
 | `T4C-M22` | reject 会继续传播或被明确分类，不伪装成功 |
 | `T4C-M23` | 草稿转正式记忆只调用一次 `saveMemory`，不追加 `deleteDraft` |
 | `T4C-M24` | resetSample 同步更新 memoryStore 领域状态和 appStore 元数据 |
+| `T4C-M44` | appStore.completeOnboarding 等待 Repository 成功后同步完整快照和 true；失败保持原状态 |
 | `T4C-M25` | action 不负责页面导航、Toast、确认弹窗或键盘状态 |
 
 ### 7.6 Getters 门
@@ -419,7 +421,7 @@ App onLaunch
 → appStore loading
 → repository.bootstrap()
 → memoryStore 接收完整快照
-→ appStore 同步 sampleMode / schemaVersion
+→ appStore 同步 sampleMode / schemaVersion / hasCompletedOnboarding
 → appStore ready
 ```
 
@@ -433,6 +435,7 @@ App onLaunch
 | `T4C-M39` | error 时保留可重试路径，不留下半提交领域状态 |
 | `T4C-M40` | 页面可依据 loading/ready/error 决定状态，不在 loading 时判断实体不存在 |
 | `T4C-M41` | 重复生命周期事件不会并发发起重复 bootstrap |
+| `T4C-M42` | ready 后 false 留在 01，true 归一化到 02；已有空间时不得重新展示 01 |
 
 ### 7.8 产物门
 
@@ -471,6 +474,7 @@ Reviewer 至少执行三项：
 | ID | 机器门 |
 |---|---|
 | `T4D-M01` | 切换 `empty / complete` 样本并通过 Repository resetSample 生效 |
+| `T4D-M24` | empty 同时恢复 onboarding=false；complete 使用 true |
 | `T4D-M02` | 重置本地体验数据后两个 Store 同步完整快照 |
 | `T4D-M03` | AI mock 场景只接受 `success / insufficient / unavailable` |
 | `T4D-M04` | 可显式开关保存失败模拟 |

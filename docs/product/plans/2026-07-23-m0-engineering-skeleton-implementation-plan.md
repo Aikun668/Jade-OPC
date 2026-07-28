@@ -213,6 +213,7 @@ export interface MemoryDraft {
 export interface MemorySnapshot {
   schemaVersion: 1
   sampleMode: SampleMode
+  hasCompletedOnboarding: boolean
   spaces: MemorySpace[]
   memories: MemoryItem[]
   drafts: MemoryDraft[]
@@ -267,6 +268,7 @@ export interface RepositoryWriteResult<T> {
 
 export interface MemoryRepository {
   bootstrap(): Promise<MemorySnapshot>
+  completeOnboarding(): Promise<MemorySnapshot>
   createSpace(input: CreateSpaceInput): Promise<RepositoryWriteResult<MemorySpace>>
   updateSpace(input: UpdateSpaceInput): Promise<RepositoryWriteResult<MemorySpace>>
   deleteSpace(spaceId: string): Promise<MemorySnapshot>
@@ -288,6 +290,7 @@ export interface MemoryRepository {
 - `SaveMemoryInput` 至少包含非空原话或一张照片，最多 9 张；
 - `UpdateMemoryInput` 不允许修改既有记忆照片；
 - 写操作成功后返回完整快照，Store 使用返回快照整体更新。
+- `completeOnboarding()` 只把 `hasCompletedOnboarding` 设为 `true`，并遵守同一候选快照校验与原子提交管线。
 
 `saveMemory` 若接收来源草稿，必须在一次快照写入中原子完成正式记忆创建、资产归属转换与来源草稿删除。写入失败时三者都保持原状；Store 不得组合调用 `saveMemory` 与 `deleteDraft` 来模拟该操作。
 
@@ -674,6 +677,7 @@ export function expireSessionAssets(snapshot: MemorySnapshot): MemorySnapshot
 使用内存 `StorageAdapter` 和确定性 `Clock`、`IdFactory`，覆盖：
 
 - 首次 bootstrap 写入空样本；
+- 首次说明完成状态写入成功、失败与幂等；
 - 创建、修改和删除空间；
 - 保存、修改和删除正式记忆；
 - 保存草稿时替换同空间既有草稿，而不是增加第二条；
@@ -682,6 +686,7 @@ export function expireSessionAssets(snapshot: MemorySnapshot): MemorySnapshot
 - 删除空间级联删除该空间的记忆、草稿和资产；
 - 写入失败时不修改内存快照；
 - `resetSample('complete')` 返回完整样本；
+- `resetSample('empty')` 固定恢复 `hasCompletedOnboarding: false`，`resetSample('complete')` 固定使用 `true`；
 - 完整样本含团团与豆豆，并覆盖有图、有草稿、无图、无记忆状态。
 
 - [ ] **3.4 实现 StorageAdapter 和 UniStorageAdapter**
@@ -804,6 +809,7 @@ Store 只管理：
 - `bootstrapStatus`
 - `sampleMode`
 - `schemaVersion`
+- `hasCompletedOnboarding`
 - `devMode`
 - 初始化错误的用户可理解分类
 
@@ -834,6 +840,7 @@ App 启动
 → appStore 标记 loading
 → repository.bootstrap()
 → memoryStore 接收完整快照
+→ appStore 接收 hasCompletedOnboarding
 → appStore 标记 ready
 → 页面才判断内容是否存在
 ```
@@ -851,6 +858,12 @@ bootstrap 完成前不得显示“内容不存在”。
 - 模拟照片失败；
 - 模拟无权限；
 - 查看当前路由、实体 ID 和 schemaVersion。
+
+开发场景语义固定为：
+
+- `empty` 同时恢复 `hasCompletedOnboarding: false`，用于复现真正首次进入；
+- `complete` 使用 `hasCompletedOnboarding: true`，直接进入空间列表；
+- “已看过说明但没有空间”不新增第三种样本模式，通过 empty → 点击开始 → 创建页取消 → 02 空状态复现。
 
 Task 4 在当前临时启动页挂载仅开发态入口，使上述场景可以被真实操作；Task 5 替换临时页时必须把入口迁移到正式页面的开发态宿主。生产条件编译后，入口、场景控制代码和调试信息均不得出现在产物中。
 
@@ -874,140 +887,148 @@ npm run build:mp-weixin
 
 ## Task 5：首次进入、创建空间与回看路径
 
-**目标：** 建立不含记录写入的空间创建、列表和回看骨架。
+**目标：** 第一次装配正式页面，先建立稳定回看落点，再完成首次进入与创建空间闭环。Task 5 不实现记录、详情或设置业务，但必须为其保留准确的非敏感路由合同。
+
+**执行顺序：**
+
+```text
+Task 5A：02 我的记忆空间 → 04 空间首页 → 08 全部记忆
+→ 独立 Reviewer 小闭环
+Task 5B：01 首次说明 ↔ 13 隐私说明；01 → 03 创建空间 → 04
+→ Task 5 总集成验收
+```
+
+详细执行与验收门分别位于：
+
+- `docs/project/acceptance/2026-07-28-task-5a-space-browsing-acceptance-standard.md`
+- `docs/project/acceptance/2026-07-28-task-5b-onboarding-space-creation-acceptance-standard.md`
 
 **文件：**
 
-- 删除：Task 1 官方模板的最小启动页及其仅供模板使用的示例素材（实际路径在 Task 1 创建后记录）
-- 创建：`src/pages/onboarding/index.vue`
+- 修改：`package.json`，增加 `verify:task5a`、`verify:task5b` 与聚合 `verify:task5`
+- 修改：`src/pages.json`，5A 注册 02/04/08，5B 再注册 01/03/13 并把 01 设为首次入口
+- 修改：`src/adapters/navigation.ts`，把空间列表正式路径从临时 `/pages/index/index` 改为 `/pages/spaces/index`
+- 删除：5B 确认 01 可构建后，删除 Task 1 临时 `src/pages/index/index.vue` 及仅供模板使用的素材
 - 创建：`src/pages/spaces/index.vue`
-- 创建：`src/pages/space-create/index.vue`
 - 创建：`src/pages/space-home/index.vue`
 - 创建：`src/pages/memories/index.vue`
-- 创建：`src/features/spaces/space-form.ts`
+- 创建：`src/pages/onboarding/index.vue`
+- 创建：`src/pages/space-create/index.vue`
+- 创建：`src/pages/privacy/index.vue`
 - 创建：`src/features/memories/memory-summary.ts`
+- 创建：`src/features/spaces/space-form.ts`
 - 创建：`src/adapters/photo-picker.ts`
 - 创建：`src/adapters/uni-photo-picker.ts`
-- 测试：`tests/unit/space-form.test.ts`
 - 测试：`tests/unit/memory-summary.test.ts`
-- 测试：`tests/components/space-create-page.test.ts`
+- 测试：`tests/unit/space-form.test.ts`
 - 测试：`tests/components/spaces-page.test.ts`
 - 测试：`tests/components/space-home-page.test.ts`
 - 测试：`tests/components/memories-page.test.ts`
+- 测试：`tests/components/onboarding-page.test.ts`
+- 测试：`tests/components/space-create-page.test.ts`
+- 测试：`tests/components/privacy-page.test.ts`
+- 测试：`tests/components/task5-journey.test.ts`
 
-**依赖：** Task 2 的公开组件接口；Task 3 Repository；Task 4 Store 与路由解析。
+**依赖：** Task 2 的公开组件接口；Task 3 Repository；Task 4 Store、bootstrap、路由解析和 NavigationAdapter。
 
-### 实施步骤
+### Task 5A：空间回看基础
 
-- [ ] **5.1 实现名称校验纯函数**
+- [ ] **5.1 先建立记忆摘要与空间列表视图模型失败测试，再实现纯函数**
 
-规则：
+覆盖：
+
+- 摘要只取用户原话，不以 AI 候选稿替代；
+- 最多显示两行，视觉截断由共享组件完成，纯函数不破坏原文；
+- 只使用第一张 `available` 资产作为缩略图；
+- `expired` 或悬空资产不输出破图 URI；
+- 日期来自固定输入，不读取当前系统时间；
+- 无正式记忆时返回“还没有留下记忆”所需状态。
+
+- [ ] **5.2 实现 02 我的记忆空间**
+
+覆盖 empty、with-spaces、loading 和 error；使用 Store 的正式排序结果。整条空间条目进入 04，不放设置、删除或更多按钮。创建入口指向 03 的固定路由合同；在 5B 创建目标页前，不得增加占位页面或伪造完成状态。
+
+- [ ] **5.3 实现 04 空间首页只读状态**
+
+覆盖无草稿/无记忆、有草稿/无记忆、无草稿/有记忆、有草稿/有记忆、路由非法、实体不存在和 bootstrap 未完成。首页最多显示最近三条正式记忆，使用 `DraftNotice`、`MemoryList` 和既有布局组件，不实现快速编辑或删除。
+
+05 记录入口、09 记忆详情和 12 空间设置由后续 Task 创建。Task 5A 只验证点击事件构造准确路由且不携带私人内容；不得创建占位页、死按钮或声称目标流程已可用。
+
+- [ ] **5.4 实现 08 全部记忆并关闭 Task 5A**
+
+使用时间倒序档案序列，覆盖 empty、with-items、photo-expired、路由非法、实体不存在和 bootstrap 等待状态。完成：
+
+```powershell
+npm run verify:task5a
+```
+
+并取得 02、04、08 三张 `393 × 852` 微信开发者工具标准截图。Task 5A 通过 Reviewer 后才能开始 5B；不得提前宣布整个 Task 5 完成。
+
+### Task 5B：首次进入、隐私与创建空间
+
+- [ ] **5.5 先建立名称校验与 PhotoPicker 失败测试，再实现适配器**
+
+名称规则：
 
 - 提交前去除首尾空格；
 - 空名称提示“先写下 Ta 的名字。”；
 - 最多 20 个字符；
 - 不限制语言、昵称形式或物种。
 
-- [ ] **5.2 实现首次说明**
+PhotoPicker 使用既有固定接口，空间封面 `remaining` 固定为 1。取消、拒绝和失败必须区分；Task 7 复用同一接口，不另建第二套服务。
 
-先将 `src/pages.json` 的首个页面切换为 `/pages/onboarding/index`，确认正式首次说明页可构建后，再删除 Task 1 保留的官方模板启动页及其仅供模板使用的示例素材。不得删除仍被正式页面引用的通用资产。
+- [ ] **5.6 实现 01 首次说明与前移后的 13 隐私说明**
 
-页面只包含：
+01 点击“开始”先调用 `appStore.completeOnboarding()`：Repository 成功写入 `hasCompletedOnboarding: true` 后才进入 03，不经过 02，不请求登录、头像或昵称授权。超过 `150ms` 时按钮显示“正在准备…”。失败时停留 01，恢复操作并显示“刚才没有准备好，可以再试一次。”。13 完整说明 M0 本地 Mock、会话照片、M1 云端边界、Mock AI、删除不可恢复与无虚假导出；从 01 进入后返回 01，查看隐私本身不改变首次说明状态。
 
-- 最小产品说明；
-- 最小隐私承诺；
-- “隐私说明”入口；
-- “开始”主动作。
+先在 `pages.json` 注册并验证 01/03/13，再把 01 调整为首个页面。确认正式入口可构建后，才删除临时 `pages/index/index.vue`。Task 9 后续只补充从 12 进入和返回 12 的集成，不复制第二个隐私页面。
 
-点击“开始”直接进入创建空间，不经过空列表，不出现登录或头像昵称授权。
+应用根入口等待 bootstrap 完成后按 `hasCompletedOnboarding` 分流：`false` 留在 01，`true` 立即归一化到 02。若旧 v1 快照缺少字段，或错误地出现“已有空间但字段为 false”，必须保留全部空间并修正为 `true`；不得重新展示首次说明或覆盖数据。
 
-- [ ] **5.3 实现创建空间**
+- [ ] **5.7 实现 03 创建空间并完成 Task 5 总集成验收**
 
 覆盖：
 
-- 名称是唯一必填字段；
-- 空间照片可选、可跳过、可更换、可移除；
-- 有输入或照片时返回，显示“这次先不创建了吗？”；
-- “继续填写”保留当前页面状态；
-- “先不创建”丢弃临时内容，不创建草稿；
-- 创建成功后进入该空间首页；
-- 保存失败时保留名称和照片选择。
+- 名称唯一必填；
+- 照片可选、可跳过、可更换、可移除；
+- 未修改时直接返回；
+- 有名字或照片时显示“这次先不创建了吗？”；
+- “继续填写”保留全部页面状态；
+- “先不创建”丢弃临时内容且不创建草稿；
+- pending 锁定重复提交和离开；
+- 保存失败保留名称、照片、滚动与错误恢复；
+- 成功后 Store 先更新，再归一化为 `02 → 04`；
+- 从 04 返回到 02，不重新进入 03 或 01。
 
-创建成功使用稳定栈归一化为 `02 我的记忆空间 → 04 新空间首页`；用户从 04 返回时不得重新进入已完成的创建表单或首次说明。
-
-空间封面只选择一张照片。平台调用必须经过：
-
-```ts
-export interface PickedPhoto {
-  uri: string
-  width?: number
-  height?: number
-}
-
-export interface PhotoPicker {
-  pick(options: { remaining: number }): Promise<
-    | { kind: 'selected'; photos: PickedPhoto[] }
-    | { kind: 'cancelled' }
-    | { kind: 'denied' }
-    | { kind: 'failed' }
-  >
-}
-```
-
-创建空间传入的用户照片立即标记为 `session-only`。Task 7 复用同一接口扩展记忆多图，不另建第二套照片选择服务。
-
-- [ ] **5.4 实现空间列表**
-
-每张空间条目显示：
-
-- 可选空间照片；
-- Ta 的名字；
-- 最新用户原话前两行，超出显示 `…`；
-- 日期；
-- 没有正式记忆时显示“还没有留下记忆”。
-
-整条可点击，卡片上不放设置、删除或更多按钮。排序按正式记忆最近新增或更新，不按最近查看。
-
-- [ ] **5.5 实现空间首页只读状态**
-
-显示：
-
-- Ta 的名字和可选空间照片；
-- 有草稿时显示 `DraftNotice`；
-- 无草稿时显示“留下一段”；
-- 最近三条正式记忆；
-- “查看全部记忆”；
-- 设置入口；
-- 空状态安静落点。
-
-首页不提供记忆快速编辑或删除按钮。
-
-- [ ] **5.6 实现全部记忆**
-
-使用时间倒序档案序列：
-
-- 日期低强调；
-- 原话摘要两行加 `…`；
-- 有照片左图右文；
-- 无照片文字铺满；
-- 点击整条进入记忆详情；
-- 不实现搜索、筛选、标签、日历和瀑布流。
-
-- [ ] **5.7 运行页面测试**
+运行：
 
 ```powershell
-npm run test:run -- tests/unit/space-form.test.ts tests/unit/memory-summary.test.ts tests/components/space-create-page.test.ts tests/components/spaces-page.test.ts tests/components/space-home-page.test.ts tests/components/memories-page.test.ts
-npm run typecheck
-npm run build:mp-weixin
+npm run verify:task5b
+npm run verify:task5
+```
+
+取得 01、03、13 标准截图，并执行：
+
+```text
+01 → 13 → 01
+01 → 03 → 创建成功 → 04 → 02 → 再次进入 04 → 08
+03 有修改 → 返回保护 → 继续填写
+03 有修改 → 返回保护 → 先不创建 → 02
+03 保存失败 → 原输入仍在 → 重试成功
 ```
 
 ### Task 5 完成条件
 
-- 首次创建路径不被登录打断；
+- 5A、5B 均通过独立 Reviewer；
+- 首次路径、创建路径和回看路径形成真实闭环；
+- 首次创建不经过空列表、不被登录打断；
 - 返回保护不产生空间草稿；
-- 列表、首页和全部记忆从 Store 读取最新状态；
-- 空状态与完整样本均可验收；
-- 页面没有自行发明 Task 2 之外的样式。
+- 01、02、03、04、08、13 的标准状态通过微信截图复核；
+- loading、error、empty、missing 与完整样本不混淆；
+- 页面只通过 Store、Repository 和 NavigationAdapter 工作；
+- 未创建 05、09、12 占位页，后续入口边界有明确记录；
+- 页面没有自行发明 Task 2 之外的样式；
+- Task 5 正式验收前不得更新 README 为已完成。
 
 ---
 
@@ -1384,13 +1405,13 @@ npm run build:mp-weixin
 **文件：**
 
 - 创建：`src/pages/space-settings/index.vue`
-- 创建：`src/pages/privacy/index.vue`
+- 修改：`src/pages/privacy/index.vue`，复用 Task 5B 已完成页面并增加从设置来源返回 12 的集成
 - 修改：`src/pages/memory-detail/index.vue`
 - 使用：`src/components/MissingContentState.vue`（由 Task 2 创建，不重写公开接口）
 - 创建：`src/features/spaces/delete-space.ts`
 - 创建：`src/features/memories/delete-memory.ts`
 - 测试：`tests/components/space-settings-page.test.ts`
-- 测试：`tests/components/privacy-page.test.ts`
+- 修改测试：`tests/components/privacy-page.test.ts`
 - 修改测试：`tests/components/memory-detail-page.test.ts`
 - 测试：`tests/unit/delete-scope.test.ts`
 

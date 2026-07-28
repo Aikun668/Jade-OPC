@@ -224,6 +224,7 @@ Builder 必须提交单测命令、退出码、测试用例名称以及至少一
 | ID | 机器门 |
 |---|---|
 | `T3B-M01` | `MemorySnapshot.schemaVersion` 固定为字面量 `1` |
+| `T3B-M32` | `MemorySnapshot.hasCompletedOnboarding` 是必需布尔字段 |
 | `T3B-M02` | `SaveMemoryInput.sourceDraftId` 固定为 `string \| null`，不是可选字段 |
 | `T3B-M03` | 调用方输入不包含实体 ID、系统时间、owner、availability 或 persistence |
 | `T3B-M04` | 新照片输入只有 `uri`，调用方不能声明为 `bundled` |
@@ -259,6 +260,7 @@ Builder 必须提交单测命令、退出码、测试用例名称以及至少一
 | ID | 必测行为 |
 |---|---|
 | `T3B-M19` | 首次 bootstrap 建立并写入空样本 |
+| `T3B-M33` | `completeOnboarding()` 原子写入 true、失败不改状态且重复调用幂等 |
 | `T3B-M20` | 创建、修改、删除空间 |
 | `T3B-M21` | 保存、修改、删除正式记忆 |
 | `T3B-M22` | 同空间保存草稿执行 upsert，不产生第二条 |
@@ -267,6 +269,7 @@ Builder 必须提交单测命令、退出码、测试用例名称以及至少一
 | `T3B-M25` | 删除空间级联清理该空间的记忆、草稿和资产 |
 | `T3B-M26` | 写入失败时内存快照保持原状 |
 | `T3B-M27` | `resetSample('complete')` 返回合法完整样本 |
+| `T3B-M34` | empty 样本首次状态为 false，complete 样本为 true |
 | `T3B-M28` | 非空原话或至少一张照片的保存下限 |
 | `T3B-M29` | 单条记忆最多 9 张照片 |
 | `T3B-M30` | existing 资产必须属于当前空间或来源草稿 |
@@ -353,10 +356,12 @@ export interface StorageAdapter {
 | `T3D-M01` | 固定键为 `pet-memory:m0:snapshot` |
 | `T3D-M02` | 业务数据不拆分到多个 Storage 键 |
 | `T3D-M03` | 首次 bootstrap 写入合法空样本并返回其快照 |
+| `T3D-M50` | 首次空样本使用 `hasCompletedOnboarding: false` |
 | `T3D-M04` | 合法已存快照读取后执行会话资产失效，再建立内存状态 |
 | `T3D-M05` | 未来 schema 返回明确失败，不覆盖原存储 |
 | `T3D-M06` | 非法快照不被静默当成空样本覆盖；处理方式可追踪且不泄露私人内容 |
 | `T3D-M07` | 重复 bootstrap 不意外追加样本实体或改变稳定打包资产 |
+| `T3D-M51` | 旧 v1 缺字段按空间是否存在归一化；已有空间且 false 时修正 true，并保持所有业务数据 |
 
 ### 8.3 通用写入管线门
 
@@ -444,8 +449,19 @@ export interface StorageAdapter {
 | `T3D-M41` | `resetSample('complete')` 提交合法完整样本 |
 | `T3D-M42` | 返回的 `sampleMode` 与请求一致 |
 | `T3D-M43` | 重置也遵守“先写入成功、后替换内存” |
+| `T3D-M44` | empty 重置写入 false，complete 重置写入 true |
 
-### 8.9 产物与人工边界门
+### 8.9 首次说明状态写入门
+
+| ID | 机器门 |
+|---|---|
+| `T3D-M45` | `completeOnboarding()` 只把 false 改为 true，不修改空间、记忆、草稿和资产 |
+| `T3D-M46` | StorageAdapter 成功后才替换内存快照 |
+| `T3D-M47` | 写入失败时字段和全部业务数据保持原状 |
+| `T3D-M48` | 已为 true 时重复调用保持幂等，不产生数据漂移 |
+| `T3D-M49` | 归一化和错误信息不输出完整快照或私人内容 |
+
+### 8.10 产物与人工边界门
 
 | ID | 门槛 |
 |---|---|
@@ -455,7 +471,7 @@ export interface StorageAdapter {
 | `T3D-H01` | Reviewer 只读检查删除和原子写入代码路径，确认测试确实经过生产方法 |
 | `T3D-H02` | Reviewer 检查错误与日志不包含用户原话、照片 URI 或完整快照 |
 
-### 8.10 反证抽查
+### 8.11 反证抽查
 
 Reviewer 至少执行三项：
 
@@ -466,7 +482,7 @@ Reviewer 至少执行三项：
 - 返回 Repository 内部对象引用，防御性复制测试必须失败；
 - 允许第 10 张照片，数量边界测试必须失败。
 
-### 8.11 禁止捷径
+### 8.12 禁止捷径
 
 - Store 或页面组合两次写入弥补 Repository 原子性缺失；
 - catch 后吞掉持久化错误并返回成功；
@@ -476,7 +492,7 @@ Reviewer 至少执行三项：
 - 把会话临时照片描述为永久可靠数据；
 - 在错误日志打印完整快照或私人内容。
 
-### 8.12 必需证据与退出条件
+### 8.13 必需证据与退出条件
 
 Builder 必须提交：
 
