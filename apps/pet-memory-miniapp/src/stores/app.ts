@@ -9,6 +9,7 @@ export const useAppStore = defineStore('app', () => {
   const bootstrapStatus = ref<BootstrapStatus>('idle')
   const sampleMode = ref<SampleMode>('empty')
   const schemaVersion = ref<number>(1)
+  const hasCompletedOnboarding = ref<boolean>(false)
   const initError = ref<string | null>(null)
   const devMode = ref<boolean>(false)
 
@@ -30,13 +31,24 @@ export const useAppStore = defineStore('app', () => {
 
       sampleMode.value = snapshot.sampleMode
       schemaVersion.value = snapshot.schemaVersion
+      hasCompletedOnboarding.value = snapshot.hasCompletedOnboarding
       initError.value = null
       bootstrapStatus.value = 'ready'
     } catch (e: unknown) {
+      bootstrapped = false
       const message = e instanceof Error ? e.message : 'Unknown bootstrap error'
       initError.value = message
       bootstrapStatus.value = 'error'
     }
+  }
+
+  async function completeOnboarding(): Promise<void> {
+    const repo = getRepository()
+    const snapshot = await repo.completeOnboarding()
+    const { useMemoryStore } = await import('./memory')
+    const memoryStore = useMemoryStore()
+    memoryStore._commitSnapshot(snapshot)
+    hasCompletedOnboarding.value = true
   }
 
   function setDevMode(on: boolean): void {
@@ -47,6 +59,7 @@ export const useAppStore = defineStore('app', () => {
     bootstrapStatus.value = 'idle'
     sampleMode.value = 'empty'
     schemaVersion.value = 1
+    hasCompletedOnboarding.value = false
     initError.value = null
     devMode.value = false
     bootstrapped = false
@@ -56,9 +69,11 @@ export const useAppStore = defineStore('app', () => {
     bootstrapStatus,
     sampleMode,
     schemaVersion,
+    hasCompletedOnboarding,
     initError,
     devMode,
     bootstrap,
+    completeOnboarding,
     setDevMode,
     _reset,
   }

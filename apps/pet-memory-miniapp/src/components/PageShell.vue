@@ -125,7 +125,7 @@ const navRightStyle = computed(() => ({
 
 const columnStyle= computed(() => {
   if (props.layout === 'task-form' && !props.keyboardOpen) {
-    const minHeight = `calc(var(--pm-viewport-height, 100vh) - ${headerHeight()} - var(--pm-safe-bottom, 0px) - ${TASK_FORM_BOTTOM_SPACE_RPX} - ${NAV_CONTENT_GAP_RPX})`
+    const minHeight = `calc(var(--pm-viewport-height, 100vh) - (${headerHeight()}) - var(--pm-safe-bottom, 0px) - ${TASK_FORM_BOTTOM_SPACE_RPX} - ${NAV_CONTENT_GAP_RPX})`
     return { minHeight }
   }
   return {}
@@ -133,7 +133,7 @@ const columnStyle= computed(() => {
 
 function headerHeight(): string {
   if (props.layout === 'quiet-landing') return '0px'
-  return 'calc(var(--pm-status-bar-height, 0px) + var(--pm-nav-row-height, 88rpx))'
+  return 'var(--pm-status-bar-height, 0px) + var(--pm-nav-row-height, 88rpx)'
 }
 </script>
 
@@ -252,9 +252,7 @@ function headerHeight(): string {
 
 // ---- content ----
 .page-shell__content {
-  > * + * {
-    margin-top: 0;
-  }
+  // WXSS 不支持 * 全局选择器，margin-top: 0 已是默认值，无需显式重置
 }
 
 // ---- actions ----

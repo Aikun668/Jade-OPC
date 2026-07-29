@@ -53,9 +53,9 @@ const materialLoaded = ref<boolean | null>(null)
 .draft-notice {
   position: relative;
   width: 100%;
-  min-height: $pm-draft-notice-height;
+  min-height: 192rpx;
   padding-block: $pm-space-6;
-  padding-inline: $pm-draft-notice-padding-left $pm-draft-notice-padding-right;
+  padding-inline: $pm-space-6;
   border-radius: $pm-radius-sm;
   background: $pm-color-surface;
   border: $pm-border-hairline solid $pm-color-line;
@@ -76,7 +76,7 @@ const materialLoaded = ref<boolean | null>(null)
   align-items: center;
   justify-content: space-between;
   gap: $pm-space-4;
-  min-height: calc(#{$pm-draft-notice-height} - #{$pm-space-6} * 2);
+  min-height: calc(192rpx - #{$pm-space-6} * 2);
 }
 
 .draft-notice__title {

@@ -63,13 +63,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-
-export interface PhotoViewModel {
-  id: string
-  uri: string
-  alt: string
-  availability: 'available' | 'expired'
-}
+import type { PhotoViewModel } from '../features/photos/photo-types'
 
 export interface PhotoStackProps {
   items: PhotoViewModel[]

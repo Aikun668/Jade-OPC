@@ -22,5 +22,6 @@ export interface MemoryRepository {
   deleteMemory(memoryId: string): Promise<MemorySnapshot>
   saveDraft(input: SaveDraftInput): Promise<RepositoryWriteResult<MemoryDraft>>
   deleteDraft(draftId: string): Promise<MemorySnapshot>
+  completeOnboarding(): Promise<MemorySnapshot>
   resetSample(mode: SampleMode): Promise<MemorySnapshot>
 }

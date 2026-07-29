@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import type { MemoryEntryViewModel } from './MemoryEntry.vue'
+import type { MemoryEntryViewModel } from '../features/memories/memory-summary'
 import MemoryEntry from './MemoryEntry.vue'
 
 export interface MemoryListProps {

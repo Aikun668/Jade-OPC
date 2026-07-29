@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type {
+  MemorySnapshot,
   MemorySpace,
   MemoryItem,
   MemoryDraft,
@@ -23,12 +24,7 @@ export const useMemoryStore = defineStore('memory', () => {
 
   // ---- internal ----
 
-  function _commitSnapshot(snapshot: {
-    spaces: MemorySpace[]
-    memories: MemoryItem[]
-    drafts: MemoryDraft[]
-    assets: LocalAsset[]
-  }): void {
+  function _commitSnapshot(snapshot: Pick<MemorySnapshot, 'spaces' | 'memories' | 'drafts' | 'assets'>): void {
     spaces.value = snapshot.spaces
     memories.value = snapshot.memories
     drafts.value = snapshot.drafts
@@ -93,6 +89,7 @@ export const useMemoryStore = defineStore('memory', () => {
     const appStore = useAppStore()
     appStore.sampleMode = snapshot.sampleMode
     appStore.schemaVersion = snapshot.schemaVersion
+    appStore.hasCompletedOnboarding = snapshot.hasCompletedOnboarding
   }
 
   // ---- getters ----
@@ -102,14 +99,14 @@ export const useMemoryStore = defineStore('memory', () => {
 
     for (const m of memories.value) {
       const existing = lastMemoryTime.get(m.spaceId)
-      if (!existing || m.createdAt > existing) {
-        lastMemoryTime.set(m.spaceId, m.createdAt)
+      if (!existing || m.updatedAt > existing) {
+        lastMemoryTime.set(m.spaceId, m.updatedAt)
       }
     }
 
     return [...spaces.value].sort((a, b) => {
-      const aTime = lastMemoryTime.get(a.id) ?? a.createdAt
-      const bTime = lastMemoryTime.get(b.id) ?? b.createdAt
+      const aTime = lastMemoryTime.get(a.id) ?? a.updatedAt
+      const bTime = lastMemoryTime.get(b.id) ?? b.updatedAt
       if (bTime !== aTime) return bTime.localeCompare(aTime)
       return a.name.localeCompare(b.name)
     })
@@ -118,14 +115,14 @@ export const useMemoryStore = defineStore('memory', () => {
   function recentMemories(spaceId: string): MemoryItem[] {
     return [...memories.value]
       .filter(m => m.spaceId === spaceId)
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
       .slice(0, 3)
   }
 
   function allMemories(spaceId: string): MemoryItem[] {
     return [...memories.value]
       .filter(m => m.spaceId === spaceId)
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
   }
 
   function draftForSpace(spaceId: string): MemoryDraft | null {

@@ -72,6 +72,11 @@ describe('visual baseline normalization', () => {
     cleanOutputDir()
   })
 
+  afterAll(() => {
+    if (existsSync(testInputDir)) rmSync(testInputDir, { recursive: true })
+    if (existsSync(testOutputDir)) rmSync(testOutputDir, { recursive: true })
+  })
+
   describe('normalization script', () => {
     it('exists and is a valid file', () => {
       expect(existsSync(scriptPath)).toBe(true)

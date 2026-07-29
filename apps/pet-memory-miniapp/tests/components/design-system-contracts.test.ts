@@ -22,6 +22,7 @@ const REQUIRED_COLORS = [
   '$pm-color-olive-pressed',
   '$pm-color-olive-soft',
   '$pm-color-danger',
+  '$pm-color-danger-pressed',
   '$pm-color-overlay',
   '$pm-color-on-primary',
 ]
@@ -108,9 +109,26 @@ describe('M0 design tokens contract', () => {
     content = tokensContent()
   })
 
+  const CRITICAL_COLOR_VALUES: Record<string, string> = {
+    '$pm-color-olive': '#68735f',
+    '$pm-color-olive-pressed': '#596452',
+    '$pm-color-danger': '#9a5d56',
+    '$pm-color-danger-pressed': '#804d47',
+    '$pm-color-ink': '#393a31',
+    '$pm-color-canvas': '#f7f4eb',
+    '$pm-color-surface': '#fffdf8',
+  }
+
   describe('4.1 Color tokens', () => {
     it.each(REQUIRED_COLORS)('defines %s', (name) => {
       expect(content).toContain(name)
+    })
+
+    it.each(Object.entries(CRITICAL_COLOR_VALUES))('%s has correct value', (name, expectedValue) => {
+      const regex = new RegExp(`${name.replace('$', '\\$')}\\s*:\\s*(#[\\da-fA-F]{6})`)
+      const match = content.match(regex)
+      expect(match).toBeTruthy()
+      expect(match![1]).toBe(expectedValue)
     })
   })
 

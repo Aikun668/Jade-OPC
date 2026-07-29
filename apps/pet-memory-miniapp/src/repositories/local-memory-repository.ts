@@ -208,10 +208,6 @@ export class LocalMemoryRepository implements MemoryRepository {
       }
       // merge draft assets + new assets
       const mergedCount = sourceDraft.assetIds.length + input.assets.filter(a => a.kind === 'new').length
-      // count existing assets from draft
-      const draftExistingAssets = input.assets.filter(a => a.kind === 'existing')
-      // all existing assets in the input should reference draft assets
-      const draftAssetIds = new Set(sourceDraft.assetIds)
       if (mergedCount > 9) {
         throw new Error(`Memory cannot have more than 9 photos (got ${mergedCount})`)
       }
@@ -241,6 +237,10 @@ export class LocalMemoryRepository implements MemoryRepository {
         const existingAsset = snap.assets.find(a => a.id === assetInput.assetId)
         if (!existingAsset) {
           throw new Error(`Asset not found: ${assetInput.assetId}`)
+        }
+        // space-owned assets cannot be transferred to a memory
+        if (existingAsset.ownerType === 'space') {
+          throw new Error(`Asset ${assetInput.assetId} is owned by a space and cannot be transferred to a memory`)
         }
         // must belong to current space or source draft
         const belongsToCurrentSpace = this.assetBelongsToSpace(existingAsset, input.spaceId, snap)
@@ -428,6 +428,12 @@ export class LocalMemoryRepository implements MemoryRepository {
       assets: snap.assets.filter(a => !(a.ownerType === 'draft' && a.ownerId === draftId)),
     }
 
+    return this.commit(candidate)
+  }
+
+  async completeOnboarding(): Promise<MemorySnapshot> {
+    const snap = this.ensureCurrent()
+    const candidate: MemorySnapshot = { ...snap, hasCompletedOnboarding: true }
     return this.commit(candidate)
   }
 

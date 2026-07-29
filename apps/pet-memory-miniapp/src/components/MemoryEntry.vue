@@ -8,6 +8,7 @@
       <image
         class="memory-entry__thumbnail"
         :src="item.thumbnailUri"
+        :aria-label="item.thumbnailAlt"
         mode="aspectFill"
       />
     </view>
@@ -22,14 +23,7 @@
 </template>
 
 <script setup lang="ts">
-export interface MemoryEntryViewModel {
-  id: string
-  summary: string
-  dateLabel: string
-  thumbnailUri?: string
-  thumbnailAlt?: string
-  photoCount?: number
-}
+import type { MemoryEntryViewModel } from '../features/memories/memory-summary'
 
 export interface MemoryEntryProps {
   item: MemoryEntryViewModel

@@ -1,9 +1,11 @@
-// ---- Page URL map (internal, not exposed) ----
+// ---- Page URL map ----
 
-const PAGE_URLS = {
-  spaces: '/pages/index/index',
+export const PAGE_URLS = {
+  spaces: '/pages/spaces/index',
   'space-home': '/pages/space-home/index',
+  'space-create': '/pages/space-create/index',
   'memory-detail': '/pages/memory-detail/index',
+  memories: '/pages/memories/index',
 } as const
 
 const SPACE_HOME_ROUTE = PAGE_URLS['space-home'].replace(/^\//, '')

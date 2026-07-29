@@ -11,98 +11,17 @@
       schema v{{ meta.schemaVersion }} | {{ meta.sampleMode }} | {{ meta.bootstrapStatus }}
     </text>
 
-    <!-- 以下开发工具仅在 DEV 模式存在，生产构建时全树被 tree-shake -->
-    <view v-if="isDev">
-
-    <!-- 样本切换 -->
-    <view class="page__section">
-      <text class="page__section-title">样本切换</text>
-      <view class="page__row">
-        <PrimaryButton
-          :disabled="scenarios.isResetting.value"
-          :loading="scenarios.isResetting.value"
-          @press="scenarios.resetSample('empty')"
-        >
-          空样本
-        </PrimaryButton>
-        <PrimaryButton
-          :disabled="scenarios.isResetting.value"
-          :loading="scenarios.isResetting.value"
-          @press="scenarios.resetSample('complete')"
-        >
-          完整样本
-        </PrimaryButton>
-      </view>
-      <text v-if="scenarios.lastResetError.value" class="page__error">
-        {{ scenarios.lastResetError.value }}
-      </text>
-    </view>
-
-    <!-- AI 场景 Mock -->
-    <view class="page__section">
-      <text class="page__section-title">AI 场景 Mock</text>
-      <view class="page__row">
-        <view
-          v-for="s in aiScenarios"
-          :key="s"
-          class="page__chip"
-          :class="{ 'page__chip--active': scenarios.aiScenario.value === s }"
-          @click.stop="scenarios.setAiScenario(s)"
-        >
-          <text class="page__chip-text">{{ s }}</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- 失败模拟 -->
-    <view class="page__section">
-      <text class="page__section-title">失败模拟</text>
-      <view class="page__row">
-        <view
-          class="page__chip"
-          :class="{ 'page__chip--danger': scenarios.saveFailureEnabled.value }"
-          @click.stop="scenarios.toggleSaveFailure()"
-        >
-          <text class="page__chip-text">
-            保存失败 {{ scenarios.saveFailureEnabled.value ? 'ON' : 'OFF' }}
-          </text>
-        </view>
-        <view
-          class="page__chip"
-          :class="{ 'page__chip--danger': scenarios.photoFailureEnabled.value }"
-          @click.stop="scenarios.togglePhotoFailure()"
-        >
-          <text class="page__chip-text">
-            照片失败 {{ scenarios.photoFailureEnabled.value ? 'ON' : 'OFF' }}
-          </text>
-        </view>
-        <view
-          class="page__chip"
-          :class="{ 'page__chip--danger': scenarios.permissionDeniedEnabled.value }"
-          @click.stop="scenarios.togglePermissionDenied()"
-        >
-          <text class="page__chip-text">
-            权限不足 {{ scenarios.permissionDeniedEnabled.value ? 'ON' : 'OFF' }}
-          </text>
-        </view>
-      </view>
-    </view>
-
-    </view>
-    <!-- /DEV -->
+    <DevPanel />
   </view>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import PrimaryButton from '../../components/PrimaryButton.vue'
-import { useDevScenarios, type AiScenario } from '../../features/developer/dev-scenarios'
+import DevPanel from '../../components/DevPanel.vue'
+import { useDevScenarios } from '../../features/developer/dev-scenarios'
 
-const isDev = import.meta.env.DEV
 const scenarios = useDevScenarios()
 const meta = computed(() => scenarios.getCurrentMeta())
-
-const aiScenarios: AiScenario[] = ['success', 'insufficient', 'unavailable']
 </script>
 
 <style lang="scss" scoped>
@@ -127,53 +46,4 @@ const aiScenarios: AiScenario[] = ['success', 'insufficient', 'unavailable']
   color: $pm-color-muted;
 }
 
-.page__section {
-  margin-top: $pm-space-8;
-}
-
-.page__section-title {
-  display: block;
-  font-size: $pm-font-body;
-  font-weight: $pm-weight-medium;
-  color: $pm-color-ink;
-  margin-bottom: $pm-space-3;
-}
-
-.page__row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $pm-space-2;
-}
-
-.page__chip {
-  padding: $pm-space-2 $pm-space-4;
-  border-radius: $pm-radius-sm;
-  background-color: $pm-color-surface;
-  border: 2rpx solid $pm-color-line;
-  cursor: pointer;
-
-  &--active {
-    background-color: $pm-color-olive;
-    border-color: $pm-color-olive;
-    color: $pm-color-on-primary;
-  }
-
-  &--danger {
-    background-color: $pm-color-danger;
-    border-color: $pm-color-danger;
-    color: $pm-color-on-primary;
-  }
-}
-
-.page__chip-text {
-  font-size: $pm-font-meta;
-  font-weight: $pm-weight-medium;
-}
-
-.page__error {
-  display: block;
-  margin-top: $pm-space-2;
-  font-size: $pm-font-meta;
-  color: $pm-color-danger;
-}
 </style>

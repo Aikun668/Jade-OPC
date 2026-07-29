@@ -6,6 +6,7 @@ function makeValidEmptySnapshot(): MemorySnapshot {
   return {
     schemaVersion: 1,
     sampleMode: 'empty',
+    hasCompletedOnboarding: false,
     spaces: [],
     memories: [],
     drafts: [],
@@ -17,6 +18,7 @@ function makeValidCompleteSnapshot(): MemorySnapshot {
   return {
     schemaVersion: 1,
     sampleMode: 'complete',
+    hasCompletedOnboarding: true,
     spaces: [
       { id: 's1', name: '团团', coverAssetId: 'a1', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-02T00:00:00Z' },
       { id: 's2', name: '豆豆', coverAssetId: null, createdAt: '2026-02-01T00:00:00Z', updatedAt: '2026-02-01T00:00:00Z' },
@@ -104,6 +106,7 @@ describe('validateSnapshot', () => {
     const result = validateSnapshot({
       schemaVersion: 1,
       sampleMode: 'empty',
+      hasCompletedOnboarding: false,
       spaces: [],
       memories: 'not-array',
       drafts: [],
@@ -116,6 +119,7 @@ describe('validateSnapshot', () => {
     const result = validateSnapshot({
       schemaVersion: 1,
       sampleMode: 'empty',
+      hasCompletedOnboarding: false,
       spaces: [],
       memories: [],
       drafts: {},
@@ -128,6 +132,7 @@ describe('validateSnapshot', () => {
     const result = validateSnapshot({
       schemaVersion: 1,
       sampleMode: 'empty',
+      hasCompletedOnboarding: false,
       spaces: [],
       memories: [],
       drafts: [],

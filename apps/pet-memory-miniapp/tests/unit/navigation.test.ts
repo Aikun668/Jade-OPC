@@ -49,13 +49,13 @@ describe('push', () => {
   it('T4B-M04: push resolves on success', async () => {
     const navigateTo = vi.fn().mockResolvedValue(undefined)
     const adapter = createAdapter({ navigateTo })
-    await expect(adapter.push('/pages/index/index')).resolves.toBeUndefined()
+    await expect(adapter.push('/pages/spaces/index')).resolves.toBeUndefined()
   })
 
   it('T4B-M04: push rejects on failure', async () => {
     const navigateTo = vi.fn().mockRejectedValue(new Error('navigateTo failed'))
     const adapter = createAdapter({ navigateTo })
-    await expect(adapter.push('/pages/index/index')).rejects.toThrow('navigateTo failed')
+    await expect(adapter.push('/pages/spaces/index')).rejects.toThrow('navigateTo failed')
   })
 })
 
@@ -105,13 +105,13 @@ describe('replace', () => {
   it('T4B-M04: replace resolves on success', async () => {
     const redirectTo = vi.fn().mockResolvedValue(undefined)
     const adapter = createAdapter({ redirectTo })
-    await expect(adapter.replace('/pages/index/index')).resolves.toBeUndefined()
+    await expect(adapter.replace('/pages/spaces/index')).resolves.toBeUndefined()
   })
 
   it('T4B-M04: replace rejects on failure', async () => {
     const redirectTo = vi.fn().mockRejectedValue(new Error('redirectTo failed'))
     const adapter = createAdapter({ redirectTo })
-    await expect(adapter.replace('/pages/index/index')).rejects.toThrow('redirectTo failed')
+    await expect(adapter.replace('/pages/spaces/index')).rejects.toThrow('redirectTo failed')
   })
 })
 
@@ -125,7 +125,7 @@ describe('resetTo', () => {
       const adapter = createAdapter({ reLaunch, navigateTo })
       await adapter.resetTo({ page: 'spaces' })
       expect(reLaunch).toHaveBeenCalledTimes(1)
-      expect(reLaunch).toHaveBeenCalledWith('/pages/index/index')
+      expect(reLaunch).toHaveBeenCalledWith('/pages/spaces/index')
     })
 
     it('T4B-M07: spaces reLaunch does not depend on current stack', async () => {
@@ -133,7 +133,7 @@ describe('resetTo', () => {
       const getCurrentPages = vi.fn()
       const adapter = createAdapter({ reLaunch, getCurrentPages })
       await adapter.resetTo({ page: 'spaces' })
-      expect(reLaunch).toHaveBeenCalledWith('/pages/index/index')
+      expect(reLaunch).toHaveBeenCalledWith('/pages/spaces/index')
       expect(getCurrentPages).not.toHaveBeenCalled()
     })
 
@@ -170,7 +170,7 @@ describe('resetTo', () => {
       const navigateTo = vi.fn().mockResolvedValue(undefined)
       const reLaunch = vi.fn()
       const getCurrentPages = vi.fn().mockReturnValue([
-        { route: 'pages/index/index' },
+        { route: 'pages/spaces/index' },
         { route: 'pages/space-home/index' },
         { route: 'pages/memory-create/index' },
       ])
@@ -192,7 +192,7 @@ describe('resetTo', () => {
       const navigateBack = vi.fn().mockResolvedValue(undefined)
       const navigateTo = vi.fn().mockResolvedValue(undefined)
       const getCurrentPages = vi.fn().mockReturnValue([
-        { route: 'pages/index/index' },
+        { route: 'pages/spaces/index' },
         { route: 'pages/space-home/index' },
         { route: 'pages/photo-record/index' },
         { route: 'pages/memory-preview/index' },
@@ -208,7 +208,7 @@ describe('resetTo', () => {
 
     it('T4B-M16: memory-detail without space-home in stack rejects', async () => {
       const getCurrentPages = vi.fn().mockReturnValue([
-        { route: 'pages/index/index' },
+        { route: 'pages/spaces/index' },
       ])
 
       const adapter = createAdapter({ getCurrentPages })
@@ -244,7 +244,7 @@ describe('resetTo', () => {
       const navigateBack = vi.fn().mockResolvedValue(undefined)
       const navigateTo = vi.fn().mockRejectedValue(new Error('navigateTo failed'))
       const getCurrentPages = vi.fn().mockReturnValue([
-        { route: 'pages/index/index' },
+        { route: 'pages/spaces/index' },
         { route: 'pages/space-home/index' },
       ])
 
@@ -258,7 +258,7 @@ describe('resetTo', () => {
       const navigateBack = vi.fn().mockResolvedValue(undefined)
       const navigateTo = vi.fn().mockResolvedValue(undefined)
       const getCurrentPages = vi.fn().mockReturnValue([
-        { route: 'pages/index/index' },
+        { route: 'pages/spaces/index' },
         { route: 'pages/space-home/index' },
         { route: 'pages/photo-record/index' },
         { route: 'pages/text-record/index' },
@@ -276,7 +276,7 @@ describe('resetTo', () => {
       const navigateBack = vi.fn().mockResolvedValue(undefined)
       const navigateTo = vi.fn().mockResolvedValue(undefined)
       const getCurrentPages = vi.fn().mockReturnValue([
-        { route: 'pages/index/index' },
+        { route: 'pages/spaces/index' },
         { route: 'pages/space-home/index' },
       ])
 
@@ -300,7 +300,7 @@ describe('resetTo', () => {
     it('navigateBack failure during memory-detail is propagated', async () => {
       const navigateBack = vi.fn().mockRejectedValue(new Error('back failed'))
       const getCurrentPages = vi.fn().mockReturnValue([
-        { route: 'pages/index/index' },
+        { route: 'pages/spaces/index' },
         { route: 'pages/space-home/index' },
         { route: 'pages/photo-record/index' },
       ])

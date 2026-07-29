@@ -11,6 +11,7 @@ function mkSnapshot(overrides: Partial<MemorySnapshot> = {}): MemorySnapshot {
   return {
     schemaVersion: 1,
     sampleMode: 'empty',
+    hasCompletedOnboarding: false,
     spaces: [],
     memories: [],
     drafts: [],
@@ -31,6 +32,7 @@ function createMockRepo(overrides: Partial<MemoryRepository> = {}): MemoryReposi
     saveDraft: async () => ({ value: {} as any, snapshot: mkSnapshot() }),
     deleteDraft: async () => mkSnapshot(),
     resetSample: async () => mkSnapshot(),
+    completeOnboarding: async () => mkSnapshot(),
     ...overrides,
   }
 }

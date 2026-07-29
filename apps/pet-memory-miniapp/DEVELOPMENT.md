@@ -57,7 +57,7 @@ npm run build:mp-weixin  # 生产构建 → dist/build/mp-weixin
 ## AppID 规则
 
 - AppID 属于项目运行配置，只有用户明确提供或确认后才写入 `src/manifest.json`
-- `src/manifest.json` 中 AppID 当前为空；编译后 `dist/**/project.config.json` 会自动填入 `touristappid` 用于模拟器开发
+- `src/manifest.json` 中 AppID 已由用户配置；编译后 `dist/**/project.config.json` 会继承该 AppID
 - 不得擅自使用私人 AppID，也不得把密钥写入仓库
 
 ## 开发者工具服务端口

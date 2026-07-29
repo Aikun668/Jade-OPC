@@ -1,17 +1,27 @@
 import type { MemorySpace, MemoryItem, LocalAsset } from '../../types/domain'
-import type { MemoryEntryViewModel } from '../../components/MemoryEntry.vue'
+import { NEUTRAL_PHOTO_SUMMARY } from './memory-constants'
+
+export interface MemoryEntryViewModel {
+  id: string
+  summary: string
+  dateLabel: string
+  thumbnailUri?: string
+  thumbnailAlt?: string
+  photoCount?: number
+}
 
 export interface SpaceSummaryViewModel {
   id: string
   name: string
   coverUri?: string
-  latestSummary?: string
+  latestSummary: string
   dateLabel?: string
   hasMemories: boolean
 }
 
 export function formatDateLabel(iso: string): string {
   const d = new Date(iso)
+  if (isNaN(d.getTime())) return ''
   const y = d.getFullYear()
   const m = d.getMonth() + 1
   const day = d.getDate()
@@ -59,7 +69,7 @@ export function buildSpaceSummary(
   assets: readonly LocalAsset[],
 ): SpaceSummaryViewModel {
   const spaceMemories = memories.filter(m => m.spaceId === space.id)
-  const sorted = [...spaceMemories].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const sorted = spaceMemories.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
   const latest = sorted[0]
 
   const coverUri = space.coverAssetId
@@ -70,7 +80,7 @@ export function buildSpaceSummary(
     id: space.id,
     name: space.name,
     ...(coverUri !== undefined ? { coverUri } : {}),
-    latestSummary: latest?.originalText,
+    latestSummary: latest ? (latest.originalText || (latest.assetIds.length > 0 ? NEUTRAL_PHOTO_SUMMARY : '')) : '',
     dateLabel: latest ? formatDateLabel(latest.createdAt) : undefined,
     hasMemories: spaceMemories.length > 0,
   }
@@ -85,7 +95,7 @@ export function buildMemoryEntry(
 
   return {
     id: memory.id,
-    summary: memory.originalText,
+    summary: memory.originalText || (memory.assetIds.length > 0 ? NEUTRAL_PHOTO_SUMMARY : ''),
     dateLabel: formatDateLabel(memory.createdAt),
     ...(thumbnailUri !== undefined ? { thumbnailUri } : {}),
     ...(photoCount > 0 ? { photoCount } : {}),

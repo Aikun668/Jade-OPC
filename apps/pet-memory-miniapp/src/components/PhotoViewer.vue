@@ -45,7 +45,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { PhotoViewModel } from './PhotoStack.vue'
+import type { PhotoViewModel } from '../features/photos/photo-types'
 
 export interface PhotoViewerProps {
   open: boolean

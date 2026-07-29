@@ -48,6 +48,7 @@ export interface MemoryDraft {
 export interface MemorySnapshot {
   schemaVersion: 1
   sampleMode: SampleMode
+  hasCompletedOnboarding: boolean
   spaces: MemorySpace[]
   memories: MemoryItem[]
   drafts: MemoryDraft[]

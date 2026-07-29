@@ -1,9 +1,7 @@
 <!--
   DevPanel — M0 development-only scenario switcher.
-  Per spec 6.14: MUST be tree-shaken from production build.
-  The v-if guard uses import.meta.env.DEV which Vite statically
-  evaluates — dead-code elimination removes this entire component
-  and its imports from production bundles.
+  All dev UI text lives here so pages/index/index.vue template does not
+  carry Chinese dev strings into production WXML artifacts.
 -->
 <template>
   <view v-if="isDev" class="dev-panel">
@@ -12,14 +10,78 @@
     </view>
 
     <view v-if="expanded" class="dev-panel__body">
+      <!-- 样本切换 -->
       <view class="dev-panel__section">
-        <text class="dev-panel__section-title">场景切换</text>
-        <slot name="scenarios" />
+        <text class="dev-panel__section-title">样本切换</text>
+        <view class="dev-panel__row">
+          <PrimaryButton
+            :disabled="scenarios.isResetting.value"
+            :loading="scenarios.isResetting.value"
+            @press="scenarios.resetSample('empty')"
+          >
+            空样本
+          </PrimaryButton>
+          <PrimaryButton
+            :disabled="scenarios.isResetting.value"
+            :loading="scenarios.isResetting.value"
+            @press="scenarios.resetSample('complete')"
+          >
+            完整样本
+          </PrimaryButton>
+        </view>
+        <text v-if="scenarios.lastResetError.value" class="dev-panel__error">
+          {{ scenarios.lastResetError.value }}
+        </text>
       </view>
 
+      <!-- AI 场景 Mock -->
       <view class="dev-panel__section">
-        <text class="dev-panel__section-title">失败场景</text>
-        <slot name="failures" />
+        <text class="dev-panel__section-title">AI 场景 Mock</text>
+        <view class="dev-panel__row">
+          <view
+            v-for="s in aiScenarios"
+            :key="s"
+            class="dev-panel__chip"
+            :class="{ 'dev-panel__chip--active': scenarios.aiScenario.value === s }"
+            @click.stop="scenarios.setAiScenario(s)"
+          >
+            <text class="dev-panel__chip-text">{{ s }}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 失败模拟 -->
+      <view class="dev-panel__section">
+        <text class="dev-panel__section-title">失败模拟</text>
+        <view class="dev-panel__row">
+          <view
+            class="dev-panel__chip"
+            :class="{ 'dev-panel__chip--danger': scenarios.saveFailureEnabled.value }"
+            @click.stop="scenarios.toggleSaveFailure()"
+          >
+            <text class="dev-panel__chip-text">
+              保存失败 {{ scenarios.saveFailureEnabled.value ? 'ON' : 'OFF' }}
+            </text>
+          </view>
+          <view
+            class="dev-panel__chip"
+            :class="{ 'dev-panel__chip--danger': scenarios.photoFailureEnabled.value }"
+            @click.stop="scenarios.togglePhotoFailure()"
+          >
+            <text class="dev-panel__chip-text">
+              照片失败 {{ scenarios.photoFailureEnabled.value ? 'ON' : 'OFF' }}
+            </text>
+          </view>
+          <view
+            class="dev-panel__chip"
+            :class="{ 'dev-panel__chip--danger': scenarios.permissionDeniedEnabled.value }"
+            @click.stop="scenarios.togglePermissionDenied()"
+          >
+            <text class="dev-panel__chip-text">
+              权限不足 {{ scenarios.permissionDeniedEnabled.value ? 'ON' : 'OFF' }}
+            </text>
+          </view>
+        </view>
       </view>
     </view>
   </view>
@@ -27,9 +89,13 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import PrimaryButton from './PrimaryButton.vue'
+import { useDevScenarios, type AiScenario } from '../features/developer/dev-scenarios'
 
 const isDev = import.meta.env.DEV
 const expanded = ref(false)
+const scenarios = useDevScenarios()
+const aiScenarios: AiScenario[] = ['success', 'insufficient', 'unavailable']
 </script>
 
 <style lang="scss" scoped>
@@ -78,5 +144,43 @@ const expanded = ref(false)
   font-weight: $pm-weight-medium;
   color: $pm-color-muted;
   margin-bottom: $pm-space-2;
+}
+
+.dev-panel__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $pm-space-2;
+}
+
+.dev-panel__chip {
+  padding: $pm-space-2 $pm-space-4;
+  border-radius: $pm-radius-sm;
+  background-color: $pm-color-surface;
+  border: 2rpx solid $pm-color-line;
+  cursor: pointer;
+
+  &--active {
+    background-color: $pm-color-olive;
+    border-color: $pm-color-olive;
+    color: $pm-color-on-primary;
+  }
+
+  &--danger {
+    background-color: $pm-color-danger;
+    border-color: $pm-color-danger;
+    color: $pm-color-on-primary;
+  }
+}
+
+.dev-panel__chip-text {
+  font-size: $pm-font-meta;
+  font-weight: $pm-weight-medium;
+}
+
+.dev-panel__error {
+  display: block;
+  margin-top: $pm-space-2;
+  font-size: $pm-font-meta;
+  color: $pm-color-danger;
 }
 </style>

@@ -44,6 +44,10 @@ export function validateSnapshot(value: unknown): SnapshotReadResult {
     return { kind: 'invalid', reason: 'sampleMode must be "empty" or "complete"' }
   }
 
+  if (typeof obj.hasCompletedOnboarding !== 'boolean') {
+    return { kind: 'invalid', reason: 'hasCompletedOnboarding must be a boolean' }
+  }
+
   if (!Array.isArray(obj.spaces)) return { kind: 'invalid', reason: 'spaces must be an array' }
   if (!Array.isArray(obj.memories)) return { kind: 'invalid', reason: 'memories must be an array' }
   if (!Array.isArray(obj.drafts)) return { kind: 'invalid', reason: 'drafts must be an array' }

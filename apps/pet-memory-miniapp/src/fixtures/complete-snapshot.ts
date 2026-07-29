@@ -11,6 +11,7 @@ import type { MemorySnapshot } from '../types/domain'
 export const completeSnapshot: MemorySnapshot = {
   schemaVersion: 1,
   sampleMode: 'complete',
+  hasCompletedOnboarding: true,
   spaces: [
     {
       id: 's_tuantu',

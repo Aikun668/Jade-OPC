@@ -5,6 +5,24 @@
       "style": {
         "navigationBarTitleText": "宠物记忆"
       }
+    },
+    {
+      "path": "pages/spaces/index",
+      "style": {
+        "navigationBarTitleText": "我的记忆空间"
+      }
+    },
+    {
+      "path": "pages/space-home/index",
+      "style": {
+        "navigationBarTitleText": ""
+      }
+    },
+    {
+      "path": "pages/memories/index",
+      "style": {
+        "navigationBarTitleText": "全部记忆"
+      }
     }
   ],
   "globalStyle": {

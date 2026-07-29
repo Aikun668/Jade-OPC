@@ -50,6 +50,7 @@ export function useDevScenarios() {
       schemaVersion: appStore.schemaVersion,
       sampleMode: appStore.sampleMode,
       bootstrapStatus: appStore.bootstrapStatus,
+      hasCompletedOnboarding: appStore.hasCompletedOnboarding,
     }
   }
 

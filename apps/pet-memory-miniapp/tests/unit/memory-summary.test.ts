@@ -196,22 +196,36 @@ describe('buildSpaceSummary', () => {
     expect(summary.hasMemories).toBe(false)
   })
 
+  // Photo-only memory: empty originalText with photos → neutral summary
+  it('uses neutral summary when memory has photos but no originalText', () => {
+    const space = mkSpace()
+    const memories = [
+      mkMemory({ id: 'm1', originalText: '', assetIds: ['a1'], createdAt: '2026-04-15T14:00:00.000Z' }),
+    ]
+    const assets = [
+      mkAsset({ id: 'a1', ownerType: 'memory', ownerId: 'm1', uri: '/photo.jpg', availability: 'available' }),
+    ]
+    const summary = buildSpaceSummary(space, memories, assets)
+    expect(summary.latestSummary).toBe('一张照片')
+    expect(summary.hasMemories).toBe(true)
+  })
+
   // latestSummary uses most recent memory
   it('latestSummary comes from most recent memory', () => {
     const space = mkSpace()
     const memories = [
-      mkMemory({ id: 'm1', originalText: 'older', createdAt: '2026-01-01T00:00:00.000Z' }),
-      mkMemory({ id: 'm2', originalText: 'newer', createdAt: '2026-06-01T00:00:00.000Z' }),
+      mkMemory({ id: 'm1', originalText: 'older', createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' }),
+      mkMemory({ id: 'm2', originalText: 'newer', createdAt: '2026-06-01T00:00:00.000Z', updatedAt: '2026-06-01T00:00:00.000Z' }),
     ]
     const summary = buildSpaceSummary(space, memories, [])
     expect(summary.latestSummary).toBe('newer')
   })
 
   // No memories
-  it('latestSummary is undefined when no memories exist', () => {
+  it('latestSummary is empty string when no memories exist', () => {
     const space = mkSpace()
     const summary = buildSpaceSummary(space, [], [])
-    expect(summary.latestSummary).toBeUndefined()
+    expect(summary.latestSummary).toBe('')
   })
 
   // dateLabel from most recent memory
@@ -270,6 +284,16 @@ describe('buildMemoryEntry', () => {
     const memory = mkMemory({ originalText: longText })
     const entry = buildMemoryEntry(memory, [])
     expect(entry.summary).toBe(longText)
+  })
+
+  // Photo-only memory: empty originalText with photos → neutral summary
+  it('uses neutral summary when memory has photos but no originalText', () => {
+    const memory = mkMemory({ originalText: '', assetIds: ['a1'] })
+    const assets = [
+      mkAsset({ id: 'a1', ownerType: 'memory', ownerId: 'm1', uri: '/photo.jpg', availability: 'available', order: 0 }),
+    ]
+    const entry = buildMemoryEntry(memory, assets)
+    expect(entry.summary).toBe('一张照片')
   })
 
   // T5A-M08: only available + correct owner asset → thumbnailUri

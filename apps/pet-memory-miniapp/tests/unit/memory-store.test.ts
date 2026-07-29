@@ -15,6 +15,7 @@ function mkSnapshot(overrides: Partial<MemorySnapshot> = {}): MemorySnapshot {
   return {
     schemaVersion: 1,
     sampleMode: 'empty',
+    hasCompletedOnboarding: false,
     spaces: [],
     memories: [],
     drafts: [],
@@ -73,6 +74,7 @@ function createMockRepo(overrides: Partial<MemoryRepository> = {}): MemoryReposi
     saveDraft: async () => ({ value: mkDraft(), snapshot: mkSnapshot() }),
     deleteDraft: async () => mkSnapshot(),
     resetSample: async () => mkSnapshot(),
+    completeOnboarding: async () => mkSnapshot(),
     ...overrides,
   }
 }
@@ -234,8 +236,8 @@ describe('useMemoryStore', () => {
         mkSpace({ id: 's-new', name: 'Beta', createdAt: '2026-01-01T00:00:00.000Z' }),
       ],
       memories: [
-        mkMemory({ id: 'm-new', spaceId: 's-new', createdAt: '2026-06-01T00:00:00.000Z' }),
-        mkMemory({ id: 'm-old', spaceId: 's-old', createdAt: '2026-01-01T00:00:00.000Z' }),
+        mkMemory({ id: 'm-new', spaceId: 's-new', createdAt: '2026-06-01T00:00:00.000Z', updatedAt: '2026-06-01T00:00:00.000Z' }),
+        mkMemory({ id: 'm-old', spaceId: 's-old', createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' }),
       ],
     }))
 
@@ -263,6 +265,7 @@ describe('useMemoryStore', () => {
         id: `m${i}`,
         spaceId: 's1',
         createdAt: `2026-01-0${i + 1}T00:00:00.000Z`,
+        updatedAt: `2026-01-0${i + 1}T00:00:00.000Z`,
       }),
     )
     store._commitSnapshot(mkSnapshot({ memories: mems }))

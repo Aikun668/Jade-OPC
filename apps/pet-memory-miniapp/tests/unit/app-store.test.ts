@@ -10,6 +10,7 @@ function emptySnapshot(): MemorySnapshot {
   return {
     schemaVersion: 1,
     sampleMode: 'empty',
+    hasCompletedOnboarding: false,
     spaces: [],
     memories: [],
     drafts: [],
@@ -29,6 +30,7 @@ function createMockRepo(overrides: Partial<MemoryRepository> = {}): MemoryReposi
     saveDraft: async () => ({ value: {} as any, snapshot: emptySnapshot() }),
     deleteDraft: async () => emptySnapshot(),
     resetSample: async () => emptySnapshot(),
+    completeOnboarding: async () => emptySnapshot(),
     ...overrides,
   }
 }
@@ -161,6 +163,24 @@ describe('useAppStore', () => {
 
     // Reset and retry
     store._reset()
+    shouldFail = false
+    await store.bootstrap()
+    expect(store.bootstrapStatus).toBe('ready')
+  })
+
+  it('retry after bootstrap error works without explicit _reset (guard allows retry)', async () => {
+    let shouldFail = true
+    provideRepository(createMockRepo({
+      bootstrap: async () => {
+        if (shouldFail) throw new Error('First attempt fails')
+        return emptySnapshot()
+      },
+    }))
+    const store = useAppStore()
+
+    await store.bootstrap()
+    expect(store.bootstrapStatus).toBe('error')
+
     shouldFail = false
     await store.bootstrap()
     expect(store.bootstrapStatus).toBe('ready')

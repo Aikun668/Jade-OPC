@@ -102,7 +102,7 @@ const displayMessage = computed(() => {
   &--error {
     > textarea,
     > input {
-      border-color: $pm-color-ink;
+      border-color: $pm-color-danger;
     }
   }
 }

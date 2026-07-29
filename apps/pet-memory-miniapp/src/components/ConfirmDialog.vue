@@ -17,7 +17,7 @@
           :loading="pendingPhase === 'pending-visible'"
           :loading-label="pendingPhase !== 'idle' ? pendingLabel : undefined"
           :variant="tone === 'danger' ? 'danger' : 'primary'"
-          @press="$emit('confirm')"
+          @press="pendingPhase === 'idle' && $emit('confirm')"
         >
           {{ confirmLabel }}
         </PrimaryButton>
