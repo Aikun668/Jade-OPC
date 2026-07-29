@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url'
 import { createHash } from 'node:crypto'
 import { PNG } from 'pngjs'
 
+const NODE = process.execPath
+
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const scriptPath = resolve(__dirname, '../../scripts/visual-regression/normalize-baselines.mjs')
 const testInputDir = resolve(__dirname, '../../scripts/visual-regression/test-input')
@@ -84,7 +86,7 @@ describe('visual baseline normalization', () => {
 
     it('can be parsed as Node.js module', () => {
       expect(() => {
-        execSync(`node --check "${scriptPath}"`, { encoding: 'utf-8' })
+        execSync(`"${NODE}" --check "${scriptPath}"`, { encoding: 'utf-8' })
       }).not.toThrow()
     })
   })
@@ -93,7 +95,7 @@ describe('visual baseline normalization', () => {
     let manifest: any
 
     beforeAll(() => {
-      execSync(`node "${scriptPath}" "${testInputDir}" "${testOutputDir}"`, {
+      execSync(`"${NODE}" "${scriptPath}" "${testInputDir}" "${testOutputDir}"`, {
         encoding: 'utf-8',
       })
       const manifestPath = join(testOutputDir, 'manifest.json')
@@ -236,7 +238,7 @@ describe('visual baseline normalization', () => {
       if (existsSync(wrongOutputDir)) rmSync(wrongOutputDir, { recursive: true })
 
       try {
-        execSync(`node "${scriptPath}" "${wrongInputDir}" "${wrongOutputDir}"`, { encoding: 'utf-8' })
+        execSync(`"${NODE}" "${scriptPath}" "${wrongInputDir}" "${wrongOutputDir}"`, { encoding: 'utf-8' })
         // Should not reach here
         expect.unreachable('Expected script to exit with code 1')
       } catch (e: any) {
@@ -285,7 +287,7 @@ describe('visual baseline normalization', () => {
       writeFileSync(join(badInputDir, '04-space-home.png'), PNG.sync.write(png04))
 
       try {
-        execSync(`node "${scriptPath}" "${badInputDir}" "${badOutputDir}"`, { encoding: 'utf-8' })
+        execSync(`"${NODE}" "${scriptPath}" "${badInputDir}" "${badOutputDir}"`, { encoding: 'utf-8' })
         expect.unreachable('Expected script to exit with code 1')
       } catch (e: any) {
         expect(e.status).toBe(1)
@@ -327,7 +329,7 @@ describe('visual baseline normalization', () => {
       writeFileSync(join(unknownInputDir, '99-unknown.png'), PNG.sync.write(png))
 
       try {
-        execSync(`node "${scriptPath}" "${unknownInputDir}" "${unknownOutputDir}"`, { encoding: 'utf-8' })
+        execSync(`"${NODE}" "${scriptPath}" "${unknownInputDir}" "${unknownOutputDir}"`, { encoding: 'utf-8' })
         expect.unreachable('Expected script to exit with code 1')
       } catch (e: any) {
         expect(e.status).toBe(1)

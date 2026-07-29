@@ -11,17 +11,23 @@
       schema v{{ meta.schemaVersion }} | {{ meta.sampleMode }} | {{ meta.bootstrapStatus }}
     </text>
 
-    <DevPanel />
+    <DevPanel v-if="DevPanel" />
   </view>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import DevPanel from '../../components/DevPanel.vue'
+import { computed, shallowRef } from 'vue'
 import { useDevScenarios } from '../../features/developer/dev-scenarios'
 
 const scenarios = useDevScenarios()
 const meta = computed(() => scenarios.getCurrentMeta())
+
+const DevPanel = shallowRef<any>(null)
+if (import.meta.env.DEV) {
+  import('../../components/DevPanel.vue').then(m => {
+    DevPanel.value = m.default
+  })
+}
 </script>
 
 <style lang="scss" scoped>

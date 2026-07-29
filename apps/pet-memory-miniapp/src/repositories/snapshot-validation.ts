@@ -25,7 +25,7 @@ export function validateSnapshot(value: unknown): SnapshotReadResult {
     return { kind: 'invalid', reason: 'Snapshot must be an object' }
   }
 
-  const obj = value as Record<string, unknown>
+  let obj = value as Record<string, unknown>
 
   if (typeof obj.schemaVersion !== 'number' || !Number.isInteger(obj.schemaVersion)) {
     return { kind: 'invalid', reason: 'schemaVersion must be an integer' }
@@ -45,7 +45,11 @@ export function validateSnapshot(value: unknown): SnapshotReadResult {
   }
 
   if (typeof obj.hasCompletedOnboarding !== 'boolean') {
-    return { kind: 'invalid', reason: 'hasCompletedOnboarding must be a boolean' }
+    if ('hasCompletedOnboarding' in obj) {
+      return { kind: 'invalid', reason: 'hasCompletedOnboarding must be a boolean' }
+    }
+    // auto-migrate: old snapshots without hasCompletedOnboarding default to true
+    obj = { ...obj, hasCompletedOnboarding: true }
   }
 
   if (!Array.isArray(obj.spaces)) return { kind: 'invalid', reason: 'spaces must be an array' }

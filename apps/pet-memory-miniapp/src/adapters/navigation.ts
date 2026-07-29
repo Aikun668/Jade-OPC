@@ -6,6 +6,8 @@ export const PAGE_URLS = {
   'space-create': '/pages/space-create/index',
   'memory-detail': '/pages/memory-detail/index',
   memories: '/pages/memories/index',
+  'record-entry': '/pages/record-entry/index',
+  'space-settings': '/pages/space-settings/index',
 } as const
 
 const SPACE_HOME_ROUTE = PAGE_URLS['space-home'].replace(/^\//, '')

@@ -371,6 +371,10 @@ export class LocalMemoryRepository implements MemoryRepository {
         if (!existingAsset) {
           throw new Error(`Asset not found: ${assetInput.assetId}`)
         }
+        // space-owned assets cannot be transferred to a draft
+        if (existingAsset.ownerType === 'space') {
+          throw new Error(`Asset ${assetInput.assetId} is owned by a space and cannot be transferred to a draft`)
+        }
         if (!this.assetBelongsToSpace(existingAsset, input.spaceId, snap)) {
           throw new Error(`Asset ${assetInput.assetId} does not belong to space ${input.spaceId}`)
         }
