@@ -35,6 +35,17 @@ page {
   --pm-capsule-width: 0px;
   --pm-capsule-height: 0px;
   --pm-keyboard-height: 0px;
+
+  // Spacing tokens exposed for JS inline-style calc()
+  --pm-nav-content-gap: #{$pm-nav-content-gap};
+  --pm-page-bottom: #{$pm-page-bottom};
+
+  font-family: $pm-font-family;
+  background-color: $pm-color-canvas;
+  color: $pm-color-ink;
+  font-size: $pm-font-body;
+  line-height: $pm-leading-body;
+  -webkit-font-smoothing: antialiased;
 }
 
 // Reduced-motion: apply per-component where animation actually exists.

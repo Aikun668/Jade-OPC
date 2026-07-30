@@ -9,8 +9,15 @@ export class UniStorageAdapter implements StorageAdapter {
           resolve((res.data as T) ?? null)
         },
         fail: (err) => {
-          // 空键或无数据不视为平台异常
-          if (err.errMsg?.includes(': not found') || err.errMsg?.includes(': no data')) {
+          const msg = err.errMsg ?? ''
+          // 微信实测 errMsg: "getStorage:fail data not found"
+          // 以下模式只匹配「key 不存在 / 无数据 / 空键」语义，不会误吞 quota exceeded / permission denied
+          if (
+            msg.includes('data not found') ||
+            msg.includes(': not found') ||
+            msg.includes(': no data') ||
+            msg.includes('key is empty')
+          ) {
             resolve(null)
             return
           }

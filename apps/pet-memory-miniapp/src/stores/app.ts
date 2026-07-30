@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { SampleMode } from '../types/domain'
+import type { MemorySnapshot, SampleMode } from '../types/domain'
 import { getRepository } from './deps'
 
 export type BootstrapStatus = 'idle' | 'loading' | 'ready' | 'error'
@@ -29,11 +29,7 @@ export const useAppStore = defineStore('app', () => {
       const memoryStore = useMemoryStore()
       memoryStore._commitSnapshot(snapshot)
 
-      sampleMode.value = snapshot.sampleMode
-      schemaVersion.value = snapshot.schemaVersion
-      hasCompletedOnboarding.value = snapshot.hasCompletedOnboarding
-      initError.value = null
-      bootstrapStatus.value = 'ready'
+      commitBootstrapReady(snapshot)
     } catch (e: unknown) {
       bootstrapped = false
       const message = e instanceof Error ? e.message : 'Unknown bootstrap error'
@@ -49,6 +45,14 @@ export const useAppStore = defineStore('app', () => {
     const memoryStore = useMemoryStore()
     memoryStore._commitSnapshot(snapshot)
     hasCompletedOnboarding.value = true
+  }
+
+  function commitBootstrapReady(snapshot: Pick<MemorySnapshot, 'sampleMode' | 'schemaVersion' | 'hasCompletedOnboarding'>): void {
+    sampleMode.value = snapshot.sampleMode
+    schemaVersion.value = snapshot.schemaVersion
+    hasCompletedOnboarding.value = snapshot.hasCompletedOnboarding
+    initError.value = null
+    bootstrapStatus.value = 'ready'
   }
 
   function setDevMode(on: boolean): void {
@@ -74,6 +78,7 @@ export const useAppStore = defineStore('app', () => {
     devMode,
     bootstrap,
     completeOnboarding,
+    commitBootstrapReady,
     setDevMode,
     _reset,
   }

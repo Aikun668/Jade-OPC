@@ -9,19 +9,22 @@
     {
       "path": "pages/spaces/index",
       "style": {
-        "navigationBarTitleText": "我的记忆空间"
+        "navigationBarTitleText": "我的记忆空间",
+        "navigationStyle": "custom"
       }
     },
     {
       "path": "pages/space-home/index",
       "style": {
-        "navigationBarTitleText": ""
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom"
       }
     },
     {
       "path": "pages/memories/index",
       "style": {
-        "navigationBarTitleText": "全部记忆"
+        "navigationBarTitleText": "全部记忆",
+        "navigationStyle": "custom"
       }
     }
   ],

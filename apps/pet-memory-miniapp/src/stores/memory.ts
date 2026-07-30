@@ -87,9 +87,7 @@ export const useMemoryStore = defineStore('memory', () => {
     _commitSnapshot(snapshot)
 
     const appStore = useAppStore()
-    appStore.sampleMode = snapshot.sampleMode
-    appStore.schemaVersion = snapshot.schemaVersion
-    appStore.hasCompletedOnboarding = snapshot.hasCompletedOnboarding
+    appStore.commitBootstrapReady(snapshot)
   }
 
   // ---- getters ----

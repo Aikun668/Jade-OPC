@@ -83,10 +83,10 @@ describe('Spaces page (02)', () => {
 
     await wrapper.vm.$nextTick()
 
-    const cards = wrapper.findAll('.spaces__card')
-    expect(cards.length).toBe(2)
-    expect(cards[0].text()).toContain('Alpha')
-    expect(cards[1].text()).toContain('Beta')
+    const items = wrapper.findAll('.spaces__item')
+    expect(items.length).toBe(2)
+    expect(items[0].text()).toContain('Alpha')
+    expect(items[1].text()).toContain('Beta')
   })
 
   // T5A-M19: no memories → "还没有留下记忆"
@@ -170,12 +170,12 @@ describe('Spaces page (02)', () => {
 
     await wrapper.vm.$nextTick()
 
-    // Card should still render with an empty summary
-    expect(wrapper.find('.spaces__card').exists()).toBe(true)
+    // Item should still render with an empty summary
+    expect(wrapper.find('.spaces__item').exists()).toBe(true)
   })
 
-  // T5A-M21: entire card clickable — pushes to space-home
-  it('T5A-M21: clicking space card navigates to space-home', async () => {
+  // T5A-M21: entire item clickable — pushes to space-home
+  it('T5A-M21: clicking space item navigates to space-home', async () => {
     const nav = mockNavigation()
     provideNavigation(nav)
     const appStore = useAppStore()
@@ -197,12 +197,12 @@ describe('Spaces page (02)', () => {
 
     await wrapper.vm.$nextTick()
 
-    await wrapper.find('.spaces__card').trigger('click')
+    await wrapper.find('.spaces__item').trigger('click')
     expect(nav.push).toHaveBeenCalledWith('/pages/space-home/index?spaceId=s1')
   })
 
-  // T5A-M21: no settings/delete/more buttons on cards
-  it('T5A-M21: space cards have no settings, delete, or more buttons', async () => {
+  // T5A-M21: no settings/delete/more buttons on items
+  it('T5A-M21: space items have no settings, delete, or more buttons', async () => {
     provideNavigation(mockNavigation())
     const appStore = useAppStore()
     const memStore = useMemoryStore()
@@ -239,7 +239,7 @@ describe('Spaces page (02)', () => {
     expect(pageShell.props('showBack')).toBe(false)
   })
 
-  // T5A-M08: space card renders coverUri when available
+  // T5A-M08: space item renders coverUri when available
   it('T5A-M08: renders cover image when space has available cover asset', async () => {
     provideNavigation(mockNavigation())
     const appStore = useAppStore()
@@ -265,7 +265,7 @@ describe('Spaces page (02)', () => {
 
     await wrapper.vm.$nextTick()
 
-    const img = wrapper.find('.spaces__card-cover')
+    const img = wrapper.find('.spaces__item-thumb')
     expect(img.exists()).toBe(true)
     expect(img.attributes('src')).toBe('/static/fixtures/cover.jpg')
   })
@@ -291,8 +291,8 @@ describe('Spaces page (02)', () => {
     expect(nav.push).toHaveBeenCalledWith('/pages/space-create/index')
   })
 
-  // T5A-M23: create button click navigates in with-spaces state
-  it('T5A-M23: create button click navigates to create page (with-spaces state)', async () => {
+  // T5A-M23: create link click navigates in with-spaces state
+  it('T5A-M23: create link click navigates to create page (with-spaces state)', async () => {
     const nav = mockNavigation()
     provideNavigation(nav)
     const appStore = useAppStore()
@@ -314,11 +314,11 @@ describe('Spaces page (02)', () => {
 
     await wrapper.vm.$nextTick()
 
-    // Find the create button by its text
-    const buttons = wrapper.findAllComponents({ name: 'PrimaryButton' })
-    const createBtn = buttons.find(b => b.text().includes('创建'))
-    expect(createBtn).toBeTruthy()
-    await createBtn!.trigger('click')
+    // Find the create link by text — low-emphasis TextAction
+    const actions = wrapper.findAllComponents({ name: 'TextAction' })
+    const createAction = actions.find(b => b.text().includes('创建'))
+    expect(createAction).toBeTruthy()
+    await createAction!.vm.$emit('press')
     expect(nav.push).toHaveBeenCalledWith('/pages/space-create/index')
   })
 

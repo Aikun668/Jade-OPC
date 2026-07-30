@@ -62,21 +62,29 @@ describe('useDevScenarios', () => {
     expect(memStore.spaces).toHaveLength(1)
   })
 
-  // T4D-M02: Reset data → both stores sync
-  it('T4D-M02: reset syncs both memoryStore and appStore', async () => {
+  // T4D-M02: Reset data → both stores sync (including bootstrapStatus)
+  it('T4D-M02: reset syncs both memoryStore and appStore including bootstrapStatus', async () => {
+    // Set appStore to error state first
+    const appStore = useAppStore()
+    appStore.bootstrapStatus = 'error'
+    appStore.initError = 'Prior bootstrap failure'
+
     provideRepository(createMockRepo({
       resetSample: async () => mkSnapshot({
         sampleMode: 'complete',
         schemaVersion: 1,
+        hasCompletedOnboarding: true,
       }),
     }))
     const { resetSample } = useDevScenarios()
 
     await resetSample('complete')
 
-    const appStore = useAppStore()
     expect(appStore.sampleMode).toBe('complete')
     expect(appStore.schemaVersion).toBe(1)
+    expect(appStore.hasCompletedOnboarding).toBe(true)
+    expect(appStore.bootstrapStatus).toBe('ready')
+    expect(appStore.initError).toBeNull()
   })
 
   // T4D-M03: AI mock scenes restricted to success/insufficient/unavailable
@@ -194,6 +202,64 @@ describe('useDevScenarios', () => {
     shouldFail = false
     await resetSample('complete')
     expect(lastResetError.value).toBeNull()
+  })
+
+  // R5A-03: error → reset → ready — bootstrapStatus transitions from error to ready
+  it('R5A-03: reset complete transitions bootstrapStatus from error to ready', async () => {
+    const appStore = useAppStore()
+    appStore.bootstrapStatus = 'error'
+    appStore.initError = 'Simulated bootstrap failure'
+
+    provideRepository(createMockRepo({
+      resetSample: async () => mkSnapshot({
+        sampleMode: 'complete',
+        schemaVersion: 1,
+        spaces: [{
+          id: 's1', name: '团团', coverAssetId: null,
+          createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',
+        }],
+      }),
+    }))
+    const { resetSample } = useDevScenarios()
+
+    await resetSample('complete')
+
+    const memStore = useMemoryStore()
+    expect(appStore.bootstrapStatus).toBe('ready')
+    expect(appStore.initError).toBeNull()
+    expect(appStore.sampleMode).toBe('complete')
+    expect(memStore.spaces).toHaveLength(1)
+  })
+
+  // R5A-03: reset failure preserves error state in both stores
+  it('R5A-03: reset failure preserves appStore error state unchanged', async () => {
+    const appStore = useAppStore()
+    appStore.bootstrapStatus = 'error'
+    appStore.initError = 'Bootstrap error'
+
+    // Pre-populate memory store with some data
+    const memStore = useMemoryStore()
+    memStore._commitSnapshot(mkSnapshot({
+      spaces: [{ id: 'orig', name: 'Original', coverAssetId: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' }],
+    }))
+
+    provideRepository(createMockRepo({
+      resetSample: async () => { throw new Error('Reset failed') },
+    }))
+    const { resetSample, lastResetError } = useDevScenarios()
+
+    await expect(resetSample('complete')).rejects.toThrow('Reset failed')
+
+    // App store state preserved
+    expect(appStore.bootstrapStatus).toBe('error')
+    expect(appStore.initError).toBe('Bootstrap error')
+
+    // Memory store state preserved
+    expect(memStore.spaces).toHaveLength(1)
+    expect(memStore.spaces[0].id).toBe('orig')
+
+    // Error visible
+    expect(lastResetError.value).toBe('Reset failed')
   })
 
   // T4D-M10: getCurrentMeta returns schema info (non-sensitive)

@@ -5,6 +5,9 @@
     :show-back="true"
     @back="goBack"
   >
+    <template #navigation-right>
+      <TextAction tone="muted" @press="goSettings">更多</TextAction>
+    </template>
     <!-- bootstrap loading -->
     <view v-if="!isReady" class="space-home__center">
       <text class="space-home__muted">{{ loadingLabel }}</text>
@@ -59,6 +62,7 @@
 
       <!-- recent memories -->
       <view v-if="memoryEntries.length > 0" class="space-home__recent">
+        <view class="space-home__divider" />
         <view class="space-home__recent-header">
           <text class="space-home__section-title">最近留下</text>
         </view>
@@ -71,10 +75,6 @@
         </view>
       </view>
 
-      <!-- settings -->
-      <view class="space-home__settings">
-        <TextAction tone="muted" @press="goSettings">设置</TextAction>
-      </view>
     </template>
   </PageShell>
 </template>
@@ -203,7 +203,7 @@ function goToSpaces(): void {
 
 function goRecord(): void {
   if (!spaceId.value) return
-  nav.push(`${PAGE_URLS['space-create']}?spaceId=${encodeURIComponent(spaceId.value)}`)
+  nav.push(`${PAGE_URLS['record-entry']}?spaceId=${encodeURIComponent(spaceId.value)}`)
 }
 
 function continueDraft(): void {
@@ -260,13 +260,13 @@ defineExpose({ _setQueryForTest })
 
 .space-home__identity {
   display: flex;
-  flex-direction: column;
   align-items: center;
   gap: $pm-space-4;
   padding-block: $pm-space-4;
 }
 
 .space-home__cover {
+  flex-shrink: 0;
   width: $pm-photo-space-home;
   height: $pm-photo-space-home;
   border-radius: $pm-photo-radius-large;
@@ -275,7 +275,6 @@ defineExpose({ _setQueryForTest })
 .space-home__identity-text {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: $pm-space-1;
 }
 
@@ -284,7 +283,6 @@ defineExpose({ _setQueryForTest })
   font-weight: $pm-weight-semibold;
   line-height: $pm-leading-title;
   color: $pm-color-ink;
-  text-align: center;
 }
 
 .space-home__draft {
@@ -312,15 +310,14 @@ defineExpose({ _setQueryForTest })
   color: $pm-color-ink;
 }
 
+.space-home__divider {
+  height: $pm-border-hairline;
+  background-color: $pm-color-line;
+}
+
 .space-home__view-all {
   display: flex;
   justify-content: center;
   margin-top: $pm-space-4;
-}
-
-.space-home__settings {
-  display: flex;
-  justify-content: center;
-  margin-top: $pm-section-gap;
 }
 </style>

@@ -2,6 +2,7 @@
   <view
     class="page-shell"
     :class="[`page-shell--${layout}`]"
+    :style="shellStyle"
   >
     <!-- header (hidden in quiet-landing) -->
     <view
@@ -77,6 +78,7 @@
 
 <script setup lang="ts">
 import { computed, getCurrentInstance } from 'vue'
+import { usePlatformLayout } from '../adapters/platform-layout'
 
 export type PageLayout =
   | 'quiet-landing'
@@ -102,38 +104,52 @@ defineEmits<{
 }>()
 
 const slots = getCurrentInstance()!.slots
-
-// JS cannot reference SCSS variables; these constants mirror
-// $pm-space-4 (32rpx) + $pm-form-action-gap (64rpx) = 96rpx, and $pm-nav-content-gap (24rpx).
-const TASK_FORM_BOTTOM_SPACE_RPX = '96rpx'
-const NAV_CONTENT_GAP_RPX = '24rpx'
+const platform = usePlatformLayout()
 
 const hasIntro = computed(() => !!slots.intro)
 const hasActions = computed(() => !!slots.actions)
 
-const statusBarStyle = computed(() => ({
-  height: 'var(--pm-status-bar-height, 0px)',
-}))
-
-const navRowStyle = computed(() => ({
-  minHeight: 'var(--pm-nav-row-height, 88rpx)',
-}))
-
-const navRightStyle = computed(() => ({
-  paddingRight: 'calc(var(--pm-capsule-width, 0px) + 16rpx)',
-}))
-
-const columnStyle= computed(() => {
-  if (props.layout === 'task-form' && !props.keyboardOpen) {
-    const minHeight = `calc(var(--pm-viewport-height, 100vh) - (${headerHeight()}) - var(--pm-safe-bottom, 0px) - ${TASK_FORM_BOTTOM_SPACE_RPX} - ${NAV_CONTENT_GAP_RPX})`
-    return { minHeight }
+const shellStyle = computed(() => {
+  if (props.layout === 'quiet-landing') {
+    return { paddingTop: `calc(${platform.value.statusBarHeight} + 64rpx)` }
   }
   return {}
 })
 
+const statusBarStyle = computed(() => ({
+  height: platform.value.statusBarHeight,
+}))
+
+const navRowStyle = computed(() => ({
+  minHeight: platform.value.navRowHeight,
+}))
+
+const navRightStyle = computed(() => ({
+  paddingRight: `calc(${platform.value.capsuleWidth} + 16rpx)`,
+}))
+
+const columnStyle = computed(() => {
+  const style: Record<string, string> = {}
+  const safeBottom = platform.value.safeBottom
+
+  if (props.layout === 'standard-flow') {
+    style.paddingBottom = `calc(${safeBottom} + 64rpx)`
+  } else if (props.layout === 'reading') {
+    style.paddingBottom = `calc(${safeBottom} + 48rpx)`
+  } else if (props.layout === 'task-form') {
+    style.paddingBottom = `32rpx`
+  }
+
+  if (props.layout === 'task-form' && !props.keyboardOpen) {
+    style.minHeight = `calc(100vh - (${headerHeight()}) - ${safeBottom} - var(--pm-page-bottom) - var(--pm-nav-content-gap))`
+  }
+
+  return style
+})
+
 function headerHeight(): string {
   if (props.layout === 'quiet-landing') return '0px'
-  return 'var(--pm-status-bar-height, 0px) + var(--pm-nav-row-height, 88rpx)'
+  return `${platform.value.statusBarHeight} + ${platform.value.navRowHeight}`
 }
 </script>
 
@@ -147,7 +163,7 @@ function headerHeight(): string {
   background-color: $pm-color-canvas;
 
   &--quiet-landing {
-    padding-top: calc(var(--pm-status-bar-height, 0px) + #{$pm-space-8});
+    // padding-top handled by shellStyle inline style
   }
 }
 
@@ -229,19 +245,16 @@ function headerHeight(): string {
 
   &--standard-flow {
     padding-top: $pm-nav-content-gap;
-    padding-bottom: calc(var(--pm-safe-bottom, 0px) + #{$pm-page-bottom});
   }
 
   &--reading {
     padding-top: $pm-nav-content-gap;
-    padding-bottom: calc(var(--pm-safe-bottom, 0px) + #{$pm-reading-bottom});
   }
 
   &--task-form {
     display: flex;
     flex-direction: column;
     padding-top: $pm-nav-content-gap;
-    padding-bottom: $pm-space-4;
   }
 }
 

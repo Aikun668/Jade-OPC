@@ -1,5 +1,9 @@
 <template>
   <PageShell layout="standard-flow" title="我的记忆空间" :show-back="false">
+    <template #navigation-right>
+      <TextAction tone="muted" @press="goCreate">+</TextAction>
+    </template>
+
     <!-- loading -->
     <view v-if="isLoading" class="spaces__center">
       <text class="spaces__muted">{{ loadingLabel }}</text>
@@ -22,38 +26,39 @@
     </view>
 
     <!-- with spaces -->
-    <view v-else>
+    <template v-else>
       <view class="spaces__intro">
-        <text class="spaces__desc">在这里查看你为 Ta 留下的所有记忆。</text>
+        <text class="spaces__desc">每一个 Ta，都有自己的位置。</text>
       </view>
 
       <view class="spaces__list">
         <button
-          v-for="s in spaceList"
+          v-for="(s, idx) in spaceList"
           :key="s.id"
-          class="spaces__card"
+          class="spaces__item"
           @click.stop="goSpace(s.id)"
         >
-          <view class="spaces__card-body">
-            <view class="spaces__card-text">
-              <text class="spaces__card-name">{{ s.name }}</text>
-              <text class="spaces__card-summary">{{ s.hasMemories ? s.latestSummary : '还没有留下记忆' }}</text>
-              <text v-if="s.dateLabel" class="spaces__card-date">{{ s.dateLabel }}</text>
-            </view>
-            <image
-              v-if="s.coverUri"
-              class="spaces__card-cover"
-              :src="s.coverUri"
-              mode="aspectFill"
-            />
+          <image
+            v-if="s.coverUri"
+            class="spaces__item-thumb"
+            :src="s.coverUri"
+            mode="aspectFill"
+          />
+          <view v-else class="spaces__item-placeholder" />
+          <view class="spaces__item-text">
+            <text class="spaces__item-name">{{ s.name }}</text>
+            <text class="spaces__item-summary">{{ s.hasMemories ? s.latestSummary : '还没有留下记忆' }}</text>
+            <text v-if="s.dateLabel" class="spaces__item-date">{{ s.dateLabel }}</text>
           </view>
+          <text class="spaces__item-arrow">›</text>
+          <view v-if="idx < spaceList.length - 1" class="spaces__divider" />
         </button>
       </view>
 
-      <view class="spaces__action">
-        <PrimaryButton width="content" @press="goCreate">为 Ta 创建一个空间</PrimaryButton>
+      <view class="spaces__create-hint">
+        <TextAction @press="goCreate">+ 再为一位 Ta 创建空间</TextAction>
       </view>
-    </view>
+    </template>
   </PageShell>
 </template>
 
@@ -61,6 +66,7 @@
 import { ref, computed, watch, onUnmounted } from 'vue'
 import PageShell from '../../components/PageShell.vue'
 import PrimaryButton from '../../components/PrimaryButton.vue'
+import TextAction from '../../components/TextAction.vue'
 import { useAppStore } from '../../stores/app'
 import { useMemoryStore } from '../../stores/memory'
 import { getNavigation } from '../../adapters/navigation-deps'
@@ -158,32 +164,44 @@ function goSpace(spaceId: string): void {
 .spaces__list {
   display: flex;
   flex-direction: column;
-  gap: $pm-space-3;
 }
 
-.spaces__card {
+.spaces__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: $pm-space-3;
   width: 100%;
-  padding: $pm-space-5;
-  border: $pm-border-hairline solid $pm-color-line;
-  border-radius: $pm-radius-md;
-  background-color: $pm-color-surface;
-  text-align: left;
+  padding-block: $pm-space-4;
+  padding-inline: 0;
+  border: none;
+  background: none;
   font: inherit;
   color: inherit;
-  cursor: pointer;
+  text-align: left;
+  border-radius: 0;
 
   &:active {
     background-color: $pm-color-olive-soft;
   }
 }
 
-.spaces__card-body {
-  display: flex;
-  align-items: flex-start;
-  gap: $pm-space-3;
+.spaces__item-thumb {
+  flex-shrink: 0;
+  width: $pm-photo-space-list;
+  height: $pm-photo-space-list;
+  border-radius: $pm-photo-radius-thumb;
 }
 
-.spaces__card-text {
+.spaces__item-placeholder {
+  flex-shrink: 0;
+  width: $pm-photo-space-list;
+  height: $pm-photo-space-list;
+  border-radius: $pm-photo-radius-thumb;
+  background-color: $pm-color-olive-soft;
+}
+
+.spaces__item-text {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -191,13 +209,13 @@ function goSpace(spaceId: string): void {
   gap: $pm-space-1;
 }
 
-.spaces__card-name {
+.spaces__item-name {
   font-size: $pm-font-item-title;
   font-weight: $pm-weight-semibold;
   color: $pm-color-ink;
 }
 
-.spaces__card-summary {
+.spaces__item-summary {
   font-size: $pm-font-body;
   color: $pm-color-ink;
   overflow: hidden;
@@ -207,15 +225,30 @@ function goSpace(spaceId: string): void {
   -webkit-line-clamp: 2;
 }
 
-.spaces__card-date {
+.spaces__item-date {
   font-size: $pm-font-meta;
   color: $pm-color-muted;
 }
 
-.spaces__card-cover {
+.spaces__item-arrow {
   flex-shrink: 0;
-  width: $pm-photo-memory-thumb;
-  height: $pm-photo-memory-thumb;
-  border-radius: $pm-photo-radius-thumb;
+  font-size: $pm-font-section-title;
+  color: $pm-color-line;
+  line-height: 1;
+}
+
+.spaces__divider {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: $pm-border-hairline;
+  background-color: $pm-color-line;
+}
+
+.spaces__create-hint {
+  display: flex;
+  justify-content: center;
+  margin-top: $pm-section-gap;
 }
 </style>

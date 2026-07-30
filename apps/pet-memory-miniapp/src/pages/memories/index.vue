@@ -51,7 +51,7 @@
         >
           <template #footer>
             <view class="memories__end-note">
-              <text class="memories__muted">没有更多了</text>
+              <text class="memories__muted">先留到这里。以后想起新的，再慢慢回来。</text>
             </view>
           </template>
         </MemoryList>
@@ -143,14 +143,11 @@ const memoryEntries = computed<MemoryEntryViewModel[]>(() =>
 // ---- labels ----
 const loadingLabel = computed(() => visibleLoading.value ? '正在准备…' : '')
 
-const pageTitle = computed(() => {
-  if (space.value) return space.value.name
-  return ''
-})
+const pageTitle = computed(() => '全部记忆')
 
 const countLabel = computed(() => {
   const count = memoryEntries.value.length
-  return `${count} 条记忆`
+  return `${count} 段记忆`
 })
 
 // ---- actions ----

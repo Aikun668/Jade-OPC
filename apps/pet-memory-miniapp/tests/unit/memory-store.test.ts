@@ -204,19 +204,23 @@ describe('useMemoryStore', () => {
 
   // ---- resetSample ----
 
-  it('T4C-M24: resetSample syncs memoryStore and appStore', async () => {
+  it('T4C-M24: resetSample syncs memoryStore and appStore including bootstrapStatus', async () => {
     const resetSnap = mkSnapshot({
       sampleMode: 'complete',
       schemaVersion: 1,
+      hasCompletedOnboarding: true,
       spaces: [mkSpace({ id: 'reset-s', name: 'Reset Space' })],
     })
     provideRepository(createMockRepo({
       resetSample: async () => resetSnap,
     }))
     const store = useMemoryStore()
-    // Import appStore to verify metadata sync (T4C-M24 requires both stores updated)
     const { useAppStore } = await import('../../src/stores/app')
     const appStore = useAppStore()
+
+    // Set to error first to verify transition
+    appStore.bootstrapStatus = 'error'
+    appStore.initError = 'Prior error'
 
     await store.resetSample('complete')
 
@@ -224,6 +228,9 @@ describe('useMemoryStore', () => {
     expect(store.spaces[0].id).toBe('reset-s')
     expect(appStore.sampleMode).toBe('complete')
     expect(appStore.schemaVersion).toBe(1)
+    expect(appStore.hasCompletedOnboarding).toBe(true)
+    expect(appStore.bootstrapStatus).toBe('ready')
+    expect(appStore.initError).toBeNull()
   })
 
   // ---- Getters ----

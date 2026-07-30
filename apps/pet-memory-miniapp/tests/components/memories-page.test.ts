@@ -132,7 +132,7 @@ describe('Memories page (08)', () => {
     expect(text).toContain('豆豆')
     expect(text).not.toContain('暂时没有打开这里')
     expect(text).not.toContain('已经不存在了')
-    expect(text).toContain('0 条记忆')
+    expect(text).toContain('0 段记忆')
   })
 
   // T5A-M37: all memories shown sorted by time desc
@@ -420,7 +420,7 @@ describe('Memories page (08)', () => {
 
     const text = wrapper.text()
     expect(text).toContain('团团')
-    expect(text).toContain('2 条记忆')
+    expect(text).toContain('2 段记忆')
 
     const memoryList = wrapper.findComponent({ name: 'MemoryList' })
     const items = memoryList.props('items') as any[]

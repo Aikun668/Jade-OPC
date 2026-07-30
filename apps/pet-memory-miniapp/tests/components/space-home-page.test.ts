@@ -492,7 +492,7 @@ describe('Space-home page (04)', () => {
     await recordBtn!.vm.$emit('press')
     // Check safe URL — spaceId only, no full objects
     const pushCalls = (nav.push as ReturnType<typeof vi.fn>).mock.calls
-    const recordCall = pushCalls.find((c: string[]) => c[0].includes('space-create'))
+    const recordCall = pushCalls.find((c: string[]) => c[0].includes('record-entry'))
     expect(recordCall).toBeTruthy()
     expect(recordCall![0]).toContain('spaceId=s1')
   })
@@ -529,8 +529,8 @@ describe('Space-home page (04)', () => {
     )
   })
 
-  // T5A-M34: settings (12) navigates with safe URL
-  it('T5A-M34: settings link navigates to space-settings with spaceId', async () => {
+  // T5A-M34: more (settings) in nav-right navigates with safe URL
+  it('T5A-M34: more button navigates to space-settings with spaceId', async () => {
     const nav = mockNavigation()
     provideNavigation(nav)
     const appStore = useAppStore()
@@ -544,17 +544,17 @@ describe('Space-home page (04)', () => {
     }))
 
     const wrapper = mount(SpaceHomePage, {
-      global: { stubs: { PageShell: { template: '<view><slot /></view>' } } },
+      global: { stubs: { DraftNotice: true, MemoryList: true } },
     })
 
-    setQuery(wrapper,{ spaceId: 's1' })
+    setQuery(wrapper, { spaceId: 's1' })
     await wrapper.vm.$nextTick()
 
     const textActions = wrapper.findAllComponents({ name: 'TextAction' })
-    const settingsBtn = textActions.find(b => b.text().includes('设置'))
-    expect(settingsBtn).toBeTruthy()
+    const moreBtn = textActions.find(b => b.text().includes('更多'))
+    expect(moreBtn).toBeTruthy()
 
-    await settingsBtn!.vm.$emit('press')
+    await moreBtn!.vm.$emit('press')
     expect(nav.push).toHaveBeenCalledWith(
       expect.stringContaining('/pages/space-settings/index?spaceId=s1'),
     )
@@ -720,10 +720,10 @@ describe('Space-home page (04)', () => {
     })
 
     const wrapper = mount(SpaceHomePage, {
-      global: { stubs: { PageShell: { template: '<view><slot /></view>' }, DraftNotice: false, MemoryList: false } },
+      global: { stubs: { PageShell: { template: '<view><slot /><slot name="navigation-right" /></view>' }, DraftNotice: false, MemoryList: false } },
     })
 
-    setQuery(wrapper,{ spaceId: 's_tuantu' })
+    setQuery(wrapper, { spaceId: 's_tuantu' })
     await wrapper.vm.$nextTick()
 
     const text = wrapper.text()
@@ -731,7 +731,7 @@ describe('Space-home page (04)', () => {
     expect(text).toContain('留下一段新的记忆')
     expect(text).toContain('最近留下')
     expect(text).toContain('查看全部记忆')
-    expect(text).toContain('设置')
+    expect(text).toContain('更多')
 
     // Cover image exists
     const img = wrapper.find('.space-home__cover')
