@@ -13,6 +13,7 @@
     "verify:task2": "npm run test:run -- tests/components/design-system-contracts.test.ts tests/components/content-components.test.ts tests/components/interaction-components.test.ts tests/components/overlay-components.test.ts tests/components/photo-components.test.ts tests/components/DraftNotice.test.ts tests/components/PageShell.test.ts tests/unit/visual-baseline-normalization.test.ts && npm run typecheck && npm run build:mp-weixin",
     "verify:task3": "npm run test:run -- tests/unit/snapshot-validation.test.ts tests/unit/local-memory-repository.test.ts && npm run typecheck && npm run build:mp-weixin && node scripts/verify-task3.mjs",
     "verify:task4": "npm run test:run -- tests/unit/route-params.test.ts tests/unit/navigation.test.ts tests/unit/app-store.test.ts tests/unit/memory-store.test.ts tests/unit/dev-scenarios.test.ts && npm run typecheck && npm run build:mp-weixin && node scripts/verify-task4.mjs",
+    "verify:task5a": "npm run test:run && npm run typecheck && npm run build:mp-weixin && node scripts/verify-task5a.mjs",
     "clean:test-artifacts": "node -e \"var f=require('fs');['scripts/visual-regression/test-input','scripts/visual-regression/test-output'].forEach(d=>{if(f.existsSync(d))f.rmSync(d,{recursive:true})})\""
   },
   "dependencies": {

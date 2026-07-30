@@ -76,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, useSlots } from 'vue'
+import { computed, getCurrentInstance } from 'vue'
 
 export type PageLayout =
   | 'quiet-landing'
@@ -101,7 +101,7 @@ defineEmits<{
   back: []
 }>()
 
-const slots = useSlots()
+const slots = getCurrentInstance()!.slots
 
 // JS cannot reference SCSS variables; these constants mirror
 // $pm-space-4 (32rpx) + $pm-form-action-gap (64rpx) = 96rpx, and $pm-nav-content-gap (24rpx).

@@ -11,22 +11,42 @@
       schema v{{ meta.schemaVersion }} | {{ meta.sampleMode }} | {{ meta.bootstrapStatus }}
     </text>
 
-    <DevPanel v-if="DevPanel" />
+    <view v-if="showDevPanel" class="page__nav">
+      <text class="page__nav-title">页面入口</text>
+      <view class="page__nav-row">
+        <view class="page__nav-btn" @click="goPage(PAGE_URLS.spaces)">
+          <text>02 我的空间</text>
+        </view>
+        <view class="page__nav-btn" @click="goPage(`${PAGE_URLS['space-home']}?spaceId=s_tuantu`)">
+          <text>04 团团首页</text>
+        </view>
+        <view class="page__nav-btn" @click="goPage(`${PAGE_URLS['space-home']}?spaceId=s_doudou`)">
+          <text>04 豆豆首页</text>
+        </view>
+        <view class="page__nav-btn" @click="goPage(`${PAGE_URLS.memories}?spaceId=s_tuantu`)">
+          <text>08 全部记忆</text>
+        </view>
+      </view>
+    </view>
+
+    <DevPanel v-if="showDevPanel" />
   </view>
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef } from 'vue'
+import { computed } from 'vue'
 import { useDevScenarios } from '../../features/developer/dev-scenarios'
+import DevPanel from '../../components/DevPanel.vue'
+import { PAGE_URLS } from '../../adapters/navigation'
+import { getNavigation } from '../../adapters/navigation-deps'
 
 const scenarios = useDevScenarios()
 const meta = computed(() => scenarios.getCurrentMeta())
 
-const DevPanel = shallowRef<any>(null)
-if (import.meta.env.DEV) {
-  import('../../components/DevPanel.vue').then(m => {
-    DevPanel.value = m.default
-  })
+const showDevPanel = import.meta.env.DEV
+
+function goPage(url: string): void {
+  getNavigation().push(url)
 }
 </script>
 
@@ -50,6 +70,36 @@ if (import.meta.env.DEV) {
   margin-top: $pm-space-2;
   font-size: $pm-font-meta;
   color: $pm-color-muted;
+}
+
+.page__nav {
+  margin-top: $pm-space-8;
+}
+
+.page__nav-title {
+  display: block;
+  font-size: $pm-font-meta;
+  font-weight: $pm-weight-medium;
+  color: $pm-color-muted;
+  margin-bottom: $pm-space-2;
+}
+
+.page__nav-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $pm-space-2;
+}
+
+.page__nav-btn {
+  padding: $pm-space-2 $pm-space-4;
+  border-radius: $pm-radius-sm;
+  border: 2rpx solid $pm-color-line;
+  background: $pm-color-surface;
+  cursor: pointer;
+
+  &:active {
+    background: $pm-color-olive-soft;
+  }
 }
 
 </style>
