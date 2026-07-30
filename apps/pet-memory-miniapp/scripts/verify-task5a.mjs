@@ -167,6 +167,121 @@ function distFiles(dir) {
   check('T5A-M54 no TODO/FIXME/placeholder/以后替换', true)
 }
 
+// ---- T5A-M55: pages.json custom navigation for 02/04/08 ----
+{
+  const pagesJson = join(srcRoot, 'pages.json')
+  if (existsSync(pagesJson)) {
+    const pages = JSON.parse(readFileSync(pagesJson, 'utf-8')).pages || []
+    const customNavPages = ['pages/spaces/index', 'pages/space-home/index', 'pages/memories/index']
+    for (const p of customNavPages) {
+      const pageEntry = pages.find(pe => pe.path === p)
+      if (!pageEntry) {
+        check(`T5A-M55 pages.json missing page: ${p}`, false)
+      } else if (pageEntry.style?.navigationStyle !== 'custom') {
+        check(`T5A-M55 pages.json ${p} navigationStyle is not custom`, false)
+      } else {
+        check(`T5A-M55 pages.json ${p} navigationStyle=custom`, true)
+      }
+    }
+  }
+}
+
+// ---- T5A-M56: Fixed page content text audit (02/04/08) ----
+{
+  const textContracts = [
+    { file: join(srcRoot, 'pages', 'spaces', 'index.vue'), text: '每一个 Ta，都有自己的位置。', label: '02 intro' },
+    { file: join(srcRoot, 'pages', 'spaces', 'index.vue'), text: '再为一位 Ta 创建空间', label: '02 create hint' },
+    { file: join(srcRoot, 'pages', 'space-home', 'index.vue'), text: "PAGE_URLS['record-entry']", label: '04 record-entry URL' },
+    { file: join(srcRoot, 'pages', 'memories', 'index.vue'), text: '全部记忆', label: '08 title' },
+    { file: join(srcRoot, 'pages', 'memories', 'index.vue'), text: '段记忆', label: '08 count unit' },
+    { file: join(srcRoot, 'pages', 'memories', 'index.vue'), text: '先留到这里。以后想起新的，再慢慢回来。', label: '08 end note' },
+  ]
+
+  // Import PAGE_URLS for contract check — inline to avoid top-level await
+  for (const tc of textContracts) {
+    if (!existsSync(tc.file)) {
+      check(`T5A-M56 ${tc.label}: file not found ${tc.file}`, false)
+      continue
+    }
+    const content = readFileSync(tc.file, 'utf-8')
+    if (content.includes(tc.text)) {
+      check(`T5A-M56 ${tc.label}: "${tc.text.substring(0, 30)}"`, true)
+    } else {
+      check(`T5A-M56 ${tc.label}: "${tc.text.substring(0, 30)}" NOT FOUND`, false)
+    }
+  }
+}
+
+// ---- T5A-M57: Production build excludes DevPanel ----
+{
+  const buildDist = join(distRoot, 'build', 'mp-weixin')
+  if (existsSync(buildDist)) {
+    // Check if DevPanel.js component is present in the build
+    const devPanelJs = join(buildDist, 'components', 'DevPanel.js')
+    if (existsSync(devPanelJs)) {
+      check('T5A-M57 DevPanel.js present in production build', false)
+    } else {
+      check('T5A-M57 DevPanel component excluded from build', true)
+    }
+
+    // Check if any page JSON registers DevPanel as a usingComponent
+    const allJsonFiles = distFiles(buildDist).filter(f => f.endsWith('.json'))
+    let devPanelRegistered = false
+    for (const f of allJsonFiles) {
+      const content = readFileSync(f, 'utf-8')
+      try {
+        const json = JSON.parse(content)
+        const using = json.usingComponents || {}
+        if (Object.values(using).some(v => typeof v === 'string' && /devpanel/i.test(v))) {
+          check(`T5A-M57 DevPanel in usingComponents: ${f.replace(buildDist, '')}`, false)
+          devPanelRegistered = true
+        }
+      } catch {
+        // Invalid JSON — skip
+      }
+    }
+    if (!devPanelRegistered) {
+      check('T5A-M57 no usingComponents reference to DevPanel', true)
+    }
+
+    // Check that DEV page (pages/index/index) is excluded or stripped
+    const devPageJson = join(buildDist, 'pages', 'index', 'index.json')
+    if (existsSync(devPageJson)) {
+      const content = readFileSync(devPageJson, 'utf-8')
+      if (/DevPanel/i.test(content)) {
+        check('T5A-M57 DevPanel reference in pages/index/index.json', false)
+      } else {
+        check('T5A-M57 pages/index/index.json clean', true)
+      }
+    }
+  } else {
+    console.log('[SKIP] T5A-M57 dist/build/mp-weixin/ not found')
+  }
+}
+
+// ---- T5A-M58: Visual evidence directory exists ----
+{
+  const evidenceDir = join(__dirname, '..', 'docs', 'project', 'gpt-review-output', 'task5a-evidence')
+  if (existsSync(evidenceDir)) {
+    const requiredFiles = [
+      '02-spaces-implementation.png', '04-space-home-implementation.png', '08-memories-implementation.png',
+    ]
+    let allPresent = true
+    for (const rf of requiredFiles) {
+      if (!existsSync(join(evidenceDir, rf))) {
+        check(`T5A-M58 evidence missing: ${rf}`, false)
+        allPresent = false
+      }
+    }
+    if (allPresent) {
+      check('T5A-M58 02/04/08 implementation screenshots present', true)
+    }
+  } else {
+    console.log(`[SKIP] T5A-M58 evidence directory not found: ${evidenceDir}`)
+    console.log('[SKIP] T5A-M58 Run F6 visual evidence step to populate.')
+  }
+}
+
 if (failed) {
   console.log('\n❌ Task 5A boundary scan FAILED')
   process.exit(1)

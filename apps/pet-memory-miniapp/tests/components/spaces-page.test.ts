@@ -78,7 +78,7 @@ describe('Spaces page (02)', () => {
     appStore.$patch({ bootstrapStatus: 'ready' } as any)
 
     const wrapper = mount(SpacesPage, {
-      global: { stubs: { PageShell: { template: '<view><slot /></view>' } } },
+      global: { stubs: { PageShell: { template: '<view><slot /><slot name="navigation-right" /></view>' } } },
     })
 
     await wrapper.vm.$nextTick()
@@ -87,6 +87,12 @@ describe('Spaces page (02)', () => {
     expect(items.length).toBe(2)
     expect(items[0].text()).toContain('Alpha')
     expect(items[1].text()).toContain('Beta')
+
+    // Structure assertions per baseline
+    const text = wrapper.text()
+    expect(text).toContain('每一个 Ta，都有自己的位置。')
+    expect(text).toContain('+')
+    expect(text).toContain('再为一位 Ta 创建空间')
   })
 
   // T5A-M19: no memories → "还没有留下记忆"

@@ -736,5 +736,8 @@ describe('Space-home page (04)', () => {
     // Cover image exists
     const img = wrapper.find('.space-home__cover')
     expect(img.exists()).toBe(true)
+
+    // Divider before recent memories section
+    expect(wrapper.find('.space-home__divider').exists()).toBe(true)
   })
 })

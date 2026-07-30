@@ -421,6 +421,7 @@ describe('Memories page (08)', () => {
     const text = wrapper.text()
     expect(text).toContain('团团')
     expect(text).toContain('2 段记忆')
+    expect(text).toContain('先留到这里')
 
     const memoryList = wrapper.findComponent({ name: 'MemoryList' })
     const items = memoryList.props('items') as any[]
