@@ -200,11 +200,14 @@ defineExpose({ _setQueryForTest })
   align-items: baseline;
   justify-content: space-between;
   gap: $pm-space-1;
-  padding-block: $pm-space-4;
+  padding-top: 0;
+  padding-bottom: 28rpx;
+  margin-bottom: 20rpx;
+  border-bottom: $pm-border-hairline solid $pm-color-line;
 }
 
 .memories__space-name {
-  font-size: $pm-font-page-title;
+  font-size: 40rpx;
   font-weight: $pm-weight-semibold;
   line-height: $pm-leading-title;
   color: $pm-color-ink;
@@ -222,6 +225,10 @@ defineExpose({ _setQueryForTest })
 .memories__end-note {
   display: flex;
   justify-content: center;
-  padding-block: $pm-space-4;
+  padding-top: 52rpx;
+
+  .memories__muted {
+    font-size: 24rpx;
+  }
 }
 </style>

@@ -40,14 +40,14 @@ describe('PageShell', () => {
       const wrapper = mount(PageShell, {
         props: { layout: 'standard-flow' },
       })
-      expect(wrapper.find('.page-shell__back-text').exists()).toBe(false)
+      expect(wrapper.find('.page-shell__back').exists()).toBe(false)
     })
 
     it('shows back when showBack is true', () => {
       const wrapper = mount(PageShell, {
         props: { layout: 'standard-flow', showBack: true },
       })
-      expect(wrapper.find('.page-shell__back-text').exists()).toBe(true)
+      expect(wrapper.find('.page-shell__back').exists()).toBe(true)
     })
 
     it('emits back event when back is clicked', async () => {

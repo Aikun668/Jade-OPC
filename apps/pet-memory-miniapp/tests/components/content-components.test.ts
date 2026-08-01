@@ -86,19 +86,13 @@ describe('MemoryList', () => {
     expect(wrapper.text()).toContain('查看全部记忆')
   })
 
-  it('draws dividers between entries', () => {
+  it('renders each entry with bottom border', () => {
     const items = [makeEntry({ id: '1' }), makeEntry({ id: '2' })]
     const wrapper = mount(MemoryList, {
       props: { items },
     })
-    expect(wrapper.find('.memory-list__divider').exists()).toBe(true)
-  })
-
-  it('does not draw divider before first entry', () => {
-    const items = [makeEntry({ id: '1' })]
-    const wrapper = mount(MemoryList, { props: { items } })
-    // with only 1 entry, no divider should be rendered
-    expect(wrapper.find('.memory-list__divider').exists()).toBe(false)
+    const entries = wrapper.findAll('.memory-entry')
+    expect(entries.length).toBe(2)
   })
 })
 

@@ -7,20 +7,12 @@
 
     <!-- items -->
     <template v-else>
-      <view
-        v-for="(item, index) in items"
+      <MemoryEntry
+        v-for="item in items"
         :key="item.id"
-      >
-        <!-- divider (not before first item) -->
-        <view
-          v-if="index > 0"
-          class="memory-list__divider"
-        />
-        <MemoryEntry
-          :item="item"
-          @select="(id: string) => $emit('select', id)"
-        />
-      </view>
+        :item="item"
+        @select="(id: string) => $emit('select', id)"
+      />
 
       <!-- footer -->
       <view v-if="$slots.footer" class="memory-list__footer">
@@ -48,16 +40,11 @@ defineEmits<{
 <style lang="scss" scoped>
 @import '../styles/tokens.scss';
 
-.memory-list__divider {
-  height: $pm-border-hairline;
-  background-color: $pm-color-line;
-}
-
 .memory-list__empty {
   padding-block: $pm-space-8;
 }
 
 .memory-list__footer {
-  margin-top: $pm-space-4;
+  margin-top: 0;
 }
 </style>

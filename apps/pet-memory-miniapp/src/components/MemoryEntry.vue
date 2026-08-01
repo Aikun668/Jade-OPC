@@ -18,7 +18,7 @@
       <text class="memory-entry__date">{{ item.dateLabel }}</text>
     </view>
 
-    <view class="memory-entry__chevron" />
+    <text class="memory-entry__chevron">›</text>
   </button>
 </template>
 
@@ -41,11 +41,12 @@ defineEmits<{
 
 .memory-entry {
   display: flex;
-  align-items: flex-start;
-  padding-block: $pm-space-4;
-  gap: $pm-space-3;
+  align-items: center;
+  padding-block: 36rpx;
+  gap: $pm-space-4;
   width: 100%;
   border: none;
+  border-bottom: $pm-border-hairline solid $pm-color-line;
   background: none;
   font: inherit;
   color: inherit;
@@ -75,7 +76,7 @@ defineEmits<{
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: $pm-space-1;
+  gap: 20rpx;
 }
 
 .memory-entry__summary {
@@ -96,7 +97,8 @@ defineEmits<{
 
 .memory-entry__chevron {
   flex-shrink: 0;
-  width: $pm-hit-target-min;
-  height: $pm-hit-target-min;
+  font-size: 36rpx;
+  color: $pm-color-muted;
+  line-height: 1;
 }
 </style>

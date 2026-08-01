@@ -11,18 +11,20 @@
     >
       <view class="page-shell__status-bar" :style="statusBarStyle" />
       <view class="page-shell__nav-row" :style="navRowStyle">
-        <!-- left slot: back arrow or custom -->
+        <!-- back button: absolutely positioned at top-left -->
+        <button
+          v-if="showBack && !hasCustomNavLeft"
+          class="page-shell__back"
+          aria-label="返回"
+          @click.stop="$emit('back')"
+        >
+          <text class="page-shell__back-arrow">‹</text>
+          <text class="page-shell__back-label">返回</text>
+        </button>
+
+        <!-- left slot: custom content (replaces default back button) -->
         <view class="page-shell__nav-left" :style="navLeftStyle">
-          <slot name="navigation-left">
-            <button
-              v-if="showBack"
-              class="page-shell__back"
-              aria-label="返回"
-              @click.stop="$emit('back')"
-            >
-              <text class="page-shell__back-text">返回</text>
-            </button>
-          </slot>
+          <slot name="navigation-left" />
         </view>
 
         <!-- centered title -->
@@ -106,6 +108,7 @@ defineEmits<{
 const slots = getCurrentInstance()!.slots
 const platform = usePlatformLayout()
 
+const hasCustomNavLeft = computed(() => !!slots['navigation-left'])
 const hasIntro = computed(() => !!slots.intro)
 const hasActions = computed(() => !!slots.actions)
 
@@ -128,10 +131,10 @@ const navRightStyle = computed(() => ({
   paddingRight: `calc(${platform.value.capsuleWidth} + 16rpx)`,
 }))
 
-// When no back button and no custom left slot, balance the capsule offset
-// on the right to keep the title visually centered.
+// Balance the capsule on the right to keep the title visually centered.
+// Only skip balancing when a custom navigation-left slot is provided.
 const navLeftStyle = computed(() => {
-  if (props.showBack || slots['navigation-left']) return {}
+  if (slots['navigation-left']) return {}
   return { paddingLeft: `calc(${platform.value.capsuleWidth} + 16rpx)` }
 })
 
@@ -183,6 +186,7 @@ function headerHeight(): string {
 }
 
 .page-shell__nav-row {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -222,25 +226,35 @@ function headerHeight(): string {
 }
 
 .page-shell__back {
+  position: absolute;
+  left: $pm-page-inline;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-width: $pm-hit-target-min;
+  gap: 12rpx;
   min-height: $pm-hit-target-min;
   padding: 0;
   border: none;
   background: none;
   font: inherit;
   color: inherit;
+  z-index: 1;
 
   &::after {
     border: none;
   }
 }
 
-.page-shell__back-text {
-  font-size: $pm-font-support;
-  color: $pm-color-olive;
+.page-shell__back-arrow {
+  font-size: 40rpx;
+  color: $pm-color-ink;
+  line-height: 1;
+}
+
+.page-shell__back-label {
+  font-size: 30rpx;
+  color: $pm-color-ink;
 }
 
 // ---- column ----

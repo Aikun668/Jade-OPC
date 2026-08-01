@@ -50,7 +50,6 @@
             <text v-if="s.dateLabel" class="spaces__item-date">{{ s.dateLabel }}</text>
           </view>
           <text class="spaces__item-arrow">›</text>
-          <view v-if="idx < spaceList.length - 1" class="spaces__divider" />
         </button>
       </view>
 
@@ -155,7 +154,7 @@ function goSpace(spaceId: string): void {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: $pm-section-gap;
+  margin-bottom: 36rpx;
 }
 
 .spaces__desc {
@@ -176,17 +175,19 @@ function goSpace(spaceId: string): void {
 .spaces__list {
   display: flex;
   flex-direction: column;
+  border-top: $pm-border-hairline solid $pm-color-line;
 }
 
 .spaces__item {
   position: relative;
   display: flex;
   align-items: center;
-  gap: $pm-space-3;
+  gap: $pm-space-4;
   width: 100%;
-  padding-block: $pm-space-4;
+  padding-block: 36rpx;
   padding-inline: 0;
   border: none;
+  border-bottom: $pm-border-hairline solid $pm-color-line;
   background: none;
   font: inherit;
   color: inherit;
@@ -217,13 +218,14 @@ function goSpace(spaceId: string): void {
   width: $pm-photo-space-list;
   height: $pm-photo-space-list;
   border-radius: $pm-photo-radius-thumb;
+  border: $pm-border-hairline solid $pm-color-line;
   background-color: $pm-color-olive-soft;
 }
 
 .spaces__item-placeholder-label {
   font-size: $pm-font-section-title;
   font-weight: $pm-weight-semibold;
-  color: $pm-color-muted;
+  color: $pm-color-olive;
 }
 
 .spaces__item-text {
@@ -231,25 +233,23 @@ function goSpace(spaceId: string): void {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: $pm-space-1;
+  gap: 10rpx;
 }
 
 .spaces__item-name {
-  font-size: $pm-font-item-title;
+  font-size: $pm-font-section-title;
   font-weight: $pm-weight-semibold;
   line-height: 1.3;
   color: $pm-color-ink;
 }
 
 .spaces__item-summary {
-  font-size: $pm-font-body;
+  font-size: 28rpx;
   color: $pm-color-ink;
   line-height: $pm-leading-compact;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  white-space: nowrap;
 }
 
 .spaces__item-date {
@@ -261,26 +261,18 @@ function goSpace(spaceId: string): void {
 .spaces__item-arrow {
   flex-shrink: 0;
   font-size: $pm-font-section-title;
-  color: $pm-color-line;
+  color: $pm-color-muted;
   line-height: 1;
 }
 
-.spaces__divider {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: $pm-border-hairline;
-  background-color: $pm-color-line;
-}
 
 .spaces__create-hint {
   display: flex;
   justify-content: center;
-  margin-top: $pm-section-gap;
+  margin-top: 56rpx;
 
   :deep(.text-action) {
-    font-size: $pm-font-body;
+    font-size: 28rpx;
   }
 }
 </style>
