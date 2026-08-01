@@ -261,14 +261,15 @@ defineExpose({ _setQueryForTest })
 .space-home__identity {
   display: flex;
   align-items: center;
-  gap: $pm-space-4;
-  padding-block: $pm-space-4;
+  gap: 36rpx;
+  padding-top: 26rpx;
+  margin-bottom: 72rpx;
 }
 
 .space-home__cover {
   flex-shrink: 0;
-  width: $pm-photo-space-home;
-  height: $pm-photo-space-home;
+  width: 184rpx;
+  height: 184rpx;
   border-radius: $pm-photo-radius-large;
 }
 
@@ -279,20 +280,21 @@ defineExpose({ _setQueryForTest })
 }
 
 .space-home__name {
-  font-size: $pm-font-page-title;
+  font-size: 52rpx;
   font-weight: $pm-weight-semibold;
   line-height: $pm-leading-title;
   color: $pm-color-ink;
 }
 
 .space-home__draft {
-  margin-top: $pm-section-gap;
+  margin-top: 0;
 }
 
 .space-home__primary-action {
   display: flex;
   justify-content: center;
-  margin-top: $pm-section-gap;
+  margin-top: 48rpx;
+  margin-bottom: 64rpx;
 
   :deep(.primary-button) {
     width: 56%;
@@ -300,11 +302,11 @@ defineExpose({ _setQueryForTest })
 }
 
 .space-home__recent {
-  margin-top: $pm-section-gap;
+  margin-top: 0;
 }
 
 .space-home__recent-header {
-  margin-bottom: $pm-space-2;
+  padding: 56rpx 0 24rpx;
 }
 
 .space-home__section-title {
@@ -322,6 +324,6 @@ defineExpose({ _setQueryForTest })
 .space-home__view-all {
   display: flex;
   justify-content: center;
-  margin-top: $pm-space-4;
+  padding-block: 28rpx;
 }
 </style>

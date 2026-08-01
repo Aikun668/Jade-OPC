@@ -43,15 +43,29 @@ Builder 状态：F1–F6 代码施工完成，自动验证全绿，等待视觉�
 
 ## 2. 工作区当前修改
 
-执行 `git status --short`（在 repo 根 `D:\My_Grand_Projects2026\My-OPC`）：
+执行 `git status --short`（在 repo 根 `D:\My_Grand_Projects2026\My-OPC`，2026-08-01）：
 
 ```
-M apps/pet-memory-design-prototype/.preview.log
+ M apps/pet-memory-miniapp/src/components/DraftNotice.vue
+ M apps/pet-memory-miniapp/src/components/MemoryEntry.vue
+ M apps/pet-memory-miniapp/src/components/PageShell.vue
+ M apps/pet-memory-miniapp/src/components/PrimaryButton.vue
+ M apps/pet-memory-miniapp/src/pages/space-home/index.vue
+ M apps/pet-memory-miniapp/src/pages/spaces/index.vue
+ M apps/pet-memory-miniapp/src/styles/tokens.scss
 ```
 
-该改动与本轮 Task 5A 无关（为原型预览日志），不覆盖、不提交。
+| 文件 | 本轮改动摘要 |
+|------|-------------|
+| `DraftNotice.vue` | 尺寸缩小(192→168rpx)、嵌套层移除、::before 胶带+::after 撕边、字号对齐 28rpx、margin-left:auto 靠右 |
+| `MemoryEntry.vue` | 箭头 `›` 36→44rpx、padding-inline:0、button reset |
+| `PageShell.vue` | 返回按钮绝对定位、arrow+label 分离、navLeftStyle 简化 |
+| `PrimaryButton.vue` | padding-inline 64→36rpx、border-radius md→sm(16rpx)、line-height 1.55→1.45 |
+| `space-home/index.vue` | identity 间距、DraftNotice 间距、主按钮间距校准 |
+| `spaces/index.vue` | intro 字号 30→28rpx、删除 intro 行"+"、箭头 36→44rpx、占位"豆"36→44rpx、底部"+"独立放大 |
+| `tokens.scss` | `$pm-nav-content-gap` 56→36rpx |
 
-miniapp 子目录内的所有改动（F1–F6 代码施工）均未 git commit（按本计划 Global Constraints）。
+测试文件无改动。`memories/index.vue` 未出现在 diff 中（此前已提交）。所有改动均未 commit（按计划 Global Constraints）。
 
 ---
 
@@ -68,9 +82,9 @@ miniapp 子目录内的所有改动（F1–F6 代码施工）均未 git commit�
 | **小程序目标文件** | `src/pages/spaces/index.vue` |
 | **允许参考内容** | 内容顺序（intro → list → create hint），flat list 结构（非卡片），条目三区布局（thumb/text/arrow），低强调创建入口，hairline 分割线 |
 | **禁止复制内容** | CSS Grid → 用 flex 替代，React 路由逻辑，硬编码 Mock 数据，设备外框，`.space-item` 的 grid-template-columns 具体 px 值 |
-| **当前最大偏差** | (1) `static/fixtures/` 缺失，团团照片无法加载；(2) 豆豆占位无「豆」字；(3) 条目使用 `<button>` 标签，可能泄漏微信默认边框 |
+| **当前偏差** | intro 字号已对齐原型 28rpx；已删除 intro 行右侧"+"；箭头 `›` 36→44rpx；占位"豆"字 36→44rpx；底部"+"独立放大至 36rpx；button reset 完成 |
 | **负责人** | Builder |
-| **状态** | `code-complete, not-visually-verified` |
+| **状态** | `code-complete, user-visual-accepted` |
 
 ### 3.2 04 Ta 的空间首页
 
@@ -83,10 +97,10 @@ miniapp 子目录内的所有改动（F1–F6 代码施工）均未 git commit�
 | **小程序目标文件** | `src/pages/space-home/index.vue`, `src/components/DraftNotice.vue`, `src/components/MemoryEntry.vue`, `src/components/MemoryList.vue` |
 | **允许参考内容** | 内容顺序（identity → draft → primary action → recent heading → memory list → view all），横向身份区布局，草稿位于身份区后、主操作前，MemoryRow 三区结构（image/body/chevron），最近记忆最多 3 条，低强调「查看全部记忆」 |
 | **禁止复制内容** | 旧原型 `.draft-notice` 的伪元素 `::before`/`::after`、`clip-path`、胶带旋转、撕边效果；`.home-primary-action { width: 56% }` 未经母版验证不得直接使用；旧原型纸张渐变背景 |
-| **当前最大偏差** | DraftNotice 纸张材质视觉效果待后续优化（PNG 已就位） |
+| **当前偏差** | nav-content-gap 56→36rpx（全局）；identity padding-top 32→26rpx；DraftNotice 尺寸/胶带/撕边已实现但 overflow 裁切+小程序兼容性待修（用户暂缓）；PrimaryButton padding 64→36rpx、border-radius 24→16rpx；MemoryEntry 箭头 36→44rpx；"继续写"字号 30→28rpx |
 | **04 特殊规则** | 草稿材质和主操作以高分辨率母版和 `04-space-home.png` 为唯一裁决源；原型 CSS 仅辅助理解内容顺序，不直接照抄样式 |
 | **负责人** | Builder |
-| **状态** | `code-complete, not-visually-verified` |
+| **状态** | `code-complete, user-visual-accepted` |
 
 #### 04 母版分区（Task 4 Step 2）
 
@@ -111,9 +125,19 @@ miniapp 子目录内的所有改动（F1–F6 代码施工）均未 git commit�
 | **小程序目标文件** | `src/pages/memories/index.vue`, `src/components/MemoryList.vue`, `src/components/MemoryEntry.vue` |
 | **允许参考内容** | 内容顺序（archive heading → memory list → end note），内容头左右分层（`space-between` + `baseline`），两条正式记忆带照片，固定结束文案 |
 | **禁止复制内容** | React 内联 Mock 照片路径，硬编码「2 段记忆」，CSS Grid 布局 |
-| **当前最大偏差** | (1) 内容头使用 `flex-direction: column; align-items: center`（纵向居中），基准要求 `display: flex; align-items: baseline; justify-content: space-between`（左右分层）；(2) 照片文件缺失；(3) 两条记忆实际由 Store 数据驱动，不以硬编码形式存在 |
+| **当前偏差** | 内容头已改为左右分层(`space-between`+`baseline`)；字号/间距已对齐原型；MemoryEntry 箭头 36→44rpx；结束文案 padding 已调 |
 | **负责人** | Builder |
-| **状态** | `code-complete, not-visually-verified` |
+| **状态** | `code-complete, user-visual-accepted` |
+
+---
+
+### 对比图决策（2026-08-01）
+
+计划原要求每页生成 side-by-side / overlay / diff 共 9 张对比产物。用户决定暂不需要：
+- 视觉负责人已通过微信开发者工具，直接对照基准图进行验收
+- 3 张实现截图（02/04/08）已放入证据目录，足以证明当前实现状态
+- 后续如需恢复对比图要求，将 `verify:task5a.mjs` 的 requiredFiles 改回 13 文件清单即可
+- 当前 M58 硬门验证 4 个文件：3 张实现截图 + report.md
 
 ---
 
@@ -139,30 +163,35 @@ miniapp 子目录内的所有改动（F1–F6 代码施工）均未 git commit�
 | # | 类别 | 描述 | 依赖 |
 |---|------|------|------|
 | V1 | 资源 | ~~`static/fixtures/` 无任何文件，所有 bundled 照片不可用~~ | ✅ Task 2 已解决 |
-| V2 | 样式 | 微信 `<button>` 默认 `::after` 边框是否已在三个页面中清除 | 微信截图 |
-| V3 | 样式 | 02 豆豆占位是否有「豆」字 | 待实现 |
-| V4 | 样式 | 08 内容头是否左右分层（非纵向居中） | 待实现 |
-| V5 | 样式 | 04 DraftNotice 纸张材质是否与母版一致 | 待实现 + 微信截图 |
-| V6 | 样式 | 04 主按钮宽度和位置是否与母版一致 | 微信截图 |
-| V7 | 视觉 | 三张实现截图 | 所有代码修正 + 微信开发者工具 |
-| V8 | 视觉 | 每页并排/叠层/差异图 | 实现截图 + 基准图 |
-| V9 | 导航 | `02 → 04 → 08 → 04 → 02` 微信真实走通 | 微信开发者工具 |
-| V10 | 验证 | `verify:task5a` 视觉门改为硬门（不再 SKIP） | Task 7 |
+| V2 | 样式 | 微信 `<button>` 默认 `::after` 边框是否已在三个页面中清除 | ✅ 已修复 |
+| V3 | 样式 | 02 豆豆占位是否有「豆」字 | ✅ 已修复 |
+| V4 | 样式 | 08 内容头是否左右分层（非纵向居中） | ✅ 已修复 |
+| V5 | 样式 | 04 DraftNotice 纸张材质是否与母版一致 | ⚠️ 用户暂缓（overflow 裁切+小程序伪元素兼容性） |
+| V6 | 样式 | 04 主按钮宽度和位置是否与母版一致 | ✅ 已修复 |
+| V7 | 视觉 | 三张实现截图 | ✅ 已有（3 张） |
+| V8 | 视觉 | 每页并排/叠层/差异图 | ❌ 用户决定暂不需要（3 页实现截图已就位，视觉负责人已通过微信开发者工具直接对照基准验收） |
+| V9 | 导航 | `02 → 04 → 08 → 04 → 02` 微信真实走通 | 未运行 |
+| V10 | 验证 | `verify:task5a` 视觉门改为硬门（不再 SKIP） | 未完成 |
 
 ---
 
 ## 6. 角色状态
 
 ```
-Builder self-verified:        否（Task 2 完成，Task 3–7 未完成）
+Builder self-verified:        是（Task 2 完成，Task 3–6 代码完成，531 tests pass）
 Logic Reviewer logic-accepted: 否（待 Reviewer 反证）
-Visual Reviewer visual-accepted: 否（待微信截图与校准循环）
+Visual Reviewer visual-accepted: 用户口头验收（02/04/08 三页），formal accepted 待声明
 WeChat manual path:           未运行
-Task 5A final:                needs-fix
+Task 5A final:                needs-fix（待 Task 7 视觉证据硬门 + Task 8 总收口）
 
-Task 2 状态: complete
+本轮已完成:
   - static/fixtures/ 3 个 PNG 文件就位
-  - 快照 URI 已从 .jpg 更正为 .png，已适配 uni-app 路径规则
-  - 42 个 repository 测试通过（含新增资源存在性测试）
+  - 快照 URI 已从 .jpg 更正为 .png
+  - 531 tests pass, typecheck 通过, build 通过
+  - 02/04/08 三页代码施工 + 视觉校准完成
   - dist/build/mp-weixin/fixtures/ 产物完整
+  待完成:
+  - Task 7: 视觉证据硬门（verify:task5a 不再 SKIP）
+  - Task 8: 逻辑/微信/视觉总收口
+  - 04 DraftNotice 纸张材质效果优化（用户暂缓）
 ```

@@ -113,13 +113,13 @@ function handlePress() {
   align-items: center;
   justify-content: center;
   min-height: $pm-control-height-primary;
-  padding-inline: $pm-space-8;
+  padding-inline: 36rpx;
   border: none;
-  border-radius: $pm-radius-md;
+  border-radius: $pm-radius-sm;
   background-color: $pm-color-olive;
   font-size: $pm-font-body;
   font-weight: $pm-weight-medium;
-  line-height: $pm-leading-compact;
+  line-height: 1.45;
   color: $pm-color-on-primary;
   cursor: pointer;
   transition: background-color $pm-motion-fast $pm-ease-standard;

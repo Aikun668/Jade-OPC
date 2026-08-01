@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, existsSync } from 'fs'
+import { readFileSync, readdirSync, existsSync, statSync, openSync, readSync, closeSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -264,20 +264,85 @@ if (isDev) {
   }
 }
 
-// ---- T5A-M58: Visual evidence directory exists ----
+// ---- T5A-M58: Visual evidence hard gate ----
 // Evidence lives at monorepo root: docs/project/gpt-review-output/task5a-evidence/
+// Requires exactly 13 files: 3 implemementation + 9 comparison (3 per page) + report.md
 {
   const evidenceDir = join(__dirname, '..', '..', '..', 'docs', 'project', 'gpt-review-output', 'task5a-evidence')
-  if (existsSync(evidenceDir)) {
-    const pngFiles = readdirSync(evidenceDir).filter(f => f.endsWith('.png'))
-    if (pngFiles.length >= 3) {
-      check(`T5A-M58 ${pngFiles.length} screenshots in evidence dir`, true)
-    } else {
-      check(`T5A-M58 only ${pngFiles.length} PNG(s) in evidence dir (need >= 3)`, false)
-    }
+
+  if (!existsSync(evidenceDir)) {
+    check('T5A-M58 evidence directory not found', false)
+    console.log(`  Expected: ${evidenceDir}`)
+    console.log('  Run F6 visual evidence step to populate.')
   } else {
-    console.log(`[SKIP] T5A-M58 evidence directory not found: ${evidenceDir}`)
-    console.log('[SKIP] T5A-M58 Run F6 visual evidence step to populate.')
+    // 2026-08-01: 用户决定暂不需要 side-by-side/overlay/diff 对比图。
+    // 视觉负责人直接通过微信开发者工具对照基准验收。
+    // 若后续需要恢复对比图要求，改回 13 文件清单即可。
+    const requiredFiles = [
+      '02-spaces-implementation.png',
+      '04-space-home-implementation.png',
+      '08-memories-implementation.png',
+      'report.md',
+    ]
+
+    const existingFiles = readdirSync(evidenceDir)
+    const missing = []
+
+    for (const f of requiredFiles) {
+      if (existingFiles.includes(f)) {
+        const filePath = join(evidenceDir, f)
+        const st = statSync(filePath)
+        if (st.size === 0) {
+          check(`T5A-M58 ${f} is empty (0 bytes)`, false)
+        } else if (f.endsWith('.png')) {
+          try {
+            // Validate PNG signature: first 8 bytes must be 89 50 4E 47 0D 0A 1A 0A
+            const header = Buffer.alloc(8)
+            const fd = openSync(filePath, 'r')
+            readSync(fd, header, 0, 8, 0)
+            closeSync(fd)
+            const isPng = header[0] === 0x89 && header[1] === 0x50 && header[2] === 0x4E && header[3] === 0x47
+            if (isPng) {
+              check(`T5A-M58 ${f}`, true)
+            } else {
+              check(`T5A-M58 ${f} not a valid PNG`, false)
+            }
+          } catch {
+            check(`T5A-M58 ${f} cannot read PNG header`, false)
+          }
+        } else {
+          check(`T5A-M58 ${f}`, true)
+        }
+      } else {
+        missing.push(f)
+      }
+    }
+
+    if (missing.length > 0) {
+      for (const f of missing) {
+        check(`T5A-M58 ${f} MISSING`, false)
+      }
+      console.log(`  Found ${existingFiles.filter(f => f.endsWith('.png') || f.endsWith('.md')).length} evidence files, need ${requiredFiles.length}`)
+    }
+
+    // Extra check: verify implementation screenshots aren't copies of baselines
+    const baselineRoot = join(__dirname, '..', '..', '..', 'docs', 'product', 'assets', 'm0-page-baselines')
+    const implBaselinePairs = [
+      { impl: '02-spaces-implementation.png', baseline: '02-spaces.png' },
+      { impl: '04-space-home-implementation.png', baseline: '04-space-home.png' },
+      { impl: '08-memories-implementation.png', baseline: '08-memories.png' },
+    ]
+    for (const pair of implBaselinePairs) {
+      const implPath = join(evidenceDir, pair.impl)
+      const baselinePath = join(baselineRoot, pair.baseline)
+      if (existsSync(implPath) && existsSync(baselinePath)) {
+        const implSize = statSync(implPath).size
+        const baselineSize = statSync(baselinePath).size
+        if (implSize === baselineSize) {
+          check(`T5A-M58 ${pair.impl} appears to be a copy of baseline (same size: ${implSize} bytes)`, false)
+        }
+      }
+    }
   }
 }
 

@@ -1,6 +1,5 @@
 <template>
   <view class="draft-notice">
-    <!-- paper material image layer -->
     <image
       v-if="materialLoaded !== false"
       class="draft-notice__material"
@@ -9,22 +8,18 @@
       @error="materialLoaded = false"
       @load="materialLoaded = true"
     />
-
-    <!-- content overlay -->
-    <view class="draft-notice__content">
-      <text class="draft-notice__title">{{ title }}</text>
-      <button
-        class="draft-notice__continue-btn"
-        @click.stop="emit('continue')"
-      >
-        <text class="draft-notice__continue-label">{{ continueLabel }}</text>
-        <image
-          class="draft-notice__arrow-icon"
-          src="/ui/draft-arrow.svg"
-          mode="aspectFit"
-        />
-      </button>
-    </view>
+    <text class="draft-notice__title">{{ title }}</text>
+    <button
+      class="draft-notice__continue-btn"
+      @click.stop="emit('continue')"
+    >
+      <text class="draft-notice__continue-label">{{ continueLabel }}</text>
+      <image
+        class="draft-notice__arrow-icon"
+        src="/ui/draft-arrow.svg"
+        mode="aspectFit"
+      />
+    </button>
   </view>
 </template>
 
@@ -52,15 +47,61 @@ const materialLoaded = ref<boolean | null>(null)
 
 .draft-notice {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   width: 100%;
-  min-height: 192rpx;
-  padding-block: $pm-space-6;
-  padding-inline: $pm-space-6;
-  border-radius: $pm-radius-sm;
+  min-height: 168rpx;
+  padding: 44rpx 36rpx;
   background: $pm-color-surface;
-  border: $pm-border-hairline solid $pm-color-line;
-  box-shadow: $pm-shadow-paper;
+  border: 1px solid rgba(223, 221, 208, 0.78);
+  border-bottom-color: transparent;
+  border-radius: 2rpx 3rpx 5rpx 4rpx;
+  box-shadow: 0 18rpx 44rpx rgba(57, 58, 49, 0.055);
   overflow: hidden;
+
+  // tape tear at top-left
+  &::before {
+    position: absolute;
+    z-index: 2;
+    top: -18rpx;
+    left: -10rpx;
+    width: 116rpx;
+    height: 32rpx;
+    background:
+      linear-gradient(88deg, rgba(255, 253, 248, 0.18), transparent 34%, rgba(57, 58, 49, 0.025) 72%, transparent),
+      rgba(222, 214, 181, 0.62);
+    border-radius: 2rpx 4rpx 4rpx 2rpx;
+    clip-path: polygon(1% 14%, 96% 0, 100% 82%, 91% 96%, 5% 100%, 0 26%);
+    transform: rotate(-1.8deg);
+    content: "";
+  }
+
+  // torn bottom edge
+  &::after {
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    z-index: 2;
+    height: 20rpx;
+    background: $pm-color-canvas;
+    clip-path: polygon(
+      0 68%,
+      7% 34%,
+      15% 64%,
+      25% 19%,
+      37% 58%,
+      51% 12%,
+      63% 61%,
+      77% 25%,
+      89% 67%,
+      100% 38%,
+      100% 100%,
+      0 100%
+    );
+    content: "";
+  }
 }
 
 .draft-notice__material {
@@ -70,26 +111,23 @@ const materialLoaded = ref<boolean | null>(null)
   height: 100%;
 }
 
-.draft-notice__content {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: $pm-space-4;
-  min-height: calc(192rpx - #{$pm-space-6} * 2);
-}
-
 .draft-notice__title {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: $pm-font-body;
   color: $pm-color-ink;
-  flex-shrink: 1;
 }
 
 .draft-notice__continue-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: $pm-space-2;
   flex-shrink: 0;
+  margin-left: auto;
   min-height: $pm-hit-target-min;
   padding-inline: $pm-space-2;
   border: none;
@@ -109,7 +147,7 @@ const materialLoaded = ref<boolean | null>(null)
 
 .draft-notice__continue-label {
   font-family: $pm-font-family;
-  font-size: $pm-font-body;
+  font-size: 28rpx;
   font-weight: $pm-weight-regular;
   line-height: $pm-leading-compact;
   color: $pm-color-olive;

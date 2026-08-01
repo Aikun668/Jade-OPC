@@ -231,8 +231,8 @@ function headerHeight(): string {
   top: 50%;
   transform: translateY(-50%);
   display: flex;
-  align-items: center;
-  gap: 12rpx;
+  align-items: baseline;
+  gap: 20rpx;
   min-height: $pm-hit-target-min;
   padding: 0;
   border: none;
@@ -247,9 +247,8 @@ function headerHeight(): string {
 }
 
 .page-shell__back-arrow {
-  font-size: 40rpx;
+  font-size: 48rpx;
   color: $pm-color-ink;
-  line-height: 1;
 }
 
 .page-shell__back-label {

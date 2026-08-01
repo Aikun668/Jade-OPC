@@ -25,7 +25,6 @@
     <template v-else>
       <view class="spaces__intro">
         <text class="spaces__desc">每一个 Ta，都有自己的位置。</text>
-        <text class="spaces__intro-plus" @click.stop="goCreate">+</text>
       </view>
 
       <view class="spaces__list">
@@ -54,7 +53,9 @@
       </view>
 
       <view class="spaces__create-hint">
-        <TextAction @press="goCreate">+ 再为一位 Ta 创建空间</TextAction>
+        <TextAction @press="goCreate">
+          <text class="spaces__create-plus">+</text> 再为一位 Ta 创建空间
+        </TextAction>
       </view>
     </template>
   </PageShell>
@@ -158,18 +159,8 @@ function goSpace(spaceId: string): void {
 }
 
 .spaces__desc {
-  font-size: $pm-font-body;
+  font-size: 28rpx;
   color: $pm-color-muted;
-}
-
-.spaces__intro-plus {
-  font-size: $pm-font-section-title;
-  font-weight: $pm-weight-medium;
-  color: $pm-color-muted;
-  line-height: 1;
-  cursor: pointer;
-  flex-shrink: 0;
-  margin-left: $pm-space-2;
 }
 
 .spaces__list {
@@ -223,7 +214,7 @@ function goSpace(spaceId: string): void {
 }
 
 .spaces__item-placeholder-label {
-  font-size: $pm-font-section-title;
+  font-size: 44rpx;
   font-weight: $pm-weight-semibold;
   color: $pm-color-olive;
 }
@@ -260,7 +251,7 @@ function goSpace(spaceId: string): void {
 
 .spaces__item-arrow {
   flex-shrink: 0;
-  font-size: $pm-font-section-title;
+  font-size: 44rpx;
   color: $pm-color-muted;
   line-height: 1;
 }
@@ -271,8 +262,12 @@ function goSpace(spaceId: string): void {
   justify-content: center;
   margin-top: 56rpx;
 
-  :deep(.text-action) {
+  :deep(.text-action__label) {
     font-size: 28rpx;
   }
+}
+
+.spaces__create-plus {
+  font-size: 36rpx;
 }
 </style>

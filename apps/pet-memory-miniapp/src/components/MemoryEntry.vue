@@ -43,6 +43,7 @@ defineEmits<{
   display: flex;
   align-items: center;
   padding-block: 36rpx;
+  padding-inline: 0;
   gap: $pm-space-4;
   width: 100%;
   border: none;
@@ -97,7 +98,7 @@ defineEmits<{
 
 .memory-entry__chevron {
   flex-shrink: 0;
-  font-size: 36rpx;
+  font-size: 44rpx;
   color: $pm-color-muted;
   line-height: 1;
 }
