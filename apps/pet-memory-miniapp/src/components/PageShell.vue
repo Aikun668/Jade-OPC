@@ -12,7 +12,7 @@
       <view class="page-shell__status-bar" :style="statusBarStyle" />
       <view class="page-shell__nav-row" :style="navRowStyle">
         <!-- left slot: back arrow or custom -->
-        <view class="page-shell__nav-left">
+        <view class="page-shell__nav-left" :style="navLeftStyle">
           <slot name="navigation-left">
             <button
               v-if="showBack"
@@ -128,6 +128,13 @@ const navRightStyle = computed(() => ({
   paddingRight: `calc(${platform.value.capsuleWidth} + 16rpx)`,
 }))
 
+// When no back button and no custom left slot, balance the capsule offset
+// on the right to keep the title visually centered.
+const navLeftStyle = computed(() => {
+  if (props.showBack || slots['navigation-left']) return {}
+  return { paddingLeft: `calc(${platform.value.capsuleWidth} + 16rpx)` }
+})
+
 const columnStyle = computed(() => {
   const style: Record<string, string> = {}
   const safeBottom = platform.value.safeBottom
@@ -225,6 +232,10 @@ function headerHeight(): string {
   background: none;
   font: inherit;
   color: inherit;
+
+  &::after {
+    border: none;
+  }
 }
 
 .page-shell__back-text {

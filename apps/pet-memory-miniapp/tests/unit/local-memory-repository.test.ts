@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
+import { existsSync } from 'fs'
+import { join } from 'path'
 import type { MemoryRepository } from '../../src/types/repository'
 import type { MemorySnapshot, MemorySpace, MemoryItem, MemoryDraft } from '../../src/types/domain'
 import { emptySnapshot } from '../../src/fixtures/empty-snapshot'
@@ -731,6 +733,32 @@ describe('LocalMemoryRepository', () => {
     it('complete snapshot uses only bundled assets', () => {
       for (const a of completeSnapshot.assets) {
         expect(a.persistence).toBe('bundled')
+      }
+    })
+
+    // T5A-T2-M01: 每个 bundled + available 资产都有对应的 static/ 文件
+    it('every bundled available asset maps to a real static/fixtures file', () => {
+      const projectRoot = join(__dirname, '..', '..')
+      const bundledAvailable = completeSnapshot.assets.filter(
+        a => a.persistence === 'bundled' && a.availability === 'available',
+      )
+
+      expect(bundledAvailable.length).toBeGreaterThan(0)
+
+      const missing: string[] = []
+      for (const asset of bundledAvailable) {
+        // Runtime URI (e.g. /fixtures/xxx.png) maps to source static/ directory
+        const relativePath = asset.uri.replace(/^\//, '')
+        const sourcePath = join(projectRoot, 'static', relativePath)
+        if (!existsSync(sourcePath)) {
+          missing.push(`${asset.id}: ${asset.uri} → ${sourcePath}`)
+        }
+      }
+
+      if (missing.length > 0) {
+        expect.fail(
+          `Bundled asset files missing in static/fixtures/:\n${missing.join('\n')}`,
+        )
       }
     })
   })

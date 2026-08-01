@@ -49,7 +49,12 @@ defineEmits<{
   background: none;
   font: inherit;
   color: inherit;
+  text-align: left;
   cursor: pointer;
+
+  &::after {
+    border: none;
+  }
 }
 
 .memory-entry__thumbnail-wrap {

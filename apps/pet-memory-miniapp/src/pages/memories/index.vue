@@ -197,8 +197,8 @@ defineExpose({ _setQueryForTest })
 
 .memories__header {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  align-items: baseline;
+  justify-content: space-between;
   gap: $pm-space-1;
   padding-block: $pm-space-4;
 }

@@ -49,10 +49,10 @@ const tuantuMemories = [
 ]
 const tuantuDraft = { id: 'd_tuantu_draft1', spaceId: 's_tuantu', entry: 'meeting' as const, text: '还记得那天在宠物店门口...', assetIds: ['a_tuantu_draft_photo'], createdAt: '2026-05-20T16:00:00.000Z', updatedAt: '2026-05-20T16:30:00.000Z' }
 const tuantuAssets = [
-  { id: 'a_tuantu_cover', ownerType: 'space' as const, ownerId: 's_tuantu', uri: '/static/fixtures/tuantu-cover.jpg', persistence: 'bundled' as const, availability: 'available' as const, order: 0 },
-  { id: 'a_tuantu_photo1', ownerType: 'memory' as const, ownerId: 'm_tuantu_photo1', uri: '/static/fixtures/tuantu-photo1.jpg', persistence: 'bundled' as const, availability: 'available' as const, order: 0 },
-  { id: 'a_tuantu_photo2', ownerType: 'memory' as const, ownerId: 'm_tuantu_photo1', uri: '/static/fixtures/tuantu-photo2.jpg', persistence: 'bundled' as const, availability: 'available' as const, order: 1 },
-  { id: 'a_tuantu_draft_photo', ownerType: 'draft' as const, ownerId: 'd_tuantu_draft1', uri: '/static/fixtures/tuantu-draft.jpg', persistence: 'bundled' as const, availability: 'available' as const, order: 0 },
+  { id: 'a_tuantu_cover', ownerType: 'space' as const, ownerId: 's_tuantu', uri: '/fixtures/tuantu-cover.png', persistence: 'bundled' as const, availability: 'available' as const, order: 0 },
+  { id: 'a_tuantu_photo1', ownerType: 'memory' as const, ownerId: 'm_tuantu_photo1', uri: '/fixtures/tuantu-photo1.png', persistence: 'bundled' as const, availability: 'available' as const, order: 0 },
+  { id: 'a_tuantu_photo2', ownerType: 'memory' as const, ownerId: 'm_tuantu_photo1', uri: '/fixtures/tuantu-photo2.png', persistence: 'bundled' as const, availability: 'available' as const, order: 1 },
+  { id: 'a_tuantu_draft_photo', ownerType: 'draft' as const, ownerId: 'd_tuantu_draft1', uri: '/fixtures/tuantu-cover.png', persistence: 'bundled' as const, availability: 'available' as const, order: 0 },
 ]
 
 describe('Space-home page (04)', () => {

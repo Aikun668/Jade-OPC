@@ -124,6 +124,10 @@ function handlePress() {
   cursor: pointer;
   transition: background-color $pm-motion-fast $pm-ease-standard;
 
+  &::after {
+    border: none;
+  }
+
   &--block {
     width: 100%;
   }

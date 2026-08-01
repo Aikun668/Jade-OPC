@@ -293,6 +293,10 @@ defineExpose({ _setQueryForTest })
   display: flex;
   justify-content: center;
   margin-top: $pm-section-gap;
+
+  :deep(.primary-button) {
+    width: 56%;
+  }
 }
 
 .space-home__recent {

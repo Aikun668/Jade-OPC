@@ -98,6 +98,10 @@ const materialLoaded = ref<boolean | null>(null)
   color: $pm-color-olive;
   cursor: pointer;
 
+  &::after {
+    border: none;
+  }
+
   &:active {
     background-color: $pm-color-olive-soft;
   }

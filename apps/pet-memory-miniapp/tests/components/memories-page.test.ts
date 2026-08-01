@@ -48,8 +48,8 @@ const tuantuMemories = [
   { id: 'm_tuantu_photo1', spaceId: 's_tuantu', entry: 'photo' as const, originalText: '第一次见到团团时，它正从纸箱里探出脑袋看着我。', aiCandidateText: 'AI改写版', assetIds: ['a_tuantu_photo1', 'a_tuantu_photo2'], createdAt: '2026-04-15T14:00:00.000Z', updatedAt: '2026-04-20T09:00:00.000Z' },
 ]
 const tuantuAssets = [
-  { id: 'a_tuantu_photo1', ownerType: 'memory' as const, ownerId: 'm_tuantu_photo1', uri: '/static/fixtures/tuantu-photo1.jpg', persistence: 'bundled' as const, availability: 'available' as const, order: 0 },
-  { id: 'a_tuantu_photo2', ownerType: 'memory' as const, ownerId: 'm_tuantu_photo1', uri: '/static/fixtures/tuantu-photo2.jpg', persistence: 'bundled' as const, availability: 'available' as const, order: 1 },
+  { id: 'a_tuantu_photo1', ownerType: 'memory' as const, ownerId: 'm_tuantu_photo1', uri: '/fixtures/tuantu-photo1.png', persistence: 'bundled' as const, availability: 'available' as const, order: 0 },
+  { id: 'a_tuantu_photo2', ownerType: 'memory' as const, ownerId: 'm_tuantu_photo1', uri: '/fixtures/tuantu-photo2.png', persistence: 'bundled' as const, availability: 'available' as const, order: 1 },
 ]
 
 describe('Memories page (08)', () => {
@@ -429,7 +429,7 @@ describe('Memories page (08)', () => {
 
     // Photo entry has thumbnail
     const photoEntry = items.find((i: any) => i.summary.includes('第一次'))
-    expect(photoEntry.thumbnailUri).toBe('/static/fixtures/tuantu-photo1.jpg')
+    expect(photoEntry.thumbnailUri).toBe('/fixtures/tuantu-photo1.png')
 
     // Text-only entry has no thumbnail
     const textEntry = items.find((i: any) => i.summary.includes('窗台'))

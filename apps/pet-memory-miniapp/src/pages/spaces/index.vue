@@ -1,9 +1,5 @@
 <template>
   <PageShell layout="standard-flow" title="我的记忆空间" :show-back="false">
-    <template #navigation-right>
-      <TextAction tone="muted" @press="goCreate">+</TextAction>
-    </template>
-
     <!-- loading -->
     <view v-if="isLoading" class="spaces__center">
       <text class="spaces__muted">{{ loadingLabel }}</text>
@@ -29,6 +25,7 @@
     <template v-else>
       <view class="spaces__intro">
         <text class="spaces__desc">每一个 Ta，都有自己的位置。</text>
+        <text class="spaces__intro-plus" @click.stop="goCreate">+</text>
       </view>
 
       <view class="spaces__list">
@@ -44,7 +41,9 @@
             :src="s.coverUri"
             mode="aspectFill"
           />
-          <view v-else class="spaces__item-placeholder" />
+          <view v-else class="spaces__item-placeholder">
+            <text class="spaces__item-placeholder-label">{{ s.name[0] }}</text>
+          </view>
           <view class="spaces__item-text">
             <text class="spaces__item-name">{{ s.name }}</text>
             <text class="spaces__item-summary">{{ s.hasMemories ? s.latestSummary : '还没有留下记忆' }}</text>
@@ -153,12 +152,25 @@ function goSpace(spaceId: string): void {
 }
 
 .spaces__intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
   margin-bottom: $pm-section-gap;
 }
 
 .spaces__desc {
-  font-size: $pm-font-support;
+  font-size: $pm-font-body;
   color: $pm-color-muted;
+}
+
+.spaces__intro-plus {
+  font-size: $pm-font-section-title;
+  font-weight: $pm-weight-medium;
+  color: $pm-color-muted;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: $pm-space-2;
 }
 
 .spaces__list {
@@ -181,6 +193,10 @@ function goSpace(spaceId: string): void {
   text-align: left;
   border-radius: 0;
 
+  &::after {
+    border: none;
+  }
+
   &:active {
     background-color: $pm-color-olive-soft;
   }
@@ -195,10 +211,19 @@ function goSpace(spaceId: string): void {
 
 .spaces__item-placeholder {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: $pm-photo-space-list;
   height: $pm-photo-space-list;
   border-radius: $pm-photo-radius-thumb;
   background-color: $pm-color-olive-soft;
+}
+
+.spaces__item-placeholder-label {
+  font-size: $pm-font-section-title;
+  font-weight: $pm-weight-semibold;
+  color: $pm-color-muted;
 }
 
 .spaces__item-text {
@@ -212,12 +237,14 @@ function goSpace(spaceId: string): void {
 .spaces__item-name {
   font-size: $pm-font-item-title;
   font-weight: $pm-weight-semibold;
+  line-height: 1.3;
   color: $pm-color-ink;
 }
 
 .spaces__item-summary {
   font-size: $pm-font-body;
   color: $pm-color-ink;
+  line-height: $pm-leading-compact;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -228,6 +255,7 @@ function goSpace(spaceId: string): void {
 .spaces__item-date {
   font-size: $pm-font-meta;
   color: $pm-color-muted;
+  line-height: 1.3;
 }
 
 .spaces__item-arrow {
@@ -250,5 +278,9 @@ function goSpace(spaceId: string): void {
   display: flex;
   justify-content: center;
   margin-top: $pm-section-gap;
+
+  :deep(.text-action) {
+    font-size: $pm-font-body;
+  }
 }
 </style>
