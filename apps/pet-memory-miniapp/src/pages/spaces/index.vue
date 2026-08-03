@@ -58,6 +58,7 @@
         </TextAction>
       </view>
     </template>
+    <DevPanel />
   </PageShell>
 </template>
 
@@ -66,6 +67,7 @@ import { ref, computed, watch, onUnmounted } from 'vue'
 import PageShell from '../../components/PageShell.vue'
 import PrimaryButton from '../../components/PrimaryButton.vue'
 import TextAction from '../../components/TextAction.vue'
+import DevPanel from '../../components/DevPanel.vue'
 import { useAppStore } from '../../stores/app'
 import { useMemoryStore } from '../../stores/memory'
 import { getNavigation } from '../../adapters/navigation-deps'

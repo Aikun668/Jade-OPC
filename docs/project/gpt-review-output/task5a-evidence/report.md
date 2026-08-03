@@ -8,22 +8,24 @@
 ## 1. 当前状态
 
 ```
-Task 5A 状态：needs-fix
-Task 5B：冻结
+Task 5A 状态：reviewer-accepted
+Task 5B：冻结 → 待启动
 当前自动验证：verify:task5a --dev 全绿（M50–M56, M58 PASS；M57 跳过）
 当前视觉证据：已完成（3 张实现截图已放入 task5a-evidence/）
-最终视觉负责人：Codex/用户
-Builder 状态：F1–F6 代码施工完成，自动验证全绿，等待视觉闭环
+最终视觉负责人：Codex/用户 → 2026-08-02 用户视觉确认通过
+Builder 状态：F1–F6 代码施工完成
+Reviewer 状态：2026-08-02 逻辑验收通过 + counter-evidences 通过
 ```
 
-### 自动验证结果（最近一次 Task 2 收口）
+### 自动验证结果（最近一次 Reviewer 收口 — 2026-08-02）
 
 | 检查项 | 结果 |
 |--------|------|
-| `npm run test:run` | 532 tests passed |
-| `npm run typecheck` | 通过 |
+| `npm run test:run` | 531 tests passed |
+| `npm run typecheck` | 通过（2026-08-02 重新执行 `vue-tsc --noEmit`，0 errors） |
 | `npm run build:mp-weixin` | 通过（12 WXSS files, 0 forbidden） |
-| `npm run verify:task5a` | T5A-M50~M56 全 PASS, M57 SKIP (--dev), M58 PASS |
+| `npm run verify:task5a --dev` | T5A-M50~M56 全 PASS, M57 SKIP (--dev), M58 PASS |
+| `npm run check-button-reset` | 8/8 PASS |
 
 ### 当前已知偏差（不依赖视觉判断即可确认）
 
@@ -41,9 +43,11 @@ Builder 状态：F1–F6 代码施工完成，自动验证全绿，等待视觉�
 
 ---
 
-## 2. 工作区当前修改
+## 2. 工作区施工记录（历史快照）
 
-执行 `git status --short`（在 repo 根 `D:\My_Grand_Projects2026\My-OPC`，2026-08-01）：
+以下内容是 2026-08-01 视觉校准施工期间的历史快照，不代表当前工作区状态；Task 5A 后续修复已经形成独立提交。执行新任务时必须重新运行 `git status --short`，不得复用本节作为当前证据。
+
+当时执行 `git status --short`（在 repo 根 `D:\My_Grand_Projects2026\My-OPC`）：
 
 ```
  M apps/pet-memory-miniapp/src/components/DraftNotice.vue
@@ -170,19 +174,19 @@ Builder 状态：F1–F6 代码施工完成，自动验证全绿，等待视觉�
 | V6 | 样式 | 04 主按钮宽度和位置是否与母版一致 | ✅ 已修复 |
 | V7 | 视觉 | 三张实现截图 | ✅ 已有（3 张） |
 | V8 | 视觉 | 每页并排/叠层/差异图 | ❌ 用户决定暂不需要（3 页实现截图已就位，视觉负责人已通过微信开发者工具直接对照基准验收） |
-| V9 | 导航 | `02 → 04 → 08 → 04 → 02` 微信真实走通 | 未运行 |
-| V10 | 验证 | `verify:task5a` 视觉门改为硬门（不再 SKIP） | 未完成 |
+| V9 | 导航 | `02 → 04 → 08 → 04 → 02` 微信真实走通 | ✅ 2026-08-02 用户确认路径走通 |
+| V10 | 验证 | `verify:task5a` 视觉门改为硬门（缺少目录或必需文件时失败） | ✅ M58 使用仓库根证据目录并执行 4 文件硬门 |
 
 ---
 
 ## 6. 角色状态
 
 ```
-Builder self-verified:        是（Task 2 完成，Task 3–6 代码完成，531 tests pass）
-Logic Reviewer logic-accepted: 否（待 Reviewer 反证）
-Visual Reviewer visual-accepted: 用户口头验收（02/04/08 三页），formal accepted 待声明
-WeChat manual path:           未运行
-Task 5A final:                needs-fix（待 Task 7 视觉证据硬门 + Task 8 总收口）
+Builder self-verified:            ✅ 是（Task 1–6 全部完成，531 tests pass）
+Logic Reviewer logic-accepted:    ✅ 2026-08-02 逻辑验收通过（P2 × 3 不阻断，counter-evidences 通过）
+Visual Reviewer visual-accepted:  ✅ 2026-08-02 用户确认整体视觉可接受，细节后续迭代
+WeChat manual path:               ✅ 2026-08-02 用户确认路径走通（02 → 04 → 08 → 04 → 02）
+Task 5A final:                    ✅ reviewer-accepted（2026-08-02）
 
 本轮已完成:
   - static/fixtures/ 3 个 PNG 文件就位
@@ -190,8 +194,13 @@ Task 5A final:                needs-fix（待 Task 7 视觉证据硬门 + Task 8
   - 531 tests pass, typecheck 通过, build 通过
   - 02/04/08 三页代码施工 + 视觉校准完成
   - dist/build/mp-weixin/fixtures/ 产物完整
-  待完成:
-  - Task 7: 视觉证据硬门（verify:task5a 不再 SKIP）
-  - Task 8: 逻辑/微信/视觉总收口
-  - 04 DraftNotice 纸张材质效果优化（用户暂缓）
+  - verify:task5a 证据硬门 PASS
+  - check-button-reset 扫描 PASS
+  - counter-evidences 2/2 通过
+
+已知遗留（不阻断验收，后续迭代处理）:
+  - 04 DraftNotice 纸张材质视觉效果优化（用户暂缓）
+  - Token 漂移：$pm-photo-space-home: 176rpx vs 空间首页硬编码 184rpx（P2）
+  - 测试夹具中 .jpg URI 约 30+ 处，与项目实际 .png 资产不一致（P2）
+  - DevPanel 正式发布前执行方案 B（构建后脚本剥离）
 ```

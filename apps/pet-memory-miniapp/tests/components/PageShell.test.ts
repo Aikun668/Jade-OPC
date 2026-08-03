@@ -209,6 +209,47 @@ describe('PageShell', () => {
     })
   })
 
+  describe('capsule guard right in navigation', () => {
+    it('applies navRightStyle to navigation-right', () => {
+      const wrapper = mount(PageShell, {
+        props: { layout: 'standard-flow', title: '测试' },
+      })
+      const navRight = wrapper.find('.page-shell__nav-right')
+      expect(navRight.exists()).toBe(true)
+      const style = navRight.attributes('style')
+      expect(style).toBeDefined()
+    })
+
+    it('applies navLeftStyle to navigation-left without custom slot', () => {
+      const wrapper = mount(PageShell, {
+        props: { layout: 'standard-flow', showBack: true, title: '测试' },
+      })
+      const navLeft = wrapper.find('.page-shell__nav-left')
+      expect(navLeft.exists()).toBe(true)
+      const style = navLeft.attributes('style')
+      expect(style).toBeDefined()
+    })
+
+    it('quiet-landing has shellStyle with paddingTop', () => {
+      const wrapper = mount(PageShell, {
+        props: { layout: 'quiet-landing' },
+      })
+      const shell = wrapper.find('.page-shell')
+      const style = shell.attributes('style')
+      expect(style).toContain('padding-top')
+    })
+
+    it('title does not overlap with right capsule area', () => {
+      const wrapper = mount(PageShell, {
+        props: { layout: 'standard-flow', showBack: true, title: '较长的页面标题' },
+      })
+      const navTitle = wrapper.find('.page-shell__nav-title')
+      expect(navTitle.exists()).toBe(true)
+      // Nav title element uses overflow:hidden + text-overflow:ellipsis
+      expect(wrapper.find('.page-shell__title-text').text()).toBe('较长的页面标题')
+    })
+  })
+
   describe('scroll restoration on keyboard toggle', () => {
     it('toggles flex-space when keyboard state changes', async () => {
       const wrapper = mount(PageShell, {

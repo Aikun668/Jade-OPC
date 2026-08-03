@@ -14,7 +14,6 @@ import type {
   SaveDraftInput,
 } from '../types/domain'
 import { getRepository } from './deps'
-import { useAppStore } from './app'
 
 export const useMemoryStore = defineStore('memory', () => {
   const spaces = ref<MemorySpace[]>([])
@@ -33,10 +32,11 @@ export const useMemoryStore = defineStore('memory', () => {
 
   // ---- actions ----
 
-  async function createSpace(input: CreateSpaceInput): Promise<void> {
+  async function createSpace(input: CreateSpaceInput): Promise<MemorySpace> {
     const repo = getRepository()
     const result = await repo.createSpace(input)
     _commitSnapshot(result.snapshot)
+    return result.value
   }
 
   async function updateSpace(input: UpdateSpaceInput): Promise<void> {
@@ -81,13 +81,11 @@ export const useMemoryStore = defineStore('memory', () => {
     _commitSnapshot(snapshot)
   }
 
-  async function resetSample(mode: SampleMode): Promise<void> {
+  async function resetSample(mode: SampleMode): Promise<MemorySnapshot> {
     const repo = getRepository()
     const snapshot = await repo.resetSample(mode)
     _commitSnapshot(snapshot)
-
-    const appStore = useAppStore()
-    appStore.commitBootstrapReady(snapshot)
+    return snapshot
   }
 
   // ---- getters ----

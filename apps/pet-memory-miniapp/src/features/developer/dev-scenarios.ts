@@ -19,7 +19,9 @@ export function useDevScenarios() {
 
     try {
       const memoryStore = useMemoryStore()
-      await memoryStore.resetSample(sampleMode)
+      const appStore = useAppStore()
+      const snapshot = await memoryStore.resetSample(sampleMode)
+      appStore.commitBootstrapReady(snapshot)
     } catch (e: unknown) {
       lastResetError.value = e instanceof Error ? e.message : 'Unknown reset error'
       throw e

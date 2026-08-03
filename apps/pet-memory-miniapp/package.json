@@ -8,13 +8,16 @@
     "test": "vitest",
     "test:run": "vitest run",
     "clean:dist": "node -e \"var f=require('fs');['dist/dev/mp-weixin','dist/build/mp-weixin'].forEach(function(d){if(f.existsSync(d)){f.rmSync(d,{recursive:true});console.log('cleaned: '+d)}})\"",
-    "dev:mp-weixin": "npm run clean:dist && uni -p mp-weixin",
+    "clean:dev": "node -e \"var f=require('fs');var d='dist/dev/mp-weixin';if(f.existsSync(d)){f.rmSync(d,{recursive:true});console.log('cleaned: '+d)}\"",
+    "dev:mp-weixin": "npm run clean:dev && uni -p mp-weixin",
     "build:mp-weixin": "uni build -p mp-weixin && node scripts/strip-devpanel.mjs && node scripts/check-wxss-compat.mjs",
     "build:verify-components": "node scripts/build-verify-components.mjs",
     "verify:task2": "npm run test:run -- tests/components/design-system-contracts.test.ts tests/components/content-components.test.ts tests/components/interaction-components.test.ts tests/components/overlay-components.test.ts tests/components/photo-components.test.ts tests/components/DraftNotice.test.ts tests/components/PageShell.test.ts tests/unit/visual-baseline-normalization.test.ts && npm run typecheck && npm run build:mp-weixin",
     "verify:task3": "npm run test:run -- tests/unit/snapshot-validation.test.ts tests/unit/local-memory-repository.test.ts && npm run typecheck && npm run build:mp-weixin && node scripts/verify-task3.mjs",
     "verify:task4": "npm run test:run -- tests/unit/route-params.test.ts tests/unit/navigation.test.ts tests/unit/app-store.test.ts tests/unit/memory-store.test.ts tests/unit/dev-scenarios.test.ts && npm run typecheck && npm run build:mp-weixin && node scripts/verify-task4.mjs",
     "verify:task5a": "npm run test:run && npm run typecheck && npm run build:mp-weixin && node scripts/verify-task5a.mjs",
+    "verify:task5b": "npm run test:run && npm run typecheck && npm run build:mp-weixin && node scripts/verify-task5b.mjs",
+    "verify:task5": "npm run verify:task5a && npm run verify:task5b",
     "clean:test-artifacts": "node -e \"var f=require('fs');['scripts/visual-regression/test-input','scripts/visual-regression/test-output'].forEach(d=>{if(f.existsSync(d))f.rmSync(d,{recursive:true})})\""
   },
   "dependencies": {

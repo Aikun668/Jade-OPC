@@ -1,9 +1,10 @@
 {
   "pages": [
     {
-      "path": "pages/index/index",
+      "path": "pages/onboarding/index",
       "style": {
-        "navigationBarTitleText": "宠物记忆"
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom"
       }
     },
     {
@@ -24,6 +25,20 @@
       "path": "pages/memories/index",
       "style": {
         "navigationBarTitleText": "全部记忆",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/space-create/index",
+      "style": {
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/privacy/index",
+      "style": {
+        "navigationBarTitleText": "隐私说明",
         "navigationStyle": "custom"
       }
     }

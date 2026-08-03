@@ -1,11 +1,13 @@
 // ---- Page URL map ----
 
 export const PAGE_URLS = {
+  onboarding: '/pages/onboarding/index',
   spaces: '/pages/spaces/index',
   'space-home': '/pages/space-home/index',
   'space-create': '/pages/space-create/index',
   'memory-detail': '/pages/memory-detail/index',
   memories: '/pages/memories/index',
+  privacy: '/pages/privacy/index',
   'record-entry': '/pages/record-entry/index',
   'space-settings': '/pages/space-settings/index',
 } as const

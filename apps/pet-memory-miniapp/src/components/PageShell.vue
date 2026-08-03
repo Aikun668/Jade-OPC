@@ -128,14 +128,14 @@ const navRowStyle = computed(() => ({
 }))
 
 const navRightStyle = computed(() => ({
-  paddingRight: `calc(${platform.value.capsuleWidth} + 16rpx)`,
+  paddingRight: platform.value.capsuleGuardRight,
 }))
 
 // Balance the capsule on the right to keep the title visually centered.
 // Only skip balancing when a custom navigation-left slot is provided.
 const navLeftStyle = computed(() => {
   if (slots['navigation-left']) return {}
-  return { paddingLeft: `calc(${platform.value.capsuleWidth} + 16rpx)` }
+  return { paddingLeft: platform.value.capsuleGuardRight }
 })
 
 const columnStyle = computed(() => {

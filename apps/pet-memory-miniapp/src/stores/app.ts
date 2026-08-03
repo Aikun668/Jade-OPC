@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { MemorySnapshot, SampleMode } from '../types/domain'
 import { getRepository } from './deps'
+import { useMemoryStore } from './memory'
 
 export type BootstrapStatus = 'idle' | 'loading' | 'ready' | 'error'
 
@@ -24,8 +25,6 @@ export const useAppStore = defineStore('app', () => {
 
     try {
       const snapshot = await repo.bootstrap()
-      // Import done here to avoid circular dependency
-      const { useMemoryStore } = await import('./memory')
       const memoryStore = useMemoryStore()
       memoryStore._commitSnapshot(snapshot)
 
@@ -41,7 +40,6 @@ export const useAppStore = defineStore('app', () => {
   async function completeOnboarding(): Promise<void> {
     const repo = getRepository()
     const snapshot = await repo.completeOnboarding()
-    const { useMemoryStore } = await import('./memory')
     const memoryStore = useMemoryStore()
     memoryStore._commitSnapshot(snapshot)
     hasCompletedOnboarding.value = true

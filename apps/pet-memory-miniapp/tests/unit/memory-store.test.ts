@@ -129,6 +129,21 @@ describe('useMemoryStore', () => {
     expect(store.spaces[0].name).toBe('New Space')
   })
 
+  it('createSpace returns the MemorySpace with id from Repository', async () => {
+    provideRepository(createMockRepo({
+      createSpace: async () => ({
+        value: mkSpace({ id: 'repo-gen-id', name: 'Returned Space' }),
+        snapshot: mkSnapshot({ spaces: [mkSpace({ id: 'repo-gen-id', name: 'Returned Space' })] }),
+      }),
+    }))
+    const store = useMemoryStore()
+
+    const result = await store.createSpace({ name: 'Test', coverPhoto: null })
+
+    expect(result.id).toBe('repo-gen-id')
+    expect(result.name).toBe('Returned Space')
+  })
+
   it('T4C-M21: Repository reject keeps state unchanged', async () => {
     provideRepository(createMockRepo({
       createSpace: async () => { throw new Error('Write failed') },
@@ -204,7 +219,7 @@ describe('useMemoryStore', () => {
 
   // ---- resetSample ----
 
-  it('T4C-M24: resetSample syncs memoryStore and appStore including bootstrapStatus', async () => {
+  it('T4C-M24: resetSample commits snapshot to memoryStore and returns it', async () => {
     const resetSnap = mkSnapshot({
       sampleMode: 'complete',
       schemaVersion: 1,
@@ -215,22 +230,12 @@ describe('useMemoryStore', () => {
       resetSample: async () => resetSnap,
     }))
     const store = useMemoryStore()
-    const { useAppStore } = await import('../../src/stores/app')
-    const appStore = useAppStore()
 
-    // Set to error first to verify transition
-    appStore.bootstrapStatus = 'error'
-    appStore.initError = 'Prior error'
-
-    await store.resetSample('complete')
+    const returned = await store.resetSample('complete')
 
     expect(store.spaces).toHaveLength(1)
     expect(store.spaces[0].id).toBe('reset-s')
-    expect(appStore.sampleMode).toBe('complete')
-    expect(appStore.schemaVersion).toBe(1)
-    expect(appStore.hasCompletedOnboarding).toBe(true)
-    expect(appStore.bootstrapStatus).toBe('ready')
-    expect(appStore.initError).toBeNull()
+    expect(returned).toBe(resetSnap)
   })
 
   // ---- Getters ----

@@ -348,6 +348,119 @@ describe('expireSessionAssets', () => {
   })
 })
 
+describe('hasCompletedOnboarding normalization (old v1 snapshots)', () => {
+  it('old v1 without field + no spaces → defaults to false', () => {
+    const result = validateSnapshot({
+      schemaVersion: 1,
+      sampleMode: 'empty',
+      spaces: [],
+      memories: [],
+      drafts: [],
+      assets: [],
+    })
+    expect(result.kind).toBe('valid')
+    if (result.kind === 'valid') {
+      expect(result.snapshot.hasCompletedOnboarding).toBe(false)
+    }
+  })
+
+  it('old v1 without field + has spaces → defaults to true', () => {
+    const result = validateSnapshot({
+      schemaVersion: 1,
+      sampleMode: 'empty',
+      spaces: [{ id: 's1', name: '团团', coverAssetId: null, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }],
+      memories: [],
+      drafts: [],
+      assets: [],
+    })
+    expect(result.kind).toBe('valid')
+    if (result.kind === 'valid') {
+      expect(result.snapshot.hasCompletedOnboarding).toBe(true)
+    }
+  })
+
+  it('existing false + has spaces → losslessly repairs to true', () => {
+    const result = validateSnapshot({
+      schemaVersion: 1,
+      sampleMode: 'empty',
+      hasCompletedOnboarding: false,
+      spaces: [{ id: 's1', name: '团团', coverAssetId: null, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }],
+      memories: [],
+      drafts: [],
+      assets: [],
+    })
+    expect(result.kind).toBe('valid')
+    if (result.kind === 'valid') {
+      expect(result.snapshot.hasCompletedOnboarding).toBe(true)
+    }
+  })
+
+  it('existing true + no spaces → keeps true', () => {
+    const result = validateSnapshot({
+      schemaVersion: 1,
+      sampleMode: 'empty',
+      hasCompletedOnboarding: true,
+      spaces: [],
+      memories: [],
+      drafts: [],
+      assets: [],
+    })
+    expect(result.kind).toBe('valid')
+    if (result.kind === 'valid') {
+      expect(result.snapshot.hasCompletedOnboarding).toBe(true)
+    }
+  })
+
+  it('does not upgrade schemaVersion during normalization', () => {
+    const result = validateSnapshot({
+      schemaVersion: 1,
+      sampleMode: 'empty',
+      hasCompletedOnboarding: false,
+      spaces: [{ id: 's1', name: '团团', coverAssetId: null, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }],
+      memories: [],
+      drafts: [],
+      assets: [],
+    })
+    expect(result.kind).toBe('valid')
+    if (result.kind === 'valid') {
+      expect(result.snapshot.schemaVersion).toBe(1)
+    }
+  })
+
+  it('preserves original spaces, memories, drafts, assets during normalization', () => {
+    const snapshot = {
+      schemaVersion: 1,
+      sampleMode: 'empty',
+      hasCompletedOnboarding: false,
+      spaces: [{ id: 's1', name: '团团', coverAssetId: null, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }],
+      memories: [{ id: 'm1', spaceId: 's1', entry: 'daily', originalText: 'hello', aiCandidateText: null, assetIds: [], createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }],
+      drafts: [],
+      assets: [{ id: 'a1', ownerType: 'memory', ownerId: 'm1', uri: '/photo.png', persistence: 'bundled', availability: 'available', order: 0 }],
+    }
+    const result = validateSnapshot(snapshot)
+    expect(result.kind).toBe('valid')
+    if (result.kind === 'valid') {
+      expect(result.snapshot.spaces).toEqual(snapshot.spaces)
+      expect(result.snapshot.memories).toEqual(snapshot.memories)
+      expect(result.snapshot.drafts).toEqual(snapshot.drafts)
+      expect(result.snapshot.assets).toEqual(snapshot.assets)
+    }
+  })
+
+  it('rejects hasCompletedOnboarding when key exists but type is wrong', () => {
+    const result = validateSnapshot({
+      schemaVersion: 1,
+      sampleMode: 'empty',
+      hasCompletedOnboarding: 'yes',
+      spaces: [],
+      memories: [],
+      drafts: [],
+      assets: [],
+    })
+    expect(result.kind).toBe('invalid')
+  })
+})
+
 describe('validateSnapshot immutability', () => {
   it('does not mutate the input object on validation failure', () => {
     const snapshot = makeValidEmptySnapshot()

@@ -44,12 +44,9 @@ export function validateSnapshot(value: unknown): SnapshotReadResult {
     return { kind: 'invalid', reason: 'sampleMode must be "empty" or "complete"' }
   }
 
-  if (typeof obj.hasCompletedOnboarding !== 'boolean') {
-    if ('hasCompletedOnboarding' in obj) {
-      return { kind: 'invalid', reason: 'hasCompletedOnboarding must be a boolean' }
-    }
-    // auto-migrate: old snapshots without hasCompletedOnboarding default to true
-    obj = { ...obj, hasCompletedOnboarding: true }
+  // Validate type only when key exists; defer default assignment until after spaces validation
+  if ('hasCompletedOnboarding' in obj && typeof obj.hasCompletedOnboarding !== 'boolean') {
+    return { kind: 'invalid', reason: 'hasCompletedOnboarding must be a boolean' }
   }
 
   if (!Array.isArray(obj.spaces)) return { kind: 'invalid', reason: 'spaces must be an array' }
@@ -194,6 +191,15 @@ export function validateSnapshot(value: unknown): SnapshotReadResult {
         return { kind: 'invalid', reason: `Cover asset ${s.coverAssetId} ownership mismatch: owned by ${asset.ownerType}/${asset.ownerId}, expected space ${s.id}` }
       }
     }
+  }
+
+  // Normalize hasCompletedOnboarding based on spaces state (do NOT upgrade schemaVersion)
+  if (!('hasCompletedOnboarding' in obj)) {
+    // Old v1 snapshot: derive from spaces
+    obj = { ...obj, hasCompletedOnboarding: spaces.length > 0 }
+  } else if (obj.hasCompletedOnboarding === false && spaces.length > 0) {
+    // Lossless repair: existing spaces but onboarding flag is false
+    obj = { ...obj, hasCompletedOnboarding: true }
   }
 
   return { kind: 'valid', snapshot: obj as unknown as MemorySnapshot }

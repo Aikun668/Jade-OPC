@@ -8,6 +8,8 @@ import { NanoIdFactory } from './utils/id-factory-impl'
 import { provideRepository } from './stores/deps'
 import { UniNavigationAdapter } from './adapters/navigation'
 import { provideNavigation } from './adapters/navigation-deps'
+import { UniPhotoPicker } from './adapters/uni-photo-picker'
+import { providePhotoPicker } from './adapters/photo-picker-deps'
 
 export function createApp() {
   const app = createSSRApp(App)
@@ -20,6 +22,8 @@ export function createApp() {
   const idFactory = new NanoIdFactory()
   const repo = new LocalMemoryRepository(storage, clock, idFactory)
   provideRepository(repo)
+
+  providePhotoPicker(new UniPhotoPicker())
 
   provideNavigation(new UniNavigationAdapter(
     (url: string) => uni.navigateTo({ url }).then(() => undefined),

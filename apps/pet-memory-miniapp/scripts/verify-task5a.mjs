@@ -161,6 +161,8 @@ function distFiles(dir) {
         if (/placeholder__|__placeholder|placeholder--|--placeholder/.test(line)) continue
         // Skip CSS property: placeholder- or -placeholder
         if (/-placeholder/.test(line)) continue
+        // Skip legitimate HTML/Vue template attributes
+        if (/\bplaceholder\s*[=:]/.test(line)) continue
         check(`T5A-M54 'placeholder' marker in ${f.replace(srcRoot, '')}: ${line.trim().substring(0, 120)}`, false)
       }
     }
