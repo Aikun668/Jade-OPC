@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { readFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
-import { UniNavigationAdapter, type NavigationAdapter } from '../../src/adapters/navigation'
+import { UniNavigationAdapter, PAGE_URLS, type NavigationAdapter } from '../../src/adapters/navigation'
 import type { StableDestination } from '../../src/adapters/navigation'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -321,19 +321,91 @@ describe('StableDestination privacy', () => {
     const dests: StableDestination[] = [
       { page: 'spaces' },
       { page: 'space-home', spaceId: 's1' },
-      { page: 'memory-detail', memoryId: 'm1' },
+      { page: 'memory-detail', memoryId: 'm1', source: 'new-memory' },
     ]
 
     for (const d of dests) {
       const keys = Object.keys(d)
       expect(keys).toContain('page')
       // No extra private fields
-      expect(keys.every(k => ['page', 'spaceId', 'memoryId'].includes(k))).toBe(true)
+      expect(keys.every(k => ['page', 'spaceId', 'memoryId', 'source'].includes(k))).toBe(true)
     }
   })
 })
 
+// ---- Task 8: memory-detail with source, new PAGE_URLS ----
+
+describe('Task 8 navigation', () => {
+  it('T8-N01: PAGE_URLS includes memory-edit', () => {
+    expect(PAGE_URLS['memory-edit']).toBe('/pages/memory-edit/index')
+  })
+
+  it('T8-N02: PAGE_URLS includes ai-draft', () => {
+    expect(PAGE_URLS['ai-draft']).toBe('/pages/ai-draft/index')
+  })
+
+  it('T8-N03: memory-detail with source=new-memory includes source in URL', async () => {
+    const navigateBack = vi.fn().mockResolvedValue(undefined)
+    const navigateTo = vi.fn().mockResolvedValue(undefined)
+    const getCurrentPages = vi.fn().mockReturnValue([
+      { route: 'pages/space-home/index' },
+    ])
+
+    const adapter = createAdapter({ navigateBack, navigateTo, getCurrentPages })
+    await adapter.resetTo({ page: 'memory-detail', memoryId: 'm1', source: 'new-memory' })
+
+    expect(navigateTo).toHaveBeenCalledWith(
+      '/pages/memory-detail/index?memoryId=m1&source=new-memory',
+    )
+  })
+
+  it('T8-N04: memory-detail with source=space-home includes source in URL', async () => {
+    const navigateBack = vi.fn().mockResolvedValue(undefined)
+    const navigateTo = vi.fn().mockResolvedValue(undefined)
+    const getCurrentPages = vi.fn().mockReturnValue([
+      { route: 'pages/space-home/index' },
+    ])
+
+    const adapter = createAdapter({ navigateBack, navigateTo, getCurrentPages })
+    await adapter.resetTo({ page: 'memory-detail', memoryId: 'm1', source: 'space-home' })
+
+    expect(navigateTo).toHaveBeenCalledWith(
+      '/pages/memory-detail/index?memoryId=m1&source=space-home',
+    )
+  })
+
+  it('T8-N05: memory-detail backward compat (no source in resetTo call)', async () => {
+    // If source is not passed, the URL should still work with just memoryId
+    // (page will default to space-home on parse)
+    const navigateBack = vi.fn().mockResolvedValue(undefined)
+    const navigateTo = vi.fn().mockResolvedValue(undefined)
+    const getCurrentPages = vi.fn().mockReturnValue([
+      { route: 'pages/space-home/index' },
+    ])
+
+    const adapter = createAdapter({ navigateBack, navigateTo, getCurrentPages })
+    await adapter.resetTo({ page: 'memory-detail', memoryId: 'm1' } as any)
+
+    expect(navigateTo).toHaveBeenCalledWith('/pages/memory-detail/index?memoryId=m1')
+  })
+})
+
 // ---- T4B-M21: Adapter does not read Pinia or Repository ----
+
+// ---- Task 9: space-settings navigation ----
+
+describe('Task 9 navigation', () => {
+  it('T9-N01: PAGE_URLS includes space-settings', () => {
+    expect(PAGE_URLS['space-settings']).toBe('/pages/space-settings/index')
+  })
+
+  it('T9-N02: push space-settings with spaceId works', async () => {
+    const navigateTo = vi.fn().mockResolvedValue(undefined)
+    const adapter = createAdapter({ navigateTo })
+    await adapter.push('/pages/space-settings/index?spaceId=s1')
+    expect(navigateTo).toHaveBeenCalledWith('/pages/space-settings/index?spaceId=s1')
+  })
+})
 
 describe('Adapter isolation', () => {
   it('T4B-M21: adapter does not import Pinia or Repository', () => {

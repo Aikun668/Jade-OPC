@@ -118,5 +118,57 @@ describe('UniPhotoPicker', () => {
         fail: expect.any(Function) as unknown,
       })
     })
+
+    it('clamps remaining to minimum 1', async () => {
+      succeed({ tempFiles: [{ tempFilePath: '/tmp/photo.jpg' }] })
+
+      await makePicker().pick({ remaining: 0 })
+
+      expect(chooseMediaMock).toHaveBeenCalledWith(
+        expect.objectContaining({ count: 1 }),
+      )
+    })
+
+    it('clamps remaining to maximum 9', async () => {
+      succeed({ tempFiles: [{ tempFilePath: '/tmp/photo.jpg' }] })
+
+      await makePicker().pick({ remaining: 20 })
+
+      expect(chooseMediaMock).toHaveBeenCalledWith(
+        expect.objectContaining({ count: 9 }),
+      )
+    })
+
+    it('does not clamp when remaining is within 1-9', async () => {
+      succeed({ tempFiles: [{ tempFilePath: '/tmp/photo.jpg' }] })
+
+      await makePicker().pick({ remaining: 5 })
+
+      expect(chooseMediaMock).toHaveBeenCalledWith(
+        expect.objectContaining({ count: 5 }),
+      )
+    })
+  })
+
+  describe('order preservation', () => {
+    it('preserves original order from tempFiles', async () => {
+      succeed({
+        tempFiles: [
+          { tempFilePath: '/tmp/first.jpg', width: 100, height: 100 },
+          { tempFilePath: '/tmp/second.jpg', width: 200, height: 200 },
+          { tempFilePath: '/tmp/third.jpg', width: 300, height: 300 },
+        ],
+      })
+
+      const result = await makePicker().pick({ remaining: 3 })
+
+      expect(result.kind).toBe('selected')
+      if (result.kind === 'selected') {
+        expect(result.photos).toHaveLength(3)
+        expect(result.photos[0].uri).toBe('/tmp/first.jpg')
+        expect(result.photos[1].uri).toBe('/tmp/second.jpg')
+        expect(result.photos[2].uri).toBe('/tmp/third.jpg')
+      }
+    })
   })
 })

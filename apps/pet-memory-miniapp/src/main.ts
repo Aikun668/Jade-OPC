@@ -10,6 +10,9 @@ import { UniNavigationAdapter } from './adapters/navigation'
 import { provideNavigation } from './adapters/navigation-deps'
 import { UniPhotoPicker } from './adapters/uni-photo-picker'
 import { providePhotoPicker } from './adapters/photo-picker-deps'
+import { MockAiDraftService } from './services/mock-ai-draft-service'
+import { provideAiDraftService } from './services/ai-draft-service-deps'
+import { useDevScenarios } from './features/developer/dev-scenarios'
 
 export function createApp() {
   const app = createSSRApp(App)
@@ -24,6 +27,11 @@ export function createApp() {
   provideRepository(repo)
 
   providePhotoPicker(new UniPhotoPicker())
+
+  const devScenarios = useDevScenarios()
+  provideAiDraftService(
+    new MockAiDraftService(() => devScenarios.aiScenario.value),
+  )
 
   provideNavigation(new UniNavigationAdapter(
     (url: string) => uni.navigateTo({ url }).then(() => undefined),

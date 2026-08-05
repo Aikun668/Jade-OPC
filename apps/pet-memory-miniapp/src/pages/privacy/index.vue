@@ -35,20 +35,25 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import PageShell from '../../components/PageShell.vue'
 import PrimaryButton from '../../components/PrimaryButton.vue'
 import { getNavigation } from '../../adapters/navigation-deps'
-
-const VALID_SOURCES = ['onboarding', 'settings'] as const
+import { parsePrivacyRoute } from '../../features/routing/route-params'
+import type { PrivacySource } from '../../types/routes'
 
 const nav = getNavigation()
 
+const source = ref<PrivacySource | null>(null)
+
 onLoad((options: Record<string, string> | undefined) => {
-  const rawSource = options?.source ?? ''
-  if (rawSource && !VALID_SOURCES.includes(rawSource as typeof VALID_SOURCES[number])) {
-    // Illegal source — silently ignore, page renders with back navigation intact
+  const query = options || {}
+  const parsed = parsePrivacyRoute(query)
+  if (parsed.kind === 'valid') {
+    source.value = parsed.value.source
   }
+  // Invalid or missing source: source stays null, page renders with safe back
 })
 
 function goBack(): void {
@@ -57,10 +62,13 @@ function goBack(): void {
 
 // ---- test-only ----
 
-function _setQueryForTest(_query: Record<string, unknown>): void {
-  // Page reads source from onLoad options; in tests source is validated at mount time.
-  // The page renders identically regardless of source value — source only affects
-  // onLoad validation (no-op for tests).
+function _setQueryForTest(query: Record<string, unknown>): void {
+  const parsed = parsePrivacyRoute(query)
+  if (parsed.kind === 'valid') {
+    source.value = parsed.value.source
+  } else {
+    source.value = null
+  }
 }
 
 defineExpose({ _setQueryForTest })

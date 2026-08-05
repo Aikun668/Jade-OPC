@@ -346,6 +346,74 @@ describe('useMemoryStore', () => {
     expect(sorted.map((s: MemorySpace) => s.id)).toEqual(['s2', 's1'])
   })
 
+  // ---- Task 9: deleteMemory Store tests ----
+
+  it('T9-SM01: deleteMemory success commits returned snapshot', async () => {
+    const afterDeleteSnap = mkSnapshot({ memories: [], spaces: [mkSpace()] })
+    provideRepository(createMockRepo({
+      deleteMemory: async () => afterDeleteSnap,
+    }))
+    const store = useMemoryStore()
+    store._commitSnapshot(mkSnapshot({
+      spaces: [mkSpace()],
+      memories: [mkMemory({ id: 'm_to_delete' })],
+    }))
+
+    await store.deleteMemory('m_to_delete')
+
+    expect(store.memories).toHaveLength(0)
+    expect(store.spaces).toHaveLength(1)
+  })
+
+  it('T9-SM02: deleteMemory failure keeps original state', async () => {
+    provideRepository(createMockRepo({
+      deleteMemory: async () => { throw new Error('Delete failed') },
+    }))
+    const store = useMemoryStore()
+    store._commitSnapshot(mkSnapshot({
+      spaces: [mkSpace()],
+      memories: [mkMemory({ id: 'm_keep' })],
+    }))
+
+    await expect(store.deleteMemory('m_keep')).rejects.toThrow('Delete failed')
+    expect(store.memories).toHaveLength(1)
+    expect(store.memories[0].id).toBe('m_keep')
+  })
+
+  // ---- Task 9: deleteSpace Store tests ----
+
+  it('T9-SM03: deleteSpace success commits returned snapshot', async () => {
+    const afterDeleteSnap = mkSnapshot({ spaces: [], memories: [], drafts: [], assets: [] })
+    provideRepository(createMockRepo({
+      deleteSpace: async () => afterDeleteSnap,
+    }))
+    const store = useMemoryStore()
+    store._commitSnapshot(mkSnapshot({
+      spaces: [mkSpace({ id: 's_to_delete' })],
+      memories: [mkMemory({ id: 'm1', spaceId: 's_to_delete' })],
+    }))
+
+    await store.deleteSpace('s_to_delete')
+
+    expect(store.spaces).toHaveLength(0)
+    expect(store.memories).toHaveLength(0)
+  })
+
+  it('T9-SM04: deleteSpace failure keeps original state', async () => {
+    provideRepository(createMockRepo({
+      deleteSpace: async () => { throw new Error('Delete space failed') },
+    }))
+    const store = useMemoryStore()
+    store._commitSnapshot(mkSnapshot({
+      spaces: [mkSpace({ id: 's_keep' })],
+      memories: [mkMemory({ id: 'm1', spaceId: 's_keep' })],
+    }))
+
+    await expect(store.deleteSpace('s_keep')).rejects.toThrow('Delete space failed')
+    expect(store.spaces).toHaveLength(1)
+    expect(store.memories).toHaveLength(1)
+  })
+
   it('T4C-M32: empty results return empty arrays, not error', () => {
     const store = useMemoryStore()
 

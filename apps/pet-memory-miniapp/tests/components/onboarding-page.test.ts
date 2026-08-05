@@ -128,8 +128,8 @@ describe('Onboarding page (01)', () => {
     provideNavigation(nav)
     setReady(false)
     const wrapper = mountPage()
-    const privacyLink = wrapper.find('.onboarding__privacy')
-    await privacyLink.trigger('click')
+    const privacyTextAction = wrapper.findComponent({ name: 'TextAction' })
+    await privacyTextAction.vm.$emit('press')
     expect(nav.push).toHaveBeenCalledWith(
       expect.stringContaining('/pages/privacy/index'),
     )

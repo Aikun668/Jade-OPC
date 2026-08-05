@@ -101,7 +101,7 @@ function distFiles(dir) {
 
 // ---- T5B-M53: No unapproved future page placeholders ----
 {
-  const forbiddenPages = ['record-entry', 'memory-detail', 'space-settings']
+  const forbiddenPages = ['space-settings']
   const pagesDir = join(srcRoot, 'pages')
   if (existsSync(pagesDir)) {
     const entries = readdirSync(pagesDir, { withFileTypes: true })

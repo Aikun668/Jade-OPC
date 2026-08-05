@@ -18,6 +18,8 @@
     "verify:task5a": "npm run test:run && npm run typecheck && npm run build:mp-weixin && node scripts/verify-task5a.mjs",
     "verify:task5b": "npm run test:run && npm run typecheck && npm run build:mp-weixin && node scripts/verify-task5b.mjs",
     "verify:task5": "npm run verify:task5a && npm run verify:task5b",
+    "verify:task8": "npm run test:run && npm run typecheck && npm run build:mp-weixin && node scripts/verify-task8.mjs",
+    "verify:task9": "npm run test:run && npm run typecheck && npm run build:mp-weixin && node scripts/verify-task9.mjs",
     "clean:test-artifacts": "node -e \"var f=require('fs');['scripts/visual-regression/test-input','scripts/visual-regression/test-output'].forEach(d=>{if(f.existsSync(d))f.rmSync(d,{recursive:true})})\""
   },
   "dependencies": {

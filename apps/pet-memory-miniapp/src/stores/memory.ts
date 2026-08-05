@@ -51,10 +51,11 @@ export const useMemoryStore = defineStore('memory', () => {
     _commitSnapshot(snapshot)
   }
 
-  async function saveMemory(input: SaveMemoryInput): Promise<void> {
+  async function saveMemory(input: SaveMemoryInput): Promise<MemoryItem> {
     const repo = getRepository()
     const result = await repo.saveMemory(input)
     _commitSnapshot(result.snapshot)
+    return result.value
   }
 
   async function updateMemory(input: UpdateMemoryInput): Promise<void> {
@@ -69,10 +70,11 @@ export const useMemoryStore = defineStore('memory', () => {
     _commitSnapshot(snapshot)
   }
 
-  async function saveDraft(input: SaveDraftInput): Promise<void> {
+  async function saveDraft(input: SaveDraftInput): Promise<MemoryDraft> {
     const repo = getRepository()
     const result = await repo.saveDraft(input)
     _commitSnapshot(result.snapshot)
+    return result.value
   }
 
   async function deleteDraft(draftId: string): Promise<void> {

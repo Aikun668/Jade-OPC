@@ -1,6 +1,6 @@
 import type { TextRecordEntry } from '../../types/domain'
-import type { RouteParseResult } from '../../types/routes'
-import { isValidEntry, isValidId } from '../../types/routes'
+import type { MemoryDetailSource, PrivacySource, RouteParseResult } from '../../types/routes'
+import { isValidEntry, isValidId, MEMORY_DETAIL_SOURCES, PRIVACY_SOURCES } from '../../types/routes'
 
 type IdParam = 'spaceId' | 'memoryId'
 type InvalidReason = 'missing-param' | 'invalid-id' | 'invalid-entry'
@@ -57,22 +57,77 @@ export function parseMemoryRoute(
   return { kind: 'valid', value: { memoryId: parsed.value } }
 }
 
+export function parseRecordEntryRoute(
+  query: Record<string, unknown>,
+): RouteParseResult<{ spaceId: string }> {
+  return parseSpaceRoute(query)
+}
+
+export function parseMemoryDetailRoute(
+  query: Record<string, unknown>,
+): RouteParseResult<{ memoryId: string; source: MemoryDetailSource }> {
+  const parsed = parseId(query, 'memoryId')
+  if (!parsed.ok) return { kind: 'invalid', reason: parsed.reason, param: parsed.param }
+
+  const raw = readStringParam(query, 'source')
+  if (raw === undefined) {
+    return { kind: 'valid', value: { memoryId: parsed.value, source: 'space-home' } }
+  }
+
+  if (typeof raw !== 'string' || !MEMORY_DETAIL_SOURCES.has(raw)) {
+    return { kind: 'invalid', reason: 'invalid-source', param: 'source' }
+  }
+
+  return { kind: 'valid', value: { memoryId: parsed.value, source: raw as MemoryDetailSource } }
+}
+
+export function parsePhotoRecordRoute(
+  query: Record<string, unknown>,
+): RouteParseResult<{ spaceId: string }> {
+  return parseSpaceRoute(query)
+}
+
 export function parseTextRecordRoute(
   query: Record<string, unknown>,
-): RouteParseResult<{ spaceId: string; entry: TextRecordEntry }> {
+): RouteParseResult<{ spaceId: string; entry?: TextRecordEntry; draftId?: string }> {
   const parsed = parseId(query, 'spaceId')
   if (!parsed.ok) return { kind: 'invalid', reason: parsed.reason, param: parsed.param }
 
   const raw = readStringParam(query, 'entry')
-  if (raw === undefined) {
-    return { kind: 'invalid', reason: 'missing-param', param: 'entry' }
-  }
-  if (!isValidEntry(raw)) {
+  if (raw !== undefined && !isValidEntry(raw)) {
     return { kind: 'invalid', reason: 'invalid-entry', param: 'entry' }
   }
 
-  return {
-    kind: 'valid',
-    value: { spaceId: parsed.value, entry: raw },
+  const draftId = readStringParam(query, 'draftId')
+  const value: { spaceId: string; entry?: TextRecordEntry; draftId?: string } = {
+    spaceId: parsed.value,
+    entry: raw as TextRecordEntry | undefined,
   }
+  if (typeof draftId === 'string' && draftId.trim().length > 0) {
+    if (!isValidId(draftId)) return { kind: 'invalid', reason: 'invalid-id', param: 'draftId' }
+    value.draftId = draftId.trim()
+  }
+
+  return { kind: 'valid', value }
+}
+
+export function parseSpaceSettingsRoute(
+  query: Record<string, unknown>,
+): RouteParseResult<{ spaceId: string }> {
+  const parsed = parseId(query, 'spaceId')
+  if (!parsed.ok) return { kind: 'invalid', reason: parsed.reason, param: parsed.param }
+  return { kind: 'valid', value: { spaceId: parsed.value } }
+}
+
+export function parsePrivacyRoute(
+  query: Record<string, unknown>,
+): RouteParseResult<{ source: PrivacySource }> {
+  const raw = readStringParam(query, 'source')
+  if (raw === undefined) {
+    return { kind: 'invalid', reason: 'missing-param', param: 'source' }
+  }
+  if (typeof raw !== 'string' || !PRIVACY_SOURCES.has(raw)) {
+    return { kind: 'invalid', reason: 'invalid-source', param: 'source' }
+  }
+  return { kind: 'valid', value: { source: raw as PrivacySource } }
 }

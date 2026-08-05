@@ -12,10 +12,11 @@ interface ChooseMediaResult {
 
 export class UniPhotoPicker implements PhotoPicker {
   async pick(options: { remaining: number }): Promise<PickResult> {
+    const count = Math.max(1, Math.min(9, options.remaining))
     try {
       const res = await new Promise<ChooseMediaResult>((resolve, reject) => {
         uni.chooseMedia({
-          count: options.remaining,
+          count,
           mediaType: ['image'],
           sourceType: ['album', 'camera'],
           success: (result) => resolve(result),

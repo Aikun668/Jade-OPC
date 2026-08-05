@@ -2,10 +2,14 @@ import { describe, it, expect } from 'vitest'
 import {
   parseSpaceRoute,
   parseMemoryRoute,
+  parseMemoryDetailRoute,
   parseTextRecordRoute,
+  parsePhotoRecordRoute,
+  parseSpaceSettingsRoute,
+  parsePrivacyRoute,
 } from '../../src/features/routing/route-params'
 import type { RouteParseResult } from '../../src/types/routes'
-import { isValidId, isValidEntry, MEMORY_DETAIL_SOURCES, VALID_ENTRIES } from '../../src/types/routes'
+import { isValidId, isValidEntry, MEMORY_DETAIL_SOURCES, VALID_ENTRIES, PRIVACY_SOURCES } from '../../src/types/routes'
 
 describe('Route types and constants', () => {
   it('T4A-M06: VALID_ENTRIES contains only daily/photo/meeting/relationship', () => {
@@ -175,6 +179,36 @@ describe('parseSpaceRoute', () => {
   })
 })
 
+// ---- parsePhotoRecordRoute ----
+
+describe('parsePhotoRecordRoute', () => {
+  it('valid spaceId returns valid result', () => {
+    const result = parsePhotoRecordRoute({ spaceId: 's1' })
+    expect(result.kind).toBe('valid')
+    if (result.kind === 'valid') {
+      expect(result.value).toEqual({ spaceId: 's1' })
+    }
+  })
+
+  it('missing spaceId returns missing-param', () => {
+    const result = parsePhotoRecordRoute({})
+    expect(result.kind).toBe('invalid')
+    if (result.kind === 'invalid') {
+      expect(result.reason).toBe('missing-param')
+      expect(result.param).toBe('spaceId')
+    }
+  })
+
+  it('empty spaceId is rejected', () => {
+    const result = parsePhotoRecordRoute({ spaceId: '' })
+    expect(result.kind).toBe('invalid')
+  })
+
+  it('does not throw on missing param', () => {
+    expect(() => parsePhotoRecordRoute({})).not.toThrow()
+  })
+})
+
 // ---- parseMemoryRoute ----
 
 describe('parseMemoryRoute', () => {
@@ -302,12 +336,12 @@ describe('parseTextRecordRoute', () => {
     }
   })
 
-  it('T4A-M02: missing entry returns missing-param', () => {
+  it('T4A-M02: missing entry is valid (entry may come from draft)', () => {
     const result = parseTextRecordRoute({ spaceId: 's1' })
-    expect(result.kind).toBe('invalid')
-    if (result.kind === 'invalid') {
-      expect(result.reason).toBe('missing-param')
-      expect(result.param).toBe('entry')
+    expect(result.kind).toBe('valid')
+    if (result.kind === 'valid') {
+      expect(result.value.spaceId).toBe('s1')
+      expect(result.value.entry).toBeUndefined()
     }
   })
 
@@ -443,6 +477,85 @@ describe('parseTextRecordRoute', () => {
   })
 })
 
+// ---- parseMemoryDetailRoute (Task 8) ----
+
+describe('parseMemoryDetailRoute', () => {
+  it('T8-M01: valid source=memories returns valid with source', () => {
+    const result = parseMemoryDetailRoute({ memoryId: 'm1', source: 'memories' })
+    expect(result).toEqual({
+      kind: 'valid',
+      value: { memoryId: 'm1', source: 'memories' },
+    })
+  })
+
+  it('T8-M02: missing source defaults to space-home', () => {
+    const result = parseMemoryDetailRoute({ memoryId: 'm1' })
+    expect(result).toEqual({
+      kind: 'valid',
+      value: { memoryId: 'm1', source: 'space-home' },
+    })
+  })
+
+  it('T8-M03: invalid source returns invalid-source', () => {
+    const result = parseMemoryDetailRoute({ memoryId: 'm1', source: 'unknown' })
+    expect(result).toEqual({
+      kind: 'invalid',
+      reason: 'invalid-source',
+      param: 'source',
+    })
+  })
+
+  it('T8-M04: missing memoryId returns missing-param', () => {
+    const result = parseMemoryDetailRoute({})
+    expect(result.kind).toBe('invalid')
+    expect(result).toMatchObject({ kind: 'invalid', reason: 'missing-param', param: 'memoryId' })
+  })
+
+  it('T8-M05: empty memoryId is rejected', () => {
+    const result = parseMemoryDetailRoute({ memoryId: '' })
+    expect(result.kind).toBe('invalid')
+  })
+
+  it('T8-M06: valid source=space-home works', () => {
+    const result = parseMemoryDetailRoute({ memoryId: 'm1', source: 'space-home' })
+    expect(result).toEqual({
+      kind: 'valid',
+      value: { memoryId: 'm1', source: 'space-home' },
+    })
+  })
+
+  it('T8-M07: valid source=new-memory works', () => {
+    const result = parseMemoryDetailRoute({ memoryId: 'm1', source: 'new-memory' })
+    expect(result).toEqual({
+      kind: 'valid',
+      value: { memoryId: 'm1', source: 'new-memory' },
+    })
+  })
+
+  it('T8-M08: parser does not throw or access external state', () => {
+    expect(() => parseMemoryDetailRoute({ memoryId: 'm1' })).not.toThrow()
+    expect(() => parseMemoryDetailRoute({})).not.toThrow()
+    expect(() => parseMemoryDetailRoute({ memoryId: 'm1', source: 'unknown' })).not.toThrow()
+  })
+
+  it('T8-M09: extra params do not enter result', () => {
+    const result = parseMemoryDetailRoute({ memoryId: 'm1', source: 'memories', text: 'hello' })
+    expect(result).toEqual({
+      kind: 'valid',
+      value: { memoryId: 'm1', source: 'memories' },
+    })
+  })
+
+  it('T8-M10: existing parseMemoryRoute is unchanged (backward compat)', () => {
+    // parseMemoryRoute must NOT gain a source field
+    const result = parseMemoryRoute({ memoryId: 'm1', source: 'memories' })
+    expect(result).toEqual({
+      kind: 'valid',
+      value: { memoryId: 'm1' },
+    })
+  })
+})
+
 // ---- MemoryDetailSource ----
 
 describe('MemoryDetailSource', () => {
@@ -467,5 +580,115 @@ describe('MemoryDetailSource', () => {
     for (const s of invalid) {
       expect(MEMORY_DETAIL_SOURCES.has(s)).toBe(false)
     }
+  })
+})
+
+// ---- PrivacySource (Task 9) ----
+
+describe('PrivacySource', () => {
+  it('T9-M01: PRIVACY_SOURCES only allows onboarding and settings', () => {
+    expect(PRIVACY_SOURCES.has('onboarding')).toBe(true)
+    expect(PRIVACY_SOURCES.has('settings')).toBe(true)
+    expect(PRIVACY_SOURCES.size).toBe(2)
+  })
+
+  it('T9-M02: PRIVACY_SOURCES rejects unknown values', () => {
+    expect(PRIVACY_SOURCES.has('unknown')).toBe(false)
+    expect(PRIVACY_SOURCES.has('')).toBe(false)
+    expect(PRIVACY_SOURCES.has('space-home')).toBe(false)
+  })
+})
+
+// ---- parseSpaceSettingsRoute (Task 9) ----
+
+describe('parseSpaceSettingsRoute', () => {
+  it('T9-M03: valid spaceId returns valid result', () => {
+    const result = parseSpaceSettingsRoute({ spaceId: 's1' })
+    expect(result).toEqual({ kind: 'valid', value: { spaceId: 's1' } })
+  })
+
+  it('T9-M04: missing spaceId returns missing-param', () => {
+    const result = parseSpaceSettingsRoute({})
+    expect(result).toEqual({ kind: 'invalid', reason: 'missing-param', param: 'spaceId' })
+  })
+
+  it('T9-M05: empty string spaceId is rejected', () => {
+    const result = parseSpaceSettingsRoute({ spaceId: '' })
+    expect(result.kind).toBe('invalid')
+    if (result.kind === 'invalid') {
+      expect(result.reason).toBe('invalid-id')
+    }
+  })
+
+  it('T9-M06: whitespace-only spaceId is rejected', () => {
+    const result = parseSpaceSettingsRoute({ spaceId: '   ' })
+    expect(result.kind).toBe('invalid')
+    if (result.kind === 'invalid') {
+      expect(result.reason).toBe('invalid-id')
+    }
+  })
+
+  it('T9-M07: object value for spaceId is rejected', () => {
+    const result = parseSpaceSettingsRoute({ spaceId: { id: 's1' } })
+    expect(result.kind).toBe('invalid')
+  })
+
+  it('T9-M08: parser does not check if entity exists', () => {
+    const result = parseSpaceSettingsRoute({ spaceId: 'non-existent-space' })
+    expect(result.kind).toBe('valid')
+  })
+
+  it('T9-M09: extra query params do not enter result', () => {
+    const result = parseSpaceSettingsRoute({ spaceId: 's1', name: 'test' })
+    expect(result).toEqual({ kind: 'valid', value: { spaceId: 's1' } })
+  })
+
+  it('T9-M10: function value for spaceId is rejected', () => {
+    const result = parseSpaceSettingsRoute({ spaceId: () => 's1' })
+    expect(result.kind).toBe('invalid')
+  })
+})
+
+// ---- parsePrivacyRoute (Task 9) ----
+
+describe('parsePrivacyRoute', () => {
+  it('T9-M11: valid source=onboarding returns valid', () => {
+    const result = parsePrivacyRoute({ source: 'onboarding' })
+    expect(result).toEqual({ kind: 'valid', value: { source: 'onboarding' } })
+  })
+
+  it('T9-M12: valid source=settings returns valid', () => {
+    const result = parsePrivacyRoute({ source: 'settings' })
+    expect(result).toEqual({ kind: 'valid', value: { source: 'settings' } })
+  })
+
+  it('T9-M13: missing source returns missing-param', () => {
+    const result = parsePrivacyRoute({})
+    expect(result).toEqual({ kind: 'invalid', reason: 'missing-param', param: 'source' })
+  })
+
+  it('T9-M14: unknown source returns invalid-source', () => {
+    const result = parsePrivacyRoute({ source: 'unknown' })
+    expect(result).toEqual({ kind: 'invalid', reason: 'invalid-source', param: 'source' })
+  })
+
+  it('T9-M15: empty string source is rejected', () => {
+    const result = parsePrivacyRoute({ source: '' })
+    expect(result).toEqual({ kind: 'invalid', reason: 'invalid-source', param: 'source' })
+  })
+
+  it('T9-M16: parser does not check any external state', () => {
+    expect(() => parsePrivacyRoute({ source: 'onboarding' })).not.toThrow()
+    expect(() => parsePrivacyRoute({})).not.toThrow()
+  })
+
+  it('T9-M17: extra query params do not enter result', () => {
+    const result = parsePrivacyRoute({ source: 'settings', spaceId: 's1' })
+    expect(result).toEqual({ kind: 'valid', value: { source: 'settings' } })
+  })
+
+  it('T9-M18: object value for source is rejected', () => {
+    const result = parsePrivacyRoute({ source: { name: 'onboarding' } })
+    expect(result).toEqual({ kind: 'invalid', reason: 'invalid-source', param: 'source' })
   })
 })

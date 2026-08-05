@@ -209,6 +209,60 @@ describe('LocalMemoryRepository', () => {
 
       await expect(repo.deleteSpace('nonexistent')).rejects.toThrow()
     })
+
+    // Task 9: 空间级联删除不影���其他空间
+    it('T9-R05: deleting a space preserves another space and all its entities', async () => {
+      const repo = createRepo()
+      await repo.bootstrap()
+
+      // Space 1: with memory, draft, cover
+      const s1 = await repo.createSpace({ name: 'ToDelete', coverPhoto: { uri: '/tmp/s1-cover.jpg' } })
+      await repo.saveMemory({
+        spaceId: s1.value.id,
+        entry: 'daily',
+        originalText: 's1 memory',
+        assets: [{ kind: 'new', asset: { uri: '/tmp/s1-mem.jpg' } }],
+        sourceDraftId: null,
+      })
+      await repo.saveDraft({
+        spaceId: s1.value.id,
+        entry: 'daily',
+        text: 's1 draft',
+        assets: [{ kind: 'new', asset: { uri: '/tmp/s1-draft.jpg' } }],
+      })
+
+      // Space 2: with memory, draft, cover
+      const s2 = await repo.createSpace({ name: 'Keep', coverPhoto: { uri: '/tmp/s2-cover.jpg' } })
+      const s2mem = await repo.saveMemory({
+        spaceId: s2.value.id,
+        entry: 'daily',
+        originalText: 's2 memory',
+        assets: [{ kind: 'new', asset: { uri: '/tmp/s2-mem.jpg' } }],
+        sourceDraftId: null,
+      })
+      const s2draft = await repo.saveDraft({
+        spaceId: s2.value.id,
+        entry: 'daily',
+        text: 's2 draft',
+        assets: [{ kind: 'new', asset: { uri: '/tmp/s2-draft.jpg' } }],
+      })
+
+      const snapshot = await repo.deleteSpace(s1.value.id)
+
+      // Space 1 gone entirely
+      expect(snapshot.spaces.find(s => s.id === s1.value.id)).toBeUndefined()
+      expect(snapshot.memories.filter(m => m.spaceId === s1.value.id)).toHaveLength(0)
+      expect(snapshot.drafts.filter(d => d.spaceId === s1.value.id)).toHaveLength(0)
+
+      // Space 2 fully preserved
+      const keptSpace = snapshot.spaces.find(s => s.id === s2.value.id)!
+      expect(keptSpace).toBeTruthy()
+      expect(keptSpace.coverAssetId).toBeTruthy()
+      expect(snapshot.memories.find(m => m.id === s2mem.value.id)).toBeTruthy()
+      expect(snapshot.drafts.find(d => d.id === s2draft.value.id)).toBeTruthy()
+      // s2 assets preserved
+      expect(snapshot.assets.filter(a => a.ownerId === s2draft.value.id || a.ownerId === s2mem.value.id || (a.ownerType === 'space' && a.ownerId === s2.value.id)).length).toBe(3)
+    })
   })
 
   describe('memories', () => {
@@ -449,6 +503,107 @@ describe('LocalMemoryRepository', () => {
       expect(snapshot.memories.find(m => m.id === mem.value.id)).toBeUndefined()
       expect(snapshot.assets.find(a => a.id === assetId)).toBeUndefined()
     })
+
+    // Task 9: 删除记忆也删除 AI 候选稿
+    it('T9-R01: deleting a memory with AI candidate text removes both', async () => {
+      const repo = createRepo()
+      await repo.bootstrap()
+      const space = await repo.createSpace({ name: 'S', coverPhoto: null })
+      const mem = await repo.saveMemory({
+        spaceId: space.value.id,
+        entry: 'daily',
+        originalText: 'text',
+        assets: [],
+        sourceDraftId: null,
+      })
+      // Set AI candidate
+      const updated = await repo.updateMemory({
+        kind: 'ai-candidate',
+        memoryId: mem.value.id,
+        aiCandidateText: 'AI version',
+      })
+
+      const snapshot = await repo.deleteMemory(mem.value.id)
+      expect(snapshot.memories.find(m => m.id === mem.value.id)).toBeUndefined()
+    })
+
+    // Task 9: 删除记忆不影响同空间其他记忆、空间封面和草稿
+    it('T9-R02: deleting a memory does not affect other memories, cover, or drafts', async () => {
+      const repo = createRepo()
+      await repo.bootstrap()
+      const space = await repo.createSpace({ name: 'S', coverPhoto: { uri: '/tmp/cover.jpg' } })
+      const mem1 = await repo.saveMemory({
+        spaceId: space.value.id,
+        entry: 'daily',
+        originalText: 'keep me',
+        assets: [{ kind: 'new', asset: { uri: '/tmp/m1.jpg' } }],
+        sourceDraftId: null,
+      })
+      const mem2 = await repo.saveMemory({
+        spaceId: space.value.id,
+        entry: 'daily',
+        originalText: 'delete me',
+        assets: [{ kind: 'new', asset: { uri: '/tmp/m2.jpg' } }],
+        sourceDraftId: null,
+      })
+      const draft = await repo.saveDraft({
+        spaceId: space.value.id,
+        entry: 'daily',
+        text: 'draft',
+        assets: [],
+      })
+
+      const snapshot = await repo.deleteMemory(mem2.value.id)
+
+      // mem2 gone
+      expect(snapshot.memories.find(m => m.id === mem2.value.id)).toBeUndefined()
+      // mem1 still there
+      expect(snapshot.memories.find(m => m.id === mem1.value.id)).toBeTruthy()
+      // draft still there
+      expect(snapshot.drafts.find(d => d.id === draft.value.id)).toBeTruthy()
+      // space cover still there
+      const s = snapshot.spaces.find(s2 => s2.id === space.value.id)!
+      expect(s.coverAssetId).toBeTruthy()
+      // mem1's asset still there
+      expect(snapshot.assets.find(a => a.id === mem1.value.assetIds[0])).toBeTruthy()
+      // mem2's asset gone
+      expect(snapshot.assets.find(a => a.id === mem2.value.assetIds[0])).toBeUndefined()
+    })
+
+    // Task 9: 删除记忆不影响其他空间
+    it('T9-R03: deleting a memory does not affect other spaces', async () => {
+      const repo = createRepo()
+      await repo.bootstrap()
+      const s1 = await repo.createSpace({ name: 'S1', coverPhoto: null })
+      const s2 = await repo.createSpace({ name: 'S2', coverPhoto: null })
+      const mem1 = await repo.saveMemory({
+        spaceId: s1.value.id,
+        entry: 'daily',
+        originalText: 's1 memory',
+        assets: [],
+        sourceDraftId: null,
+      })
+      const mem2 = await repo.saveMemory({
+        spaceId: s2.value.id,
+        entry: 'daily',
+        originalText: 's2 memory',
+        assets: [],
+        sourceDraftId: null,
+      })
+
+      const snapshot = await repo.deleteMemory(mem1.value.id)
+
+      expect(snapshot.memories.find(m => m.id === mem1.value.id)).toBeUndefined()
+      expect(snapshot.memories.find(m => m.id === mem2.value.id)).toBeTruthy()
+      expect(snapshot.spaces.find(s => s.id === s2.value.id)).toBeTruthy()
+    })
+
+    it('T9-R04: fails to delete a non-existent memory', async () => {
+      const repo = createRepo()
+      await repo.bootstrap()
+
+      await expect(repo.deleteMemory('nonexistent')).rejects.toThrow()
+    })
   })
 
   describe('drafts', () => {
@@ -656,6 +811,51 @@ describe('LocalMemoryRepository', () => {
       // Re-bootstrap to check persisted state
       const snapshot = await repo.bootstrap()
       expect(snapshot.drafts).toHaveLength(0)
+    })
+
+    // Task 9: deleteMemory write failure keeps snapshot unchanged
+    it('T9-R06: does not modify state when storage write fails on deleteMemory', async () => {
+      const storage = new MemoryStorageAdapter()
+      const repo = new LocalMemoryRepository(
+        storage,
+        new DeterministicClock('2026-06-01T00:00:00.000Z'),
+        new DeterministicIdFactory('test'),
+      )
+      await repo.bootstrap()
+      const space = await repo.createSpace({ name: 'S', coverPhoto: null })
+      const mem = await repo.saveMemory({
+        spaceId: space.value.id,
+        entry: 'daily',
+        originalText: 'text',
+        assets: [],
+        sourceDraftId: null,
+      })
+
+      storage.failNextWrite()
+      await expect(repo.deleteMemory(mem.value.id)).rejects.toThrow()
+
+      // Re-bootstrap — memory should still exist
+      const snapshot = await repo.bootstrap()
+      expect(snapshot.memories.find(m => m.id === mem.value.id)).toBeTruthy()
+    })
+
+    // Task 9: deleteSpace write failure keeps snapshot unchanged
+    it('T9-R07: does not modify state when storage write fails on deleteSpace', async () => {
+      const storage = new MemoryStorageAdapter()
+      const repo = new LocalMemoryRepository(
+        storage,
+        new DeterministicClock('2026-06-01T00:00:00.000Z'),
+        new DeterministicIdFactory('test'),
+      )
+      await repo.bootstrap()
+      const space = await repo.createSpace({ name: 'S', coverPhoto: null })
+
+      storage.failNextWrite()
+      await expect(repo.deleteSpace(space.value.id)).rejects.toThrow()
+
+      // Re-bootstrap — space should still exist
+      const snapshot = await repo.bootstrap()
+      expect(snapshot.spaces.find(s => s.id === space.value.id)).toBeTruthy()
     })
   })
 

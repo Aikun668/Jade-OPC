@@ -119,8 +119,8 @@ describe('Task 5B journey (01 → 13 → 01 → 03 → 04)', () => {
     })
 
     // Navigate to privacy
-    const privacyLink = onboardingWrapper.find('.onboarding__privacy')
-    await privacyLink.trigger('click')
+    const privacyTextAction = onboardingWrapper.findComponent({ name: 'TextAction' })
+    await privacyTextAction.vm.$emit('press')
     expect(nav.push).toHaveBeenCalledWith(expect.stringContaining('/pages/privacy/index'))
 
     // Verify onboarding state unchanged

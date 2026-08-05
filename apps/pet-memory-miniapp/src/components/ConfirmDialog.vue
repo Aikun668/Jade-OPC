@@ -22,6 +22,13 @@
           {{ confirmLabel }}
         </PrimaryButton>
         <TextAction
+          v-if="discardLabel"
+          :disabled="pendingPhase === 'pending-visible'"
+          @press="pendingPhase === 'idle' && $emit('discard')"
+        >
+          {{ discardLabel }}
+        </TextAction>
+        <TextAction
           tone="muted"
           :disabled="pendingPhase === 'pending-visible'"
           @press="handleCancel"
@@ -46,6 +53,7 @@ export interface ConfirmDialogProps {
   description?: string
   confirmLabel: string
   cancelLabel: string
+  discardLabel?: string
   tone?: ConfirmDialogTone
   pending?: boolean
   error?: string
@@ -59,6 +67,7 @@ const props = withDefaults(defineProps<ConfirmDialogProps>(), {
 const emit = defineEmits<{
   confirm: []
   cancel: []
+  discard: []
   closed: []
 }>()
 

@@ -54,8 +54,8 @@
           >开始</PrimaryButton>
         </view>
         <text v-if="submitError" class="onboarding__error">刚才没有准备好，可以再试一次。</text>
-        <view class="onboarding__privacy" @click="goPrivacy">
-          <TextAction>先看看隐私说明</TextAction>
+        <view class="onboarding__privacy">
+          <TextAction @press="goPrivacy">先看看隐私说明</TextAction>
         </view>
       </template>
     </template>

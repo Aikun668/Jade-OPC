@@ -145,6 +145,46 @@ describe('Privacy page (13)', () => {
     expect(wrapper.text()).toContain('隐私说明')
   })
 
+  // ---- Task 9: source-based return ----
+
+  it('T9-P01: source=onboarding "我知道了" navigates back', async () => {
+    const nav = mockNavigation()
+    provideNavigation(nav)
+    const wrapper = mountPage({ source: 'onboarding' })
+    const confirmBtn = wrapper.find('.privacy__confirm button')
+    await confirmBtn.trigger('click')
+    expect(nav.back).toHaveBeenCalled()
+  })
+
+  it('T9-P02: source=settings "我知道了" navigates back', async () => {
+    const nav = mockNavigation()
+    provideNavigation(nav)
+    const wrapper = mountPage({ source: 'settings' })
+    const confirmBtn = wrapper.find('.privacy__confirm button')
+    await confirmBtn.trigger('click')
+    expect(nav.back).toHaveBeenCalled()
+  })
+
+  it('T9-P03: invalid source renders page with safe back', async () => {
+    const nav = mockNavigation()
+    provideNavigation(nav)
+    const wrapper = mountPage({ source: 'unknown' })
+    expect(wrapper.text()).toContain('隐私说明')
+    const confirmBtn = wrapper.find('.privacy__confirm button')
+    await confirmBtn.trigger('click')
+    expect(nav.back).toHaveBeenCalled()
+  })
+
+  it('T9-P04: missing source renders page with safe back', async () => {
+    const nav = mockNavigation()
+    provideNavigation(nav)
+    const wrapper = mountPage({})
+    expect(wrapper.text()).toContain('隐私说明')
+    const confirmBtn = wrapper.find('.privacy__confirm button')
+    await confirmBtn.trigger('click')
+    expect(nav.back).toHaveBeenCalled()
+  })
+
   // ---- structure details ----
 
   it('uses semantic sections with headings', () => {

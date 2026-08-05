@@ -75,6 +75,19 @@
         </view>
       </view>
 
+      <!-- draft resume dialog -->
+      <ConfirmDialog
+        :open="showResumeDialog"
+        title="你还有一段没写完的"
+        :description="resumeDialogDescription"
+        confirm-label="继续写这段"
+        discard-label="不保留，另起一段"
+        cancel-label="先不动"
+        @confirm="handleResumeContinue"
+        @discard="handleResumeStartNew"
+        @cancel="showResumeDialog = false"
+      />
+
     </template>
   </PageShell>
 </template>
@@ -88,6 +101,7 @@ import TextAction from '../../components/TextAction.vue'
 import DraftNotice from '../../components/DraftNotice.vue'
 import MemoryList from '../../components/MemoryList.vue'
 import MissingContentState from '../../components/MissingContentState.vue'
+import ConfirmDialog from '../../components/ConfirmDialog.vue'
 import { useAppStore } from '../../stores/app'
 import { useMemoryStore } from '../../stores/memory'
 import { getNavigation } from '../../adapters/navigation-deps'
@@ -95,6 +109,8 @@ import { PAGE_URLS } from '../../adapters/navigation'
 import { parseSpaceRoute } from '../../features/routing/route-params'
 import { buildMemoryEntry } from '../../features/memories/memory-summary'
 import { NEUTRAL_PHOTO_SUMMARY } from '../../features/memories/memory-constants'
+import { resolveResumeAction } from '../../features/recording/draft-exit'
+import type { ResumeAction } from '../../features/recording/draft-exit'
 import type { MemoryEntryViewModel } from '../../features/memories/memory-summary'
 
 const appStore = useAppStore()
@@ -192,9 +208,21 @@ const primaryActionLabel = computed(() => {
   return draft.value ? '留下一段新的记忆' : '留下一段'
 })
 
+const showResumeDialog = ref(false)
+
+const resumeDialogDescription = computed(() => {
+  if (!draft.value) return ''
+  const preview = draft.value.text || '未完成的记录'
+  return preview.length > 30 ? `${preview.slice(0, 30)}…` : preview
+})
+
+const resumeActions = computed<ResumeAction[]>(() =>
+  draft.value ? resolveResumeAction(true) : [],
+)
+
 // ---- actions ----
 function goBack(): void {
-  nav.back()
+  nav.resetTo({ page: 'spaces' })
 }
 
 function goToSpaces(): void {
@@ -203,13 +231,48 @@ function goToSpaces(): void {
 
 function goRecord(): void {
   if (!spaceId.value) return
+  if (draft.value) {
+    showResumeDialog.value = true
+    return
+  }
   nav.push(`${PAGE_URLS['record-entry']}?spaceId=${encodeURIComponent(spaceId.value)}`)
 }
 
+function handleResumeContinue(): void {
+  showResumeDialog.value = false
+  void handleResumeAction('continue-this')
+}
+
+function handleResumeStartNew(): void {
+  showResumeDialog.value = false
+  void handleResumeAction('start-new')
+}
+
+async function handleResumeAction(action: ResumeAction): Promise<void> {
+  if (!draft.value || !spaceId.value) return
+  const d = draft.value
+  switch (action) {
+    case 'continue-this':
+      nav.push(`${PAGE_URLS['record-text']}?spaceId=${encodeURIComponent(spaceId.value)}&entry=${encodeURIComponent(d.entry)}&draftId=${encodeURIComponent(d.id)}`)
+      break
+    case 'start-new':
+      try {
+        await memStore.deleteDraft(d.id)
+      } catch {
+        // stay on page and let user retry
+        return
+      }
+      nav.push(`${PAGE_URLS['record-entry']}?spaceId=${encodeURIComponent(spaceId.value)}`)
+      break
+    case 'not-now':
+      showResumeDialog.value = false
+      break
+  }
+}
+
 function continueDraft(): void {
-  // Navigate to record-entry — Task 5B+ page, contract only
-  if (!space.value) return
-  nav.push(`${PAGE_URLS['record-entry']}?spaceId=${encodeURIComponent(space.value.id)}`)
+  if (!draft.value || !spaceId.value) return
+  nav.push(`${PAGE_URLS['record-text']}?spaceId=${encodeURIComponent(spaceId.value)}&entry=${encodeURIComponent(draft.value.entry)}&draftId=${encodeURIComponent(draft.value.id)}`)
 }
 
 function goMemoryDetail(memoryId: string): void {

@@ -6,8 +6,8 @@ export type RouteParseResult<T> =
   | { kind: 'valid'; value: T }
   | {
       kind: 'invalid'
-      reason: 'missing-param' | 'invalid-id' | 'invalid-entry'
-      param: 'spaceId' | 'memoryId' | 'entry'
+      reason: 'missing-param' | 'invalid-id' | 'invalid-entry' | 'invalid-source'
+      param: 'spaceId' | 'memoryId' | 'entry' | 'draftId' | 'source'
     }
 
 // ---- Memory detail source ----
@@ -21,6 +21,15 @@ export const MEMORY_DETAIL_SOURCES: ReadonlySet<string> = new Set([
   'space-home',
   'memories',
   'new-memory',
+])
+
+// ---- Privacy source ----
+
+export type PrivacySource = 'onboarding' | 'settings'
+
+export const PRIVACY_SOURCES: ReadonlySet<string> = new Set([
+  'onboarding',
+  'settings',
 ])
 
 // ---- Entry white-list (shared with domain) ----

@@ -94,7 +94,7 @@ describe('Space-home page (04)', () => {
     // Back action
     const missing = wrapper.findComponent({ name: 'MissingContentState' })
     await missing.vm.$emit('action')
-    expect(nav.back).toHaveBeenCalled()
+    expect(nav.resetTo).toHaveBeenCalledWith({ page: 'spaces' })
   })
 
   // T5A-M25: invalid id (empty string) → MissingContentState
@@ -437,7 +437,7 @@ describe('Space-home page (04)', () => {
 
     const pageShell = wrapper.findComponent({ name: 'PageShell' })
     await pageShell.vm.$emit('back')
-    expect(nav.back).toHaveBeenCalled()
+    expect(nav.resetTo).toHaveBeenCalledWith({ page: 'spaces' })
   })
 
   // T5A-M33: PageShell has showBack=true
@@ -673,8 +673,8 @@ describe('Space-home page (04)', () => {
     expect(text).not.toContain('修改')
   })
 
-  // T5A-M34: DraftNotice continue navigates to record-entry
-  it('T5A-M34: DraftNotice continue navigates to record-entry', async () => {
+  // T5A-M34: DraftNotice continue navigates to record-text with draftId
+  it('T5A-M34: DraftNotice continue navigates to record-text with draft params', async () => {
     const nav = mockNavigation()
     provideNavigation(nav)
     const appStore = useAppStore()
@@ -701,7 +701,7 @@ describe('Space-home page (04)', () => {
     await draftNotice.vm.$emit('continue')
 
     expect(nav.push).toHaveBeenCalledWith(
-      expect.stringContaining('/pages/record-entry/index?spaceId=s1'),
+      expect.stringContaining('/pages/record-text/index?spaceId=s1&entry=daily&draftId=d1'),
     )
   })
 
@@ -739,5 +739,209 @@ describe('Space-home page (04)', () => {
 
     // Divider before recent memories section
     expect(wrapper.find('.space-home__divider').exists()).toBe(true)
+  })
+
+  // ---- draft resume (Step 4.6) ----
+
+  it('shows resume dialog when clicking "留下一段新的记忆" with existing draft', async () => {
+    provideNavigation(mockNavigation())
+    const appStore = useAppStore()
+    const memStore = useMemoryStore()
+
+    appStore.$patch({ bootstrapStatus: 'ready' } as any)
+    memStore._commitSnapshot(mkSnapshot({
+      spaces: [
+        { id: 's1', name: '有草稿', coverAssetId: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+      ],
+      drafts: [
+        { id: 'd1', spaceId: 's1', entry: 'daily' as const, text: '一段未完成的草稿内容', assetIds: [], createdAt: '2026-05-01T00:00:00.000Z', updatedAt: '2026-05-01T00:00:00.000Z' },
+      ],
+    }))
+
+    const wrapper = mount(SpaceHomePage, {
+      global: { stubs: { PageShell: { template: '<view><slot /></view>' }, DraftNotice: { template: '<view/>', props: ['title'] } } },
+    })
+
+    setQuery(wrapper, { spaceId: 's1' })
+    await wrapper.vm.$nextTick()
+
+    // Click the "留下一段新的记忆" button
+    const buttons = wrapper.findAllComponents({ name: 'PrimaryButton' })
+    const recordBtn = buttons.find(b => b.text().includes('留下一段新的记忆'))
+    await recordBtn!.vm.$emit('press')
+    await wrapper.vm.$nextTick()
+
+    // Resume dialog should appear
+    expect(wrapper.text()).toContain('你还有一段没写完的')
+    expect(wrapper.text()).toContain('继续写这段')
+    expect(wrapper.text()).toContain('不保留，另起一段')
+    expect(wrapper.text()).toContain('先不动')
+  })
+
+  it('"继续写这段" navigates to record-text with draft params', async () => {
+    const nav = mockNavigation()
+    provideNavigation(nav)
+    const appStore = useAppStore()
+    const memStore = useMemoryStore()
+
+    appStore.$patch({ bootstrapStatus: 'ready' } as any)
+    memStore._commitSnapshot(mkSnapshot({
+      spaces: [
+        { id: 's1', name: '有草稿', coverAssetId: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+      ],
+      drafts: [
+        { id: 'd1', spaceId: 's1', entry: 'meeting' as const, text: '回忆片段', assetIds: [], createdAt: '2026-05-01T00:00:00.000Z', updatedAt: '2026-05-01T00:00:00.000Z' },
+      ],
+    }))
+
+    const wrapper = mount(SpaceHomePage, {
+      global: { stubs: { PageShell: { template: '<view><slot /></view>' }, DraftNotice: { template: '<view/>', props: ['title'] }, ConfirmDialog: false } },
+    })
+
+    setQuery(wrapper, { spaceId: 's1' })
+    await wrapper.vm.$nextTick()
+
+    // Trigger record button → shows resume dialog
+    const buttons = wrapper.findAllComponents({ name: 'PrimaryButton' })
+    const recordBtn = buttons.find(b => b.text().includes('留下一段新的记忆'))
+    await recordBtn!.vm.$emit('press')
+    await wrapper.vm.$nextTick()
+
+    // Click "继续写这段"
+    const confirmDialog = wrapper.findComponent({ name: 'ConfirmDialog' })
+    await confirmDialog.vm.$emit('confirm')
+    await wrapper.vm.$nextTick()
+
+    expect(nav.push).toHaveBeenCalledWith(
+      expect.stringContaining('/pages/record-text/index?spaceId=s1&entry=meeting&draftId=d1'),
+    )
+  })
+
+  it('"另起一段" calls deleteDraft and navigates to record-entry', async () => {
+    const nav = mockNavigation()
+    provideNavigation(nav)
+    const appStore = useAppStore()
+    const memStore = useMemoryStore()
+
+    appStore.$patch({ bootstrapStatus: 'ready' } as any)
+    memStore._commitSnapshot(mkSnapshot({
+      spaces: [
+        { id: 's1', name: '有草稿', coverAssetId: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+      ],
+      drafts: [
+        { id: 'd1', spaceId: 's1', entry: 'daily' as const, text: '将被删除', assetIds: [], createdAt: '2026-05-01T00:00:00.000Z', updatedAt: '2026-05-01T00:00:00.000Z' },
+      ],
+    }))
+
+    // Spy on deleteDraft and let it resolve immediately
+    const deleteSpy = vi.spyOn(memStore, 'deleteDraft').mockResolvedValue(undefined)
+
+    const wrapper = mount(SpaceHomePage, {
+      global: { stubs: { PageShell: { template: '<view><slot /></view>' }, DraftNotice: { template: '<view/>', props: ['title'] }, ConfirmDialog: false } },
+    })
+
+    setQuery(wrapper, { spaceId: 's1' })
+    await wrapper.vm.$nextTick()
+
+    // Trigger resume dialog
+    const buttons = wrapper.findAllComponents({ name: 'PrimaryButton' })
+    const recordBtn = buttons.find(b => b.text().includes('留下一段新的记忆'))
+    await recordBtn!.vm.$emit('press')
+    await wrapper.vm.$nextTick()
+
+    // Click "另起一段"
+    const confirmDialog = wrapper.findComponent({ name: 'ConfirmDialog' })
+    await confirmDialog.vm.$emit('discard')
+    // Wait for the async handler to complete
+    await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick()
+
+    // deleteDraft should have been called
+    expect(deleteSpy).toHaveBeenCalledWith('d1')
+
+    // Should navigate to record-entry
+    expect(nav.push).toHaveBeenCalledWith(
+      expect.stringContaining('/pages/record-entry/index?spaceId=s1'),
+    )
+  })
+
+  it('"先不动" closes dialog and stays on page', async () => {
+    const nav = mockNavigation()
+    provideNavigation(nav)
+    const appStore = useAppStore()
+    const memStore = useMemoryStore()
+
+    appStore.$patch({ bootstrapStatus: 'ready' } as any)
+    memStore._commitSnapshot(mkSnapshot({
+      spaces: [
+        { id: 's1', name: '有草稿', coverAssetId: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+      ],
+      drafts: [
+        { id: 'd1', spaceId: 's1', entry: 'daily' as const, text: '草稿', assetIds: [], createdAt: '2026-05-01T00:00:00.000Z', updatedAt: '2026-05-01T00:00:00.000Z' },
+      ],
+    }))
+
+    const wrapper = mount(SpaceHomePage, {
+      global: { stubs: { PageShell: { template: '<view><slot /></view>' }, DraftNotice: { template: '<view/>', props: ['title'] }, ConfirmDialog: false } },
+    })
+
+    setQuery(wrapper, { spaceId: 's1' })
+    await wrapper.vm.$nextTick()
+
+    // Trigger resume dialog
+    const buttons = wrapper.findAllComponents({ name: 'PrimaryButton' })
+    const recordBtn = buttons.find(b => b.text().includes('留下一段新的记忆'))
+    await recordBtn!.vm.$emit('press')
+    await wrapper.vm.$nextTick()
+
+    // Click "先不动"
+    const confirmDialog = wrapper.findComponent({ name: 'ConfirmDialog' })
+    await confirmDialog.vm.$emit('cancel')
+    await wrapper.vm.$nextTick()
+
+    // Draft should still exist
+    const draftAfter = memStore.draftForSpace('s1')
+    expect(draftAfter).not.toBeNull()
+
+    // Should NOT have navigated to record-entry or record-text
+    const pushCalls = (nav.push as ReturnType<typeof vi.fn>).mock.calls
+    const recordCalls = pushCalls.filter((c: string[]) =>
+      c[0].includes('record-entry') || c[0].includes('record-text'),
+    )
+    expect(recordCalls.length).toBe(0)
+  })
+
+  it('record button navigates directly when no draft exists', async () => {
+    const nav = mockNavigation()
+    provideNavigation(nav)
+    const appStore = useAppStore()
+    const memStore = useMemoryStore()
+
+    appStore.$patch({ bootstrapStatus: 'ready' } as any)
+    memStore._commitSnapshot(mkSnapshot({
+      spaces: [
+        { id: 's1', name: '无草稿', coverAssetId: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+      ],
+    }))
+
+    const wrapper = mount(SpaceHomePage, {
+      global: { stubs: { PageShell: { template: '<view><slot /></view>' } } },
+    })
+
+    setQuery(wrapper, { spaceId: 's1' })
+    await wrapper.vm.$nextTick()
+
+    // Click "留下一段" (no draft exists)
+    const buttons = wrapper.findAllComponents({ name: 'PrimaryButton' })
+    const recordBtn = buttons.find(b => b.text().includes('留下一段'))
+    await recordBtn!.vm.$emit('press')
+    await wrapper.vm.$nextTick()
+
+    // Should navigate directly without showing dialog
+    expect(nav.push).toHaveBeenCalledWith(
+      expect.stringContaining('/pages/record-entry/index?spaceId=s1'),
+    )
+    // No resume dialog
+    expect(wrapper.text()).not.toContain('你还有一段没写完的')
   })
 })

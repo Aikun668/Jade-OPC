@@ -78,7 +78,7 @@ function distFiles(dir) {
 
 // ---- T5A-M52: No 05/09/12 placeholder pages ----
 {
-  const forbiddenPages = ['record-entry', 'memory-detail', 'space-settings']
+  const forbiddenPages = ['space-settings']
   const pagesDir = join(srcRoot, 'pages')
   if (existsSync(pagesDir)) {
     const entries = readdirSync(pagesDir, { withFileTypes: true })

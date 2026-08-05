@@ -1,3 +1,5 @@
+import type { MemoryDetailSource } from '../types/routes'
+
 // ---- Page URL map ----
 
 export const PAGE_URLS = {
@@ -6,9 +8,13 @@ export const PAGE_URLS = {
   'space-home': '/pages/space-home/index',
   'space-create': '/pages/space-create/index',
   'memory-detail': '/pages/memory-detail/index',
+  'memory-edit': '/pages/memory-edit/index',
+  'ai-draft': '/pages/ai-draft/index',
   memories: '/pages/memories/index',
   privacy: '/pages/privacy/index',
   'record-entry': '/pages/record-entry/index',
+  'record-text': '/pages/record-text/index',
+  'record-photo': '/pages/record-photo/index',
   'space-settings': '/pages/space-settings/index',
 } as const
 
@@ -19,7 +25,7 @@ const SPACE_HOME_ROUTE = PAGE_URLS['space-home'].replace(/^\//, '')
 export type StableDestination =
   | { page: 'spaces' }
   | { page: 'space-home'; spaceId: string }
-  | { page: 'memory-detail'; memoryId: string }
+  | { page: 'memory-detail'; memoryId: string; source?: MemoryDetailSource }
 
 export interface NavigationAdapter {
   push(url: string): Promise<void>
@@ -88,9 +94,10 @@ export class UniNavigationAdapter implements NavigationAdapter {
         const spaceHomeIdx = pages.length - 1 - reversedIdx
         const delta = pages.length - 1 - spaceHomeIdx
 
+        const sourceParam = destination.source ? `&source=${destination.source}` : ''
         return this._navigateBack(delta).then(() =>
           this._navigateTo(
-            `${PAGE_URLS['memory-detail']}?memoryId=${destination.memoryId}`,
+            `${PAGE_URLS['memory-detail']}?memoryId=${destination.memoryId}${sourceParam}`,
           ),
         )
       }
