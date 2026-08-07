@@ -1,6 +1,7 @@
 <template>
   <button
     class="memory-entry"
+    :class="{ 'memory-entry--without-thumbnail': !item.thumbnailUri }"
     :aria-label="item.summary"
     @click.stop="$emit('select', item.id)"
   >
@@ -11,6 +12,14 @@
         :aria-label="item.thumbnailAlt"
         mode="aspectFill"
       />
+    </view>
+    <view
+      v-else
+      class="memory-entry__thumbnail-wrap memory-entry__thumbnail-placeholder"
+      aria-hidden="true"
+    >
+      <view class="memory-entry__placeholder-icon" />
+      <text class="memory-entry__placeholder-label">补充图片</text>
     </view>
 
     <view class="memory-entry__text">
@@ -59,12 +68,67 @@ defineEmits<{
   }
 }
 
+.memory-entry--without-thumbnail {
+  padding-left: 0;
+}
+
 .memory-entry__thumbnail-wrap {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: $pm-photo-memory-thumb;
   height: $pm-photo-memory-thumb;
   border-radius: $pm-photo-radius-thumb;
   overflow: hidden;
+}
+
+.memory-entry__thumbnail-placeholder {
+  flex-direction: row;
+  gap: $pm-space-1;
+  border: $pm-border-hairline dashed $pm-color-line;
+  border-color: rgba(196, 193, 176, 0.82);
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.memory-entry__placeholder-icon {
+  position: relative;
+  width: 24rpx;
+  height: 24rpx;
+  border: $pm-border-hairline solid rgba(196, 193, 176, 0.72);
+  border-radius: 4rpx;
+  box-sizing: border-box;
+
+  &::before {
+    position: absolute;
+    top: 4rpx;
+    right: 4rpx;
+    width: 4rpx;
+    height: 4rpx;
+    border-radius: 50%;
+    background: rgba(196, 193, 176, 0.72);
+    content: '';
+  }
+
+  &::after {
+    position: absolute;
+    left: 4rpx;
+    bottom: 4rpx;
+    width: 12rpx;
+    height: 7rpx;
+    border-top: $pm-border-hairline solid rgba(196, 193, 176, 0.72);
+    border-left: $pm-border-hairline solid rgba(196, 193, 176, 0.72);
+    transform: skew(-24deg) rotate(24deg);
+    content: '';
+  }
+}
+
+.memory-entry__placeholder-label {
+  font-size: 22rpx;
+  line-height: $pm-leading-compact;
+  color: $pm-color-muted;
+  opacity: 0.72;
 }
 
 .memory-entry__thumbnail {

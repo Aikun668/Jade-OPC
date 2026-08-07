@@ -83,7 +83,7 @@ describe('Space-create page (03)', () => {
     setReady()
     const wrapper = mountPage()
     expect(wrapper.text()).toContain('创建 Ta 的空间')
-    expect(wrapper.text()).toContain('先写下 Ta 的名字')
+    expect(wrapper.text()).toContain('照片可以以后再补。名字是这里唯一需要先留下的内容。')
   })
 
   it('shows name input with placeholder and helper text', () => {

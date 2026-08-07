@@ -27,9 +27,11 @@
 
 执行计划位于 [product/plans](product/plans/)。
 
-当前的 [M0 工程骨架实施计划](product/plans/2026-07-23-m0-engineering-skeleton-implementation-plan.md) 已完成 Task 1–10 的计划编写、Task 2 专项规格确认和 2026-07-26 开工前审计。CLI 目录、Node 支持周期、Repository 写入类型与原子性、共享组件归属、页面文件影响、导航与返回栈、HBuilderX / 微信开发者工具预览分级和最终视觉验收均已同步。Task 1 CLI 基线已通过（1.1–1.6 完成，typecheck/test/build 均通过），S 阶段模拟器验证待微信开发者工具就绪（1.7 外部阻塞）；Task 2 self-verified（2.1–2.9 全部通过，197 tests，9 个修复批次完成，13 组件进入微信构建路径，归一化脚本真实运行，0 warnings，typecheck/build 全部通过，等待独立复核）。Task 3–10 尚未实施。总计：15 已执行，1 外部阻塞，55 未执行。
+当前的 [M0 工程骨架实施计划](product/plans/2026-07-23-m0-engineering-skeleton-implementation-plan.md) 已完成 Task 1–10 的计划编写、Task 2 专项规格确认和 2026-07-26 开工前审计。Task 1–9 已有实现与验收材料；Task 10 已完成自动化场景矩阵、失败恢复检查、生产边界扫描和交付记录。Task 10 当前为 `automated-passed / visual-pending / device-pending`，不能把尚未执行的微信开发者工具、视觉回归或真机检查写成通过。详见 [Task 10 计划](product/plans/2026-08-06-task-10-m0-integration-scenario-matrix-delivery-acceptance-plan.md)、[Task 10 执行报告](project/gpt-review-output/task10-evidence/2026-08-06-task-10-codex-execution-report.md) 和 [M0 场景矩阵](../apps/pet-memory-miniapp/tests/m0-scenario-matrix.md)。
 
 [M0 设计原型与视觉基准计划](product/plans/2026-07-23-m0-design-prototype-and-visual-baseline-plan.md) 已完成独立设计原型、13 张标准页面图和浏览器视觉 QA。用户已确认最终空间首页图片，并将其设为唯一视觉母版；其余 12 张页面图继续以浏览器原型截图为准。页面图位于 [M0 页面视觉基准](product/assets/m0-page-baselines/README.md)。Task 2 专项规格确认并完成代码实施（tokens/globals/13 组件/visual regression script），197 测试通过，self-verified。
+
+[Task 11 当前状态前端视觉优化计划](product/plans/2026-08-07-task-11-current-state-frontend-visual-optimization-plan.md) 的代码实施和自动化验证已完成：13 页保持现有截图中的内容与业务状态，仅调整展示层，并新增视觉契约测试。`verify:task10` 已通过；更新后的微信开发者工具截图尚待按同一 393×852 口径重新采集，不能将旧截图或浏览器基线当作实施后的视觉验收。详见 [Task 11 执行记录](project/gpt-review-output/task10-evidence/2026-08-07-task-11-frontend-visual-optimization-report.md)。
 
 ## 工程决策
 

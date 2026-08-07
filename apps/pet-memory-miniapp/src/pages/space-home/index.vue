@@ -1,12 +1,17 @@
 <template>
   <PageShell
     layout="standard-flow"
-    :title="pageTitle"
     :show-back="true"
     @back="goBack"
   >
     <template #navigation-right>
-      <TextAction tone="muted" @press="goSettings">更多</TextAction>
+      <TextAction
+        tone="muted"
+        aria-label="更多"
+        @press="goSettings"
+      >
+        <text class="space-home__more-icon" aria-hidden="true">···</text>
+      </TextAction>
     </template>
     <!-- bootstrap loading -->
     <view v-if="!isReady" class="space-home__center">
@@ -194,11 +199,6 @@ const memoryEntries = computed<MemoryEntryViewModel[]>(() =>
 // ---- labels ----
 const loadingLabel = computed(() => visibleLoading.value ? '正在准备…' : '')
 
-const pageTitle = computed(() => {
-  if (space.value) return space.value.name
-  return ''
-})
-
 const draftTitle = computed(() => {
   if (!draft.value) return ''
   return draft.value.text || NEUTRAL_PHOTO_SUMMARY
@@ -324,9 +324,9 @@ defineExpose({ _setQueryForTest })
 .space-home__identity {
   display: flex;
   align-items: center;
-  gap: 36rpx;
-  padding-top: 26rpx;
-  margin-bottom: 72rpx;
+  gap: $pm-space-4;
+  padding-top: $pm-space-2;
+  margin-bottom: $pm-space-8;
 }
 
 .space-home__cover {
@@ -349,6 +349,14 @@ defineExpose({ _setQueryForTest })
   color: $pm-color-ink;
 }
 
+.space-home__more-icon {
+  font-family: $pm-font-family;
+  font-size: 32rpx;
+  line-height: 1;
+  letter-spacing: 4rpx;
+  color: $pm-color-muted;
+}
+
 .space-home__draft {
   margin-top: 0;
 }
@@ -356,11 +364,12 @@ defineExpose({ _setQueryForTest })
 .space-home__primary-action {
   display: flex;
   justify-content: center;
-  margin-top: 48rpx;
-  margin-bottom: 64rpx;
+  width: 100%;
+  margin-top: $pm-space-6;
+  margin-bottom: $pm-space-8;
 
   :deep(.primary-button) {
-    width: 56%;
+    width: 100%;
   }
 }
 
@@ -369,7 +378,7 @@ defineExpose({ _setQueryForTest })
 }
 
 .space-home__recent-header {
-  padding: 56rpx 0 24rpx;
+  padding: $pm-space-6 0 $pm-space-3;
 }
 
 .space-home__section-title {

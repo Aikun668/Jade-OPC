@@ -206,6 +206,9 @@ function headerHeight(): string {
 
 .page-shell__nav-right {
   justify-content: flex-end;
+  // Reclaim the page inset so actions sit nearer the native capsule.
+  // capsuleGuardRight still keeps the action on the capsule's left side.
+  margin-right: -$pm-space-4;
 }
 
 .page-shell__nav-title {

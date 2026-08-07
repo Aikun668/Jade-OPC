@@ -8,13 +8,14 @@
     <template #intro>
       <view class="space-create__intro">
         <text class="space-create__title">创建 Ta 的空间</text>
-        <text class="space-create__desc">先写下 Ta 的名字</text>
+        <text class="space-create__desc">照片可以以后再补。名字是这里唯一需要先留下的内容。</text>
       </view>
     </template>
 
     <view class="space-create__photo-area">
       <view v-if="!coverPhoto" class="space-create__photo-empty">
         <view class="space-create__photo-add" @click="handlePickPhoto">
+          <view class="space-create__photo-add-icon" aria-hidden="true" />
           <text class="space-create__photo-add-label">添加一张照片</text>
         </view>
       </view>
@@ -37,6 +38,7 @@
     </view>
 
     <view class="space-create__name-area">
+      <text class="space-create__name-label">Ta 的名字</text>
       <input
         class="space-create__name-input"
         v-model="name"
@@ -45,17 +47,19 @@
         @focus="keyboardOpen = true"
         @blur="keyboardOpen = false"
       />
-      <text class="space-create__name-helper">最多 20 个字</text>
+      <text class="space-create__name-helper">最多 20 个字。昵称、名字，或者你习惯的称呼都可以。</text>
       <text v-if="nameError" class="space-create__name-error">{{ nameError }}</text>
     </view>
 
     <template #actions>
       <view class="space-create__submit">
         <PrimaryButton
+          width="block"
           :loading="isSubmitting"
           loading-label="正在创建..."
           @press="handleSubmit"
         >创建 Ta 的空间</PrimaryButton>
+        <TextAction @press="handleBack">这次先不创建</TextAction>
       </view>
       <text v-if="submitError" class="space-create__submit-error">刚才没有准备好，可以再试一次。</text>
     </template>
@@ -76,6 +80,7 @@
 import { ref, watch } from 'vue'
 import PageShell from '../../components/PageShell.vue'
 import PrimaryButton from '../../components/PrimaryButton.vue'
+import TextAction from '../../components/TextAction.vue'
 import ConfirmDialog from '../../components/ConfirmDialog.vue'
 import { useMemoryStore } from '../../stores/memory'
 import { getNavigation } from '../../adapters/navigation-deps'
@@ -186,7 +191,7 @@ function handleConfirmLeave(): void {
   display: flex;
   flex-direction: column;
   gap: $pm-space-2;
-  text-align: center;
+  text-align: left;
 }
 
 .space-create__title {
@@ -204,12 +209,12 @@ function handleConfirmLeave(): void {
 
 // ---- photo picker ----
 .space-create__photo-area {
-  margin-top: $pm-space-8;
+  margin-top: 0;
 }
 
 .space-create__photo-empty {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .space-create__photo-add {
@@ -217,9 +222,43 @@ function handleConfirmLeave(): void {
   align-items: center;
   justify-content: center;
   width: $pm-photo-space-create;
-  height: calc($pm-photo-space-create / $pm-photo-preview-ratio);
+  height: $pm-photo-space-create;
+  gap: $pm-space-2;
   border: $pm-border-hairline dashed $pm-color-line;
   border-radius: $pm-radius-md;
+}
+
+.space-create__photo-add-icon {
+  position: relative;
+  flex: 0 0 auto;
+  width: $pm-icon-sm;
+  height: $pm-icon-sm;
+  border: $pm-border-hairline solid $pm-color-muted;
+  border-radius: 6rpx;
+  box-sizing: border-box;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 5rpx;
+    right: 5rpx;
+    width: 5rpx;
+    height: 5rpx;
+    border-radius: 50%;
+    background: $pm-color-muted;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 5rpx;
+    bottom: 5rpx;
+    width: 15rpx;
+    height: 9rpx;
+    border-top: $pm-border-hairline solid $pm-color-muted;
+    border-left: $pm-border-hairline solid $pm-color-muted;
+    transform: skew(-24deg) rotate(24deg);
+  }
 }
 
 .space-create__photo-add-label {
@@ -230,13 +269,13 @@ function handleConfirmLeave(): void {
 .space-create__photo-has {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: $pm-space-3;
 }
 
 .space-create__photo-image {
   width: $pm-photo-space-create;
-  height: calc($pm-photo-space-create / $pm-photo-preview-ratio);
+  height: $pm-photo-space-create;
   border-radius: $pm-radius-md;
 }
 
@@ -297,6 +336,12 @@ function handleConfirmLeave(): void {
   border-radius: $pm-radius-sm;
 }
 
+.space-create__name-label {
+  font-size: $pm-font-support;
+  font-weight: $pm-weight-medium;
+  color: $pm-color-ink;
+}
+
 .space-create__name-helper {
   font-size: $pm-font-support;
   color: $pm-color-muted;
@@ -310,7 +355,19 @@ function handleConfirmLeave(): void {
 // ---- submit ----
 .space-create__submit {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: $pm-space-2;
+
+  :deep(.primary-button) {
+    width: 100%;
+  }
+
+  :deep(primary-button) {
+    display: block;
+    width: 100%;
+  }
 }
 
 .space-create__submit-error {

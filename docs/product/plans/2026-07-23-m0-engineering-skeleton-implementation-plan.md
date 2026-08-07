@@ -1495,7 +1495,7 @@ npm run build:mp-weixin
 
 ### 实施步骤
 
-- [ ] **10.1 执行静态与单元验证**
+- [x] **10.1 执行静态与单元验证**（`verify:task10` 自动化证据）
 
 ```powershell
 npm run typecheck
@@ -1505,7 +1505,7 @@ npm run build:mp-weixin
 
 预期：退出码全部为 `0`。
 
-- [ ] **10.2 验收空状态样本**
+- [x] **10.2 验收空状态样本**（Store/Repository 自动化证据；微信实际路径仍待外部验收）
 
 ```text
 首次说明
@@ -1525,7 +1525,7 @@ npm run build:mp-weixin
 
 该场景必须证明创建成功后不会回到 03，正式保存后详情返回 04，不会逐级回到 06 和 05。
 
-- [ ] **10.3 验收草稿路径**
+- [x] **10.3 验收草稿路径**（Store/Repository 自动化证据；微信实际路径仍待外部验收）
 
 ```text
 开始文字记录
@@ -1540,7 +1540,7 @@ npm run build:mp-weixin
 
 验证始终只有一条草稿。
 
-- [ ] **10.4 验收完整样本**
+- [x] **10.4 验收完整样本**（Store/Repository 与 AI 三场景自动化证据；视觉/设备仍待外部验收）
 
 覆盖：
 
@@ -1555,7 +1555,7 @@ npm run build:mp-weixin
 
 删除记忆分别从 04 和 08 进入详情执行一次，验证返回实际来源；删除空间后执行系统返回，验证不会重新进入已删除空间。
 
-- [ ] **10.5 验收失败恢复**
+- [x] **10.5 验收失败恢复**（Repository、路由、AI fallback 自动化证据；照片设备权限仍待外部验收）
 
 使用开发者面板逐项模拟：
 
@@ -1605,7 +1605,7 @@ npm run build:mp-weixin
 - session-only 照片重启降级；
 - 视觉与触控异常。
 
-- [ ] **10.8 清理和最终范围检查**
+- [x] **10.8 清理和最终范围检查**（`verify-task10.mjs` 边界扫描证据）
 
 确认：
 
@@ -1625,6 +1625,13 @@ npm run build:mp-weixin
 - iPhone 与 Android 结果有记录；
 - 所有未验证项明确列出，不能用“应该可用”代替证据；
 - M0 范围完整，M1 能力没有混入。
+
+### Task 10 当前状态（2026-08-06）
+
+- `automated-passed`：42 个测试文件、864 个测试通过；typecheck、生产构建、WXSS 兼容检查和 `verify:task10` 通过。
+- `visual-pending`：已建立浏览器原型到 13 个页面基准图的 manifest，但尚未获得微信开发者工具的 13 张真实实现截图和 G0–G4 对比结果。
+- `device-pending`：微信开发者工具、iPhone、Android 的实际运行记录仍未完成；见 `apps/pet-memory-miniapp/tests/manual-device-results.md`。
+- 因此当前不能把 Task 10 或整个 M0 标记为 `m0-accepted`。
 
 ---
 

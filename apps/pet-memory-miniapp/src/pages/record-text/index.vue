@@ -29,29 +29,28 @@
         :hold-keyboard="true"
         @input="handleInput"
       />
+      <view class="record-text__photos">
+        <view
+          v-for="(photo, index) in selectedPhotos"
+          :key="index"
+          class="record-text__photo-item"
+        >
+          <image
+            v-if="photo.kind === 'new'"
+            class="record-text__photo-thumb"
+            :src="photo.photo.uri"
+            mode="aspectFill"
+          />
+          <TextAction @press="handleRemovePhoto(index)">移除</TextAction>
+        </view>
+        <view class="record-text__add-photo">
+          <TextAction :disabled="isPicking" @press="handlePickPhotos">加一张照片</TextAction>
+        </view>
+        <text v-if="pickError" class="record-text__photo-error">{{ pickError }}</text>
+      </view>
     </view>
 
     <text v-if="isOverLimit" class="record-text__overlimit">已超过 2,000 字，可以整理一下再保存。</text>
-
-    <view v-if="!parseError" class="record-text__photos">
-      <view
-        v-for="(photo, index) in selectedPhotos"
-        :key="index"
-        class="record-text__photo-item"
-      >
-        <image
-          v-if="photo.kind === 'new'"
-          class="record-text__photo-thumb"
-          :src="photo.photo.uri"
-          mode="aspectFill"
-        />
-        <TextAction @press="handleRemovePhoto(index)">移除</TextAction>
-      </view>
-      <view class="record-text__add-photo">
-        <TextAction :disabled="isPicking" @press="handlePickPhotos">加一张照片</TextAction>
-      </view>
-      <text v-if="pickError" class="record-text__photo-error">{{ pickError }}</text>
-    </view>
 
     <view v-if="!parseError" class="record-text__help">
       <TextAction @press="toggleHelp">有点想不起来</TextAction>
@@ -441,6 +440,8 @@ defineExpose({ _setQueryForTest, _setTextForTest, _setPhotosForTest })
 }
 
 .record-text__editor {
+  display: flex;
+  flex-direction: column;
   margin-top: $pm-space-6;
   overflow: hidden;
   background: $pm-color-surface;
@@ -500,7 +501,11 @@ defineExpose({ _setQueryForTest, _setTextForTest, _setPhotosForTest })
 
 .record-text__save {
   display: flex;
-  justify-content: center;
+  width: 100%;
+
+  :deep(.primary-button) {
+    width: 100%;
+  }
 }
 
 .record-text__draft {
@@ -525,11 +530,12 @@ defineExpose({ _setQueryForTest, _setTextForTest, _setPhotosForTest })
 }
 
 .record-text__photos {
-  margin-top: $pm-space-4;
   display: flex;
   flex-wrap: wrap;
   gap: $pm-space-2;
   align-items: center;
+  margin-top: auto;
+  padding: 0 $pm-space-3 $pm-space-3;
 }
 
 .record-text__photo-item {

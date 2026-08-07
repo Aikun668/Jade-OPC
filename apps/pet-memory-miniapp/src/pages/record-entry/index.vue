@@ -110,7 +110,7 @@ defineExpose({ _setQueryForTest })
   display: flex;
   flex-direction: column;
   gap: $pm-space-2;
-  text-align: center;
+  text-align: left;
 }
 
 .record-entry__title {
@@ -128,7 +128,7 @@ defineExpose({ _setQueryForTest })
 
 .record-entry__list {
   border-top: $pm-border-hairline solid $pm-color-line;
-  margin-top: $pm-space-8;
+  margin-top: $pm-space-6;
 }
 
 .record-entry__item {
@@ -136,8 +136,8 @@ defineExpose({ _setQueryForTest })
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  min-height: 168rpx;
-  padding-block: 32rpx;
+  min-height: 152rpx;
+  padding-block: 24rpx;
   padding-inline: 8rpx;
   border: none;
   border-bottom: $pm-border-hairline solid $pm-color-line;

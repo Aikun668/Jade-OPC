@@ -24,7 +24,7 @@
 import { computed, ref, watch, onUnmounted } from 'vue'
 
 export type PrimaryButtonWidth = 'block' | 'content'
-export type PrimaryButtonVariant = 'primary' | 'danger'
+export type PrimaryButtonVariant = 'primary' | 'quiet' | 'danger'
 
 export interface PrimaryButtonProps {
   disabled?: boolean
@@ -136,6 +136,11 @@ function handlePress() {
     max-width: 100%;
   }
 
+  &--quiet {
+    background-color: $pm-color-olive-soft;
+    color: $pm-color-olive;
+  }
+
   // ---- danger variant ----
   &--danger {
     background-color: $pm-color-danger;
@@ -151,8 +156,12 @@ function handlePress() {
     color: $pm-color-muted;
   }
 
-  &:active:not(&--disabled):not(&--loading):not(&--danger) {
+  &:active:not(&--disabled):not(&--loading):not(&--danger):not(&--quiet) {
     background-color: $pm-color-olive-pressed;
+  }
+
+  &--quiet:active:not(&--disabled):not(&--loading) {
+    background-color: $pm-color-line;
   }
 
   &--disabled,

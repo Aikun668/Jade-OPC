@@ -32,11 +32,13 @@ describe('MemoryEntry', () => {
     expect(wrapper.find('.memory-entry__thumbnail-wrap').exists()).toBe(true)
   })
 
-  it('hides thumbnail when not provided', () => {
+  it('shows a soft photo placeholder when thumbnail is not provided', () => {
     const wrapper = mount(MemoryEntry, {
       props: { item: makeEntry({ thumbnailUri: undefined }) },
     })
-    expect(wrapper.find('.memory-entry__thumbnail-wrap').exists()).toBe(false)
+    expect(wrapper.find('.memory-entry__thumbnail-placeholder').exists()).toBe(true)
+    expect(wrapper.find('.memory-entry__placeholder-icon').exists()).toBe(true)
+    expect(wrapper.find('.memory-entry__placeholder-label').text()).toBe('补充图片')
   })
 
   it('emits select with memory id on click', async () => {

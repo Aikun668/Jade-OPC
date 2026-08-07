@@ -20,6 +20,7 @@
     "verify:task5": "npm run verify:task5a && npm run verify:task5b",
     "verify:task8": "npm run test:run && npm run typecheck && npm run build:mp-weixin && node scripts/verify-task8.mjs",
     "verify:task9": "npm run test:run && npm run typecheck && npm run build:mp-weixin && node scripts/verify-task9.mjs",
+    "verify:task10": "npm run test:run && npm run typecheck && npm run build:mp-weixin && npm run test:run -- tests/components/task10-journey.test.ts && node scripts/verify-task10.mjs",
     "clean:test-artifacts": "node -e \"var f=require('fs');['scripts/visual-regression/test-input','scripts/visual-regression/test-output'].forEach(d=>{if(f.existsSync(d))f.rmSync(d,{recursive:true})})\""
   },
   "dependencies": {

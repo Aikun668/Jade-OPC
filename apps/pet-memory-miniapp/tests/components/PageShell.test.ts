@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import PageShell from '../../src/components/PageShell.vue'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 describe('PageShell', () => {
   describe('layout rendering', () => {
@@ -218,6 +223,15 @@ describe('PageShell', () => {
       expect(navRight.exists()).toBe(true)
       const style = navRight.attributes('style')
       expect(style).toBeDefined()
+    })
+
+    it('keeps navigation actions close to the capsule without touching it', () => {
+      const source = readFileSync(
+        resolve(__dirname, '../../src/components/PageShell.vue'),
+        'utf-8',
+      )
+
+      expect(source).toMatch(/\.page-shell__nav-right\s*\{[\s\S]*margin-right:\s*-\$pm-space-4/)
     })
 
     it('applies navLeftStyle to navigation-left without custom slot', () => {

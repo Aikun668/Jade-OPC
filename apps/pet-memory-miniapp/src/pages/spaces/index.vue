@@ -157,7 +157,7 @@ function goSpace(spaceId: string): void {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 36rpx;
+  margin-bottom: 24rpx;
 }
 
 .spaces__desc {
@@ -177,7 +177,7 @@ function goSpace(spaceId: string): void {
   align-items: center;
   gap: $pm-space-4;
   width: 100%;
-  padding-block: 36rpx;
+  padding-block: 28rpx;
   padding-inline: 0;
   border: none;
   border-bottom: $pm-border-hairline solid $pm-color-line;
@@ -226,11 +226,11 @@ function goSpace(spaceId: string): void {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 10rpx;
+  gap: 8rpx;
 }
 
 .spaces__item-name {
-  font-size: $pm-font-section-title;
+  font-size: $pm-font-item-title;
   font-weight: $pm-weight-semibold;
   line-height: 1.3;
   color: $pm-color-ink;
@@ -262,7 +262,7 @@ function goSpace(spaceId: string): void {
 .spaces__create-hint {
   display: flex;
   justify-content: center;
-  margin-top: 56rpx;
+  margin-top: 40rpx;
 
   :deep(.text-action__label) {
     font-size: 28rpx;

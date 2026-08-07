@@ -393,9 +393,9 @@ defineExpose({ _setQueryForTest })
 
 .space-settings__cover-has {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $pm-space-3;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: $pm-space-4;
 }
 
 .space-settings__cover-image {
@@ -406,7 +406,8 @@ defineExpose({ _setQueryForTest })
 
 .space-settings__cover-tools {
   display: flex;
-  gap: $pm-space-4;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .space-settings__cover-empty {
@@ -468,7 +469,12 @@ defineExpose({ _setQueryForTest })
 .space-settings__save {
   display: flex;
   justify-content: center;
+  width: 100%;
   margin-bottom: $pm-space-2;
+
+  :deep(.primary-button) {
+    width: 100%;
+  }
 }
 
 .space-settings__save-error {

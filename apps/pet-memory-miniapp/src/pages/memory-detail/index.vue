@@ -306,9 +306,8 @@ defineExpose({ _setQueryForTest })
 }
 
 .memory-detail__original {
-  border-radius: $pm-radius-md;
-  background: $pm-color-surface;
-  padding: $pm-space-5;
+  padding-bottom: $pm-space-6;
+  border-bottom: $pm-border-hairline solid $pm-color-line;
 }
 
 .memory-detail__eyebrow {
@@ -329,7 +328,7 @@ defineExpose({ _setQueryForTest })
 .memory-detail__ai-invitation {
   margin-top: $pm-space-6;
   border-radius: $pm-radius-md;
-  background: $pm-color-surface;
+  background: $pm-color-olive-soft;
   padding: $pm-space-5;
 }
 
@@ -342,9 +341,8 @@ defineExpose({ _setQueryForTest })
 
 .memory-detail__candidate {
   margin-top: $pm-space-6;
-  border-radius: $pm-radius-md;
-  background: $pm-color-surface;
-  padding: $pm-space-5;
+  padding-left: $pm-space-4;
+  border-left: 6rpx solid $pm-color-olive-soft;
 }
 
 .memory-detail__candidate-label {

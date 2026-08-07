@@ -353,7 +353,9 @@ defineExpose({ _setQueryForTest, _overridePageStateForTest })
 }
 
 .ai-draft__consent {
-  padding-block: $pm-space-6;
+  padding: $pm-space-5;
+  border-radius: $pm-radius-md;
+  background: $pm-color-olive-soft;
 }
 
 .ai-draft__consent-text {
@@ -405,6 +407,11 @@ defineExpose({ _setQueryForTest, _overridePageStateForTest })
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
   gap: $pm-space-3;
+
+  :deep(.primary-button) {
+    width: 100%;
+  }
 }
 </style>

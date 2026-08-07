@@ -466,9 +466,7 @@ defineExpose({ _setQueryForTest, _setPhotosForTest })
 
 .record-photo__session-note {
   margin-top: $pm-space-8;
-  padding: $pm-space-3;
-  background: $pm-color-surface;
-  border-radius: $pm-radius-sm;
+  padding: 0;
 }
 
 .record-photo__session-note-text {
@@ -479,7 +477,11 @@ defineExpose({ _setQueryForTest, _setPhotosForTest })
 
 .record-photo__save {
   display: flex;
-  justify-content: center;
+  width: 100%;
+
+  :deep(.primary-button) {
+    width: 100%;
+  }
 }
 
 .record-photo__continue {

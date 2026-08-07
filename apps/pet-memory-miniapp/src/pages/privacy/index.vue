@@ -28,7 +28,7 @@
 
     <template #actions>
       <view class="privacy__confirm">
-        <PrimaryButton @press="goBack">我知道了</PrimaryButton>
+        <PrimaryButton variant="quiet" @press="goBack">我知道了</PrimaryButton>
       </view>
     </template>
   </PageShell>
@@ -122,6 +122,11 @@ defineExpose({ _setQueryForTest })
 }
 
 .privacy__confirm {
+  width: 100%;
   margin-top: $pm-section-gap;
+
+  :deep(.primary-button) {
+    width: 100%;
+  }
 }
 </style>

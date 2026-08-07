@@ -275,7 +275,7 @@ defineExpose({ _setQueryForTest })
 
 .memory-edit__textarea {
   width: 100%;
-  min-height: 320rpx;
+  min-height: 520rpx;
   padding: $pm-space-5;
   border: none;
   border-radius: $pm-radius-md;
@@ -307,6 +307,11 @@ defineExpose({ _setQueryForTest })
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
   gap: $pm-space-3;
+
+  :deep(.primary-button) {
+    width: 100%;
+  }
 }
 </style>

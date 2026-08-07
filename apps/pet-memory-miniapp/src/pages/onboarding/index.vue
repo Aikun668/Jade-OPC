@@ -17,14 +17,26 @@
       </view>
     </template>
 
-    <!-- ready: main content in default slot -->
+    <!-- ready: keep the mark and introduction in one visual flow -->
     <template v-else-if="showContent">
-      <view class="onboarding__mark" aria-hidden="true">
-        <view class="onboarding__mark-inner" />
-      </view>
-      <view class="onboarding__note">
-        <view class="onboarding__lock-icon" aria-hidden="true" />
-        <text class="onboarding__note-text">这里默认只属于你。M0 只保存本地文字，照片仅用于这次预览。</text>
+      <view class="onboarding__content">
+        <view class="onboarding__mark" aria-hidden="true">
+          <view class="onboarding__mark-inner" />
+        </view>
+        <view class="onboarding__intro">
+          <text class="onboarding__eyebrow">宠物记忆</text>
+          <text class="onboarding__title">给 Ta 留一个安静的位置</text>
+          <text class="onboarding__body">把想记住的样子、习惯和小事，慢慢留在这里。你可以只看看，也可以只写下一句话。</text>
+        </view>
+        <view class="onboarding__note">
+          <view class="onboarding__lock-icon" aria-hidden="true">
+            <view class="onboarding__lock-shackle" />
+            <view class="onboarding__lock-body">
+              <view class="onboarding__lock-keyhole" />
+            </view>
+          </view>
+          <text class="onboarding__note-text">这里默认只属于你。M0 只保存本地文字，照片仅用于这次预览。</text>
+        </view>
       </view>
     </template>
 
@@ -35,19 +47,11 @@
       </view>
     </template>
 
-    <!-- Named slots: must be direct children, content guarded by showContent -->
-    <template #intro>
-      <view v-if="showContent" class="onboarding__intro">
-        <text class="onboarding__eyebrow">宠物记忆</text>
-        <text class="onboarding__title">给 Ta 留一个安静的位置</text>
-        <text class="onboarding__body">把想记住的样子、习惯和小事，慢慢留在这里。你可以只看看，也可以只写下一句话。</text>
-      </view>
-    </template>
-
     <template #actions>
       <template v-if="showContent">
         <view class="onboarding__start">
           <PrimaryButton
+            width="block"
             :loading="isSubmitting"
             loading-label="正在准备…"
             @press="start"
@@ -134,8 +138,7 @@ function retry(): void {
   place-items: center;
   width: 112rpx;
   height: 112rpx;
-  margin-inline: auto;
-  margin-bottom: 68rpx;
+  margin-bottom: 56rpx;
   border: $pm-border-hairline solid $pm-color-line;
   border-radius: 50%;
 }
@@ -148,13 +151,19 @@ function retry(): void {
   box-shadow: 16rpx 12rpx 0 -10rpx $pm-color-olive;
 }
 
+.onboarding__content {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
 // ---- intro ----
 .onboarding__intro {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: $pm-space-4;
-  text-align: center;
+  align-items: flex-start;
+  gap: $pm-space-3;
+  text-align: left;
 }
 
 .onboarding__eyebrow {
@@ -191,24 +200,43 @@ function retry(): void {
 .onboarding__lock-icon {
   flex: 0 0 auto;
   width: 34rpx;
-  height: 34rpx;
-  margin-top: 4rpx;
-  border: 3rpx solid $pm-color-olive;
-  border-radius: 6rpx 6rpx 10rpx 10rpx;
+  height: 40rpx;
+  margin-top: 2rpx;
   position: relative;
+}
 
-  &::after {
-    content: '';
-    position: absolute;
-    top: -8rpx;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 18rpx;
-    height: 16rpx;
-    border: 3rpx solid $pm-color-olive;
-    border-bottom: none;
-    border-radius: 10rpx 10rpx 0 0;
-  }
+.onboarding__lock-shackle {
+  position: absolute;
+  top: 0;
+  left: 8rpx;
+  width: 18rpx;
+  height: 18rpx;
+  border: 2rpx solid $pm-color-olive;
+  border-bottom: none;
+  border-radius: 12rpx 12rpx 0 0;
+  box-sizing: border-box;
+}
+
+.onboarding__lock-body {
+  position: absolute;
+  top: 14rpx;
+  left: 2rpx;
+  width: 30rpx;
+  height: 24rpx;
+  border: 2rpx solid $pm-color-olive;
+  border-radius: 4rpx;
+  box-sizing: border-box;
+}
+
+.onboarding__lock-keyhole {
+  position: absolute;
+  top: 6rpx;
+  left: 50%;
+  width: 4rpx;
+  height: 8rpx;
+  transform: translateX(-50%);
+  border-radius: 4rpx;
+  background: $pm-color-olive;
 }
 
 .onboarding__note-text {
@@ -222,7 +250,19 @@ function retry(): void {
 .onboarding__start {
   margin-top: $pm-section-gap;
   display: flex;
-  justify-content: center;
+  width: 100%;
+
+  :deep(.primary-button) {
+    flex: 1 1 auto;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  :deep(primary-button) {
+    flex: 1 1 auto;
+    display: block;
+    width: 100%;
+  }
 }
 
 .onboarding__error {

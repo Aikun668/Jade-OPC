@@ -551,8 +551,9 @@ describe('Space-home page (04)', () => {
     await wrapper.vm.$nextTick()
 
     const textActions = wrapper.findAllComponents({ name: 'TextAction' })
-    const moreBtn = textActions.find(b => b.text().includes('更多'))
+    const moreBtn = textActions.find(b => b.text().includes('···'))
     expect(moreBtn).toBeTruthy()
+    expect(moreBtn!.attributes('aria-label')).toBe('更多')
 
     await moreBtn!.vm.$emit('press')
     expect(nav.push).toHaveBeenCalledWith(
@@ -622,8 +623,8 @@ describe('Space-home page (04)', () => {
     expect(draftNotice.exists()).toBe(true)
   })
 
-  // T5A-M33: PageShell title is space name
-  it('T5A-M33: PageShell title reflects space name', async () => {
+  // T5A-M33: space name is shown in the identity block, not duplicated in nav
+  it('does not duplicate the space name in the navigation title', async () => {
     provideNavigation(mockNavigation())
     const appStore = useAppStore()
     const memStore = useMemoryStore()
@@ -643,7 +644,8 @@ describe('Space-home page (04)', () => {
     await wrapper.vm.$nextTick()
 
     const pageShell = wrapper.findComponent({ name: 'PageShell' })
-    expect(pageShell.props('title')).toBe('团团')
+    expect(pageShell.props('title')).toBeUndefined()
+    expect(wrapper.find('.space-home__name').text()).toBe('团团')
   })
 
   // T5A-M35: no delete or edit capabilities
@@ -731,7 +733,7 @@ describe('Space-home page (04)', () => {
     expect(text).toContain('留下一段新的记忆')
     expect(text).toContain('最近留下')
     expect(text).toContain('查看全部记忆')
-    expect(text).toContain('更多')
+    expect(text).toContain('···')
 
     // Cover image exists
     const img = wrapper.find('.space-home__cover')
