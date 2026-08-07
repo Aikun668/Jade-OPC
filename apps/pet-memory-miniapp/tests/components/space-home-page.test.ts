@@ -588,6 +588,8 @@ describe('Space-home page (04)', () => {
     const textActions = wrapper.findAllComponents({ name: 'TextAction' })
     const viewAll = textActions.find(b => b.text().includes('查看全部记忆'))
     expect(viewAll).toBeTruthy()
+    expect(viewAll!.attributes('aria-label')).toBe('查看全部记忆')
+    expect(viewAll!.find('.space-home__view-all-arrow').attributes('src')).toBe('/ui/draft-arrow.svg')
 
     await viewAll!.vm.$emit('press')
     expect(nav.push).toHaveBeenCalledWith(

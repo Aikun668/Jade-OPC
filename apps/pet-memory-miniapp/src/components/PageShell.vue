@@ -51,7 +51,11 @@
       :style="columnStyle"
     >
       <!-- intro slot -->
-      <view v-if="hasIntro" class="page-shell__intro">
+      <view
+        v-if="hasIntro"
+        class="page-shell__intro"
+        :class="{ 'page-shell__intro--compact': compactIntro }"
+      >
         <slot name="intro" />
       </view>
 
@@ -93,12 +97,14 @@ export interface PageShellProps {
   title?: string
   showBack?: boolean
   keyboardOpen?: boolean
+  compactIntro?: boolean
 }
 
 const props = withDefaults(defineProps<PageShellProps>(), {
   layout: 'standard-flow',
   showBack: false,
   keyboardOpen: false,
+  compactIntro: false,
 })
 
 defineEmits<{
@@ -288,6 +294,10 @@ function headerHeight(): string {
 // ---- intro ----
 .page-shell__intro {
   margin-bottom: $pm-section-gap;
+}
+
+.page-shell__intro--compact {
+  margin-bottom: $pm-space-4;
 }
 
 // ---- content ----

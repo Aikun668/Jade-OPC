@@ -8,9 +8,11 @@
     :disabled="disabled"
     @click.stop="handlePress"
   >
+    <slot name="prefix" />
     <text class="text-action__label">
       <slot />
     </text>
+    <slot name="suffix" />
   </button>
 </template>
 

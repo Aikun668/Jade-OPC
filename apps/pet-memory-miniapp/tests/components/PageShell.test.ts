@@ -73,6 +73,14 @@ describe('PageShell', () => {
       expect(wrapper.find('.page-shell__intro').exists()).toBe(true)
     })
 
+    it('applies an optional compact intro gap', () => {
+      const wrapper = mount(PageShell, {
+        props: { layout: 'task-form', compactIntro: true },
+        slots: { intro: '<text>intro content</text>' },
+      })
+      expect(wrapper.find('.page-shell__intro').classes()).toContain('page-shell__intro--compact')
+    })
+
     it('renders actions slot', () => {
       const wrapper = mount(PageShell, {
         props: { layout: 'task-form' },

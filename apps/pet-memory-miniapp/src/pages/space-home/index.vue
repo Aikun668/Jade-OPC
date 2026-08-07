@@ -76,7 +76,21 @@
           @select="goMemoryDetail"
         />
         <view class="space-home__view-all">
-          <TextAction @press="goAllMemories">查看全部记忆</TextAction>
+          <TextAction
+            class="space-home__view-all-action"
+            aria-label="查看全部记忆"
+            @press="goAllMemories"
+          >
+            查看全部记忆
+            <template #suffix>
+              <image
+                class="space-home__view-all-arrow"
+                src="/ui/draft-arrow.svg"
+                mode="aspectFit"
+                aria-hidden="true"
+              />
+            </template>
+          </TextAction>
         </view>
       </view>
 
@@ -397,5 +411,15 @@ defineExpose({ _setQueryForTest })
   display: flex;
   justify-content: center;
   padding-block: 28rpx;
+}
+
+.space-home__view-all-action {
+  gap: $pm-space-1;
+}
+
+.space-home__view-all-arrow {
+  width: $pm-icon-sm;
+  height: $pm-icon-sm;
+  flex-shrink: 0;
 }
 </style>

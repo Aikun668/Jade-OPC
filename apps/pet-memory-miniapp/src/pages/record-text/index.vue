@@ -2,6 +2,7 @@
   <PageShell
     layout="task-form"
     title="留下一段"
+    compact-intro
     :show-back="true"
     @back="handleBack"
   >
@@ -44,7 +45,12 @@
           <TextAction @press="handleRemovePhoto(index)">移除</TextAction>
         </view>
         <view class="record-text__add-photo">
-          <TextAction :disabled="isPicking" @press="handlePickPhotos">加一张照片</TextAction>
+          <TextAction :disabled="isPicking" @press="handlePickPhotos">
+            <template #prefix>
+              <view class="record-text__add-photo-icon" aria-hidden="true" />
+            </template>
+            加一张照片
+          </TextAction>
         </view>
         <text v-if="pickError" class="record-text__photo-error">{{ pickError }}</text>
       </view>
@@ -82,20 +88,23 @@
     <text v-if="!parseError && helpHint" class="record-text__help-hint">{{ helpHint }}</text>
 
     <template v-if="!parseError" #actions>
-      <view class="record-text__save">
-        <PrimaryButton
-          :loading="isSavingMemory"
-          loading-label="正在保存…"
-          @press="handleSaveMemory"
-        >留下这段原话</PrimaryButton>
+      <view class="record-text__actions">
+        <view class="record-text__save">
+          <PrimaryButton
+            width="block"
+            :loading="isSavingMemory"
+            loading-label="正在保存…"
+            @press="handleSaveMemory"
+          >留下这段原话</PrimaryButton>
+        </view>
+        <view class="record-text__draft">
+          <TextAction
+            :disabled="isSavingMemory || isSavingDraft"
+            @press="handleSaveDraft"
+          >先留在草稿里</TextAction>
+        </view>
+        <text v-if="saveError" class="record-text__save-error">刚才没有保存成功，可以再试一次。</text>
       </view>
-      <view class="record-text__draft">
-        <TextAction
-          :disabled="isSavingMemory || isSavingDraft"
-          @press="handleSaveDraft"
-        >先留在草稿里</TextAction>
-      </view>
-      <text v-if="saveError" class="record-text__save-error">刚才没有保存成功，可以再试一次。</text>
     </template>
 
     <ConfirmDialog
@@ -423,7 +432,8 @@ defineExpose({ _setQueryForTest, _setTextForTest, _setPhotosForTest })
 .record-text__prompt-area {
   display: flex;
   flex-direction: column;
-  gap: $pm-space-2;
+  padding-top: $pm-space-2;
+  gap: $pm-space-3;
 }
 
 .record-text__eyebrow {
@@ -442,7 +452,7 @@ defineExpose({ _setQueryForTest, _setTextForTest, _setPhotosForTest })
 .record-text__editor {
   display: flex;
   flex-direction: column;
-  margin-top: $pm-space-6;
+  margin-top: $pm-space-2;
   overflow: hidden;
   background: $pm-color-surface;
   border: $pm-border-hairline solid $pm-color-line;
@@ -504,8 +514,22 @@ defineExpose({ _setQueryForTest, _setTextForTest, _setPhotosForTest })
   width: 100%;
 
   :deep(.primary-button) {
+    flex: 1 1 auto;
     width: 100%;
   }
+
+  :deep(primary-button) {
+    display: block;
+    width: 100%;
+  }
+}
+
+.record-text__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  transform: translateY(-$pm-space-8);
 }
 
 .record-text__draft {
@@ -554,6 +578,43 @@ defineExpose({ _setQueryForTest, _setTextForTest, _setPhotosForTest })
 .record-text__add-photo {
   display: flex;
   align-items: center;
+
+  :deep(.text-action) {
+    gap: $pm-space-2;
+  }
+}
+
+.record-text__add-photo-icon {
+  position: relative;
+  flex: 0 0 auto;
+  width: $pm-icon-sm;
+  height: $pm-icon-sm;
+  border: $pm-border-hairline solid $pm-color-muted;
+  border-radius: 6rpx;
+  box-sizing: border-box;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 5rpx;
+    right: 5rpx;
+    width: 5rpx;
+    height: 5rpx;
+    border-radius: 50%;
+    background: $pm-color-muted;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 5rpx;
+    bottom: 5rpx;
+    width: 15rpx;
+    height: 9rpx;
+    border-top: $pm-border-hairline solid $pm-color-muted;
+    border-left: $pm-border-hairline solid $pm-color-muted;
+    transform: skew(-24deg) rotate(24deg);
+  }
 }
 
 .record-text__photo-error {

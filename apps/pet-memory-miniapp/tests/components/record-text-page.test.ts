@@ -138,6 +138,21 @@ describe('Record-text page (06)', () => {
     expect(wrapper.text()).toContain('加一张照片')
   })
 
+  it('renders a small image icon before the add-photo action', async () => {
+    provideNavigation(mockNavigation())
+    setReady()
+    const page = await import('../../src/pages/record-text/index.vue')
+    const wrapper = mount(page.default, {
+      global: { stubs: { PageShell: stubPageShell() } },
+    })
+
+    const vm = wrapper.vm as any
+    vm._setQueryForTest({ spaceId: 's1', entry: 'daily' })
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.record-text__add-photo-icon').exists()).toBe(true)
+  })
+
   // ---- actions ----
 
   it('saveMemory navigates to memory-detail on success', async () => {

@@ -190,6 +190,26 @@ describe('TextAction', () => {
     })
     expect(wrapper.text()).toContain('继续写')
   })
+
+  it('renders a suffix slot beside the label', () => {
+    const wrapper = mount(TextAction, {
+      slots: {
+        default: '查看全部记忆',
+        suffix: '<text class="suffix-icon">›</text>',
+      },
+    })
+    expect(wrapper.find('.suffix-icon').exists()).toBe(true)
+  })
+
+  it('renders a prefix slot beside the label', () => {
+    const wrapper = mount(TextAction, {
+      slots: {
+        prefix: '<view class="prefix-icon" />',
+        default: '加一张照片',
+      },
+    })
+    expect(wrapper.find('.prefix-icon').exists()).toBe(true)
+  })
 })
 
 describe('FormField', () => {

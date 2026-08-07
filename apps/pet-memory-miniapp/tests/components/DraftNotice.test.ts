@@ -63,7 +63,9 @@ describe('DraftNotice', () => {
 
     expect(source).toMatch(/\.draft-notice\s*\{[\s\S]*width:\s*\$pm-draft-notice-width/)
     expect(source).toMatch(/\.draft-notice\s*\{[\s\S]*min-height:\s*\$pm-draft-notice-height/)
-    expect(source).toMatch(/\.draft-notice__continue-btn\s*\{[\s\S]*margin-right:\s*-\$pm-space-1/)
+    expect(source).toMatch(/\.draft-notice__tape\s*\{[\s\S]*top:\s*-16rpx;[\s\S]*left:\s*-24rpx/)
+    expect(source).toMatch(/\.draft-notice__continue-btn\s*\{[\s\S]*gap:\s*\$pm-space-1/)
+    expect(source).toMatch(/\.draft-notice__continue-btn\s*\{[\s\S]*margin-right:\s*\$pm-space-1/)
     expect(source).toMatch(/\.draft-notice__material\s*\{[\s\S]*width:\s*100%/)
     expect(source).toMatch(/\.draft-notice__tape\s*\{[\s\S]*position:\s*absolute/)
     expect(source).toContain('src="/ui/draft-paper-reference-v5-cropped.png"')

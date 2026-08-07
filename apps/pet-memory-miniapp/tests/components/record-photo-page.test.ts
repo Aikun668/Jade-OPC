@@ -76,6 +76,103 @@ describe('Record-photo page', () => {
     expect(wrapper.text()).toContain('添加一张照片')
   })
 
+  it('uses the shared empty media frame and choice descriptions without a photo', async () => {
+    provideNavigation(mockNavigation())
+    providePhotoPicker(mockPhotoPicker())
+    const page = await import('../../src/pages/record-photo/index.vue')
+    const wrapper = mount(page.default, {
+      global: { stubs: { PageShell: stubPageShell(), MissingContentState: true, PhotoStack: true, PhotoViewer: true } },
+    })
+    setQuery(wrapper, { spaceId: 's_tuantu' })
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.record-photo__media--empty').exists()).toBe(true)
+    expect(wrapper.find('.record-photo__add-photo-icon').exists()).toBe(true)
+    expect(wrapper.findAll('.record-photo__choice')).toHaveLength(0)
+    expect(wrapper.find('.record-photo__session-note').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('先只留下照片')
+    expect(wrapper.text()).not.toContain('说说最先想起的事')
+  })
+
+  it('keeps the same media frame and choice descriptions after a photo is selected', async () => {
+    provideNavigation(mockNavigation())
+    providePhotoPicker(mockPhotoPicker())
+    const page = await import('../../src/pages/record-photo/index.vue')
+    const wrapper = mount(page.default, {
+      global: { stubs: { PageShell: stubPageShell(), MissingContentState: true, PhotoStack: true, PhotoViewer: true } },
+    })
+    setQuery(wrapper, { spaceId: 's_tuantu' })
+    setPhotos(wrapper, [{ kind: 'new', photo: { uri: '/fixtures/photo.png', name: 'photo.png' } }])
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.record-photo__media--selected').exists()).toBe(true)
+    expect(wrapper.find('.record-photo__single-preview').exists()).toBe(true)
+    expect(wrapper.find('.record-photo__media--empty').exists()).toBe(false)
+    expect(wrapper.find('.record-photo__list').exists()).toBe(false)
+    expect(wrapper.find('.record-photo__post-photo').exists()).toBe(true)
+    expect(wrapper.findAll('.record-photo__choice')).toHaveLength(2)
+    expect(wrapper.text()).toContain('只问一个问题，不会自动追问')
+  })
+
+  it('asks for confirmation before removing the selected photo', async () => {
+    provideNavigation(mockNavigation())
+    providePhotoPicker(mockPhotoPicker())
+    const page = await import('../../src/pages/record-photo/index.vue')
+    const wrapper = mount(page.default, {
+      global: { stubs: { PageShell: stubPageShell(), MissingContentState: true, PhotoStack: true, PhotoViewer: true } },
+    })
+    setQuery(wrapper, { spaceId: 's_tuantu' })
+    setPhotos(wrapper, [{ kind: 'new', photo: { uri: '/fixtures/photo.png', name: 'photo.png' } }])
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('.record-photo__remove-button').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.confirm-dialog-root').exists()).toBe(true)
+    expect(wrapper.text()).toContain('要移除这张照片吗？')
+  })
+
+  it('removes the photo only after confirmation and restores the empty state', async () => {
+    provideNavigation(mockNavigation())
+    providePhotoPicker(mockPhotoPicker())
+    const page = await import('../../src/pages/record-photo/index.vue')
+    const wrapper = mount(page.default, {
+      global: { stubs: { PageShell: stubPageShell(), MissingContentState: true, PhotoStack: true, PhotoViewer: true } },
+    })
+    setQuery(wrapper, { spaceId: 's_tuantu' })
+    setPhotos(wrapper, [{ kind: 'new', photo: { uri: '/fixtures/photo.png', name: 'photo.png' } }])
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('.record-photo__remove-button').trigger('click')
+    await wrapper.find('.confirm-dialog-root .primary-button').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.record-photo__media--empty').exists()).toBe(true)
+    expect(wrapper.find('.record-photo__media--selected').exists()).toBe(false)
+    expect(wrapper.findAll('.record-photo__choice')).toHaveLength(0)
+    expect(wrapper.find('.record-photo__session-note').exists()).toBe(false)
+    expect(wrapper.find('.confirm-dialog-root').exists()).toBe(false)
+  })
+
+  it('keeps the photo when removal is cancelled', async () => {
+    provideNavigation(mockNavigation())
+    providePhotoPicker(mockPhotoPicker())
+    const page = await import('../../src/pages/record-photo/index.vue')
+    const wrapper = mount(page.default, {
+      global: { stubs: { PageShell: stubPageShell(), MissingContentState: true, PhotoStack: true, PhotoViewer: true } },
+    })
+    setQuery(wrapper, { spaceId: 's_tuantu' })
+    setPhotos(wrapper, [{ kind: 'new', photo: { uri: '/fixtures/photo.png', name: 'photo.png' } }])
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('.record-photo__remove-button').trigger('click')
+    await wrapper.find('.confirm-dialog-root .text-action').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.record-photo__media--selected').exists()).toBe(true)
+    expect(wrapper.find('.record-photo__media--empty').exists()).toBe(false)
+  })
+
   it('shows session note', async () => {
     provideNavigation(mockNavigation())
     providePhotoPicker(mockPhotoPicker())
@@ -84,6 +181,7 @@ describe('Record-photo page', () => {
       global: { stubs: { PageShell: stubPageShell(), MissingContentState: true, PhotoStack: true, PhotoViewer: true } },
     })
     setQuery(wrapper, { spaceId: 's_tuantu' })
+    setPhotos(wrapper, [{ kind: 'new', photo: { uri: '/fixtures/photo.png', name: 'photo.png' } }])
     await wrapper.vm.$nextTick()
 
     expect(wrapper.text()).toContain('M0')
@@ -98,6 +196,7 @@ describe('Record-photo page', () => {
       global: { stubs: { PageShell: stubPageShell(), MissingContentState: true, PhotoStack: true, PhotoViewer: true } },
     })
     setQuery(wrapper, { spaceId: 's_tuantu' })
+    setPhotos(wrapper, [{ kind: 'new', photo: { uri: '/fixtures/photo.png', name: 'photo.png' } }])
     await wrapper.vm.$nextTick()
 
     expect(wrapper.text()).toContain('先只留下照片')

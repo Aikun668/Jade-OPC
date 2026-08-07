@@ -71,8 +71,8 @@ const materialLoaded = ref<boolean | null>(null)
 .draft-notice__tape {
   position: absolute;
   z-index: 3;
-  top: -24rpx;
-  left: -12rpx;
+  top: -16rpx;
+  left: -24rpx;
   width: 160rpx;
   height: 88rpx;
 }
@@ -109,10 +109,10 @@ const materialLoaded = ref<boolean | null>(null)
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: $pm-space-2;
+  gap: $pm-space-1;
   flex-shrink: 0;
   margin-left: auto;
-  margin-right: -$pm-space-1;
+  margin-right: $pm-space-1;
   min-height: $pm-hit-target-min;
   padding-inline: $pm-space-2;
   border: none;
