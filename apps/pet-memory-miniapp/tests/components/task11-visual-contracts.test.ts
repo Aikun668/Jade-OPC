@@ -56,30 +56,37 @@ describe('Task 11 visual contracts', () => {
     expect(source).toMatch(/\.memory-entry__placeholder-label\s*\{[\s\S]*font-size:\s*22rpx/)
   })
 
-  it('keeps the onboarding mark in the same visual content flow as the title and full-width start action', () => {
+  it('keeps the portrait onboarding scene edge-to-edge, with the brand above the entry copy and a warm action', () => {
     const source = readFileSync(
       resolve(__dirname, '../../src/pages/onboarding/index.vue'),
       'utf-8',
     )
 
     expect(source).toContain('class="onboarding__content"')
-    expect(source).toMatch(/onboarding__content[\s\S]*onboarding__mark[\s\S]*onboarding__intro/)
+    expect(source).toMatch(/onboarding__content[\s\S]*onboarding__scene[\s\S]*onboarding__footer[\s\S]*onboarding__brand[\s\S]*onboarding__intro/)
+    expect(source).toMatch(/\.onboarding__content\s*\{[\s\S]*min-height:\s*100vh/)
+    expect(source).toMatch(/\.onboarding__content\s*\{[\s\S]*width:\s*calc\(100% \+ #\{\$pm-page-inline \* 2\}\)/)
+    expect(source).toMatch(/\.onboarding__brand\s*\{[\s\S]*font-family:\s*"Songti SC",\s*STSong,\s*serif/)
+    expect(source).toMatch(/\.onboarding__brand\s*\{[\s\S]*font-size:\s*72rpx[\s\S]*color:\s*#5b371f/)
+    expect(source).toMatch(/\.onboarding__scene\s*\{[\s\S]*position:\s*absolute/)
     expect(source).toMatch(/<PrimaryButton[\s\S]*width="block"/)
     expect(source).toMatch(/\.onboarding__start\s*\{[\s\S]*width:\s*100%/)
     expect(source).toMatch(/:deep\(primary-button\)\s*\{[\s\S]*width:\s*100%/)
   })
 
-  it('uses a recognizable lock construction for the private-by-default note', () => {
+  it('keeps the full entry group raised above the picture edge, with privacy underlined first', () => {
     const source = readFileSync(
       resolve(__dirname, '../../src/pages/onboarding/index.vue'),
       'utf-8',
     )
 
-    expect(source).toContain('class="onboarding__lock-shackle"')
-    expect(source).toContain('class="onboarding__lock-body"')
-    expect(source).toContain('class="onboarding__lock-keyhole"')
-    expect(source).toMatch(/\.onboarding__lock-icon\s*\{[\s\S]*position:\s*relative/)
-    expect(source).toMatch(/\.onboarding__lock-body\s*\{[\s\S]*border:/)
+    expect(source).toMatch(/onboarding__privacy-link[\s\S]*隐私说明[\s\S]*onboarding__privacy-copy[\s\S]*默认仅存于本机/)
+    expect(source).toContain('class="onboarding__privacy"')
+    expect(source).toContain('class="onboarding__privacy-link"')
+    expect(source).toMatch(/\.onboarding__privacy-link[\s\S]*text-decoration:\s*underline/)
+    expect(source).toMatch(/\.onboarding__footer\s*\{[\s\S]*bottom:\s*128rpx/)
+    expect(source).toMatch(/\.onboarding__brand\s*\{[\s\S]*margin-bottom:\s*24rpx/)
+    expect(source).not.toContain('class="onboarding__lock-icon"')
   })
 
   it('gives the empty create-space state an explicit field label and secondary leave action', () => {

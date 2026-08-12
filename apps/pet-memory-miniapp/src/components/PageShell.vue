@@ -119,9 +119,6 @@ const hasIntro = computed(() => !!slots.intro)
 const hasActions = computed(() => !!slots.actions)
 
 const shellStyle = computed(() => {
-  if (props.layout === 'quiet-landing') {
-    return { paddingTop: `calc(${platform.value.statusBarHeight} + 64rpx)` }
-  }
   return {}
 })
 

@@ -17,25 +17,37 @@
       </view>
     </template>
 
-    <!-- ready: keep the mark and introduction in one visual flow -->
+    <!-- ready: a single immersive memory scene, with the entry action inside it -->
     <template v-else-if="showContent">
       <view class="onboarding__content">
-        <view class="onboarding__mark" aria-hidden="true">
-          <view class="onboarding__mark-inner" />
-        </view>
-        <view class="onboarding__intro">
-          <text class="onboarding__eyebrow">宠物记忆</text>
-          <text class="onboarding__title">给 Ta 留一个安静的位置</text>
-          <text class="onboarding__body">把想记住的样子、习惯和小事，慢慢留在这里。你可以只看看，也可以只写下一句话。</text>
-        </view>
-        <view class="onboarding__note">
-          <view class="onboarding__lock-icon" aria-hidden="true">
-            <view class="onboarding__lock-shackle" />
-            <view class="onboarding__lock-body">
-              <view class="onboarding__lock-keyhole" />
-            </view>
+        <image
+          class="onboarding__scene"
+          src="/static/ui/onboarding-photo-album-hero-v2.png"
+          mode="aspectFill"
+          aria-hidden="true"
+        />
+        <view class="onboarding__shade" aria-hidden="true" />
+        <view class="onboarding__copy">
+          <text class="onboarding__brand">宠物记忆</text>
+          <view class="onboarding__intro">
+            <text class="onboarding__title">给 Ta 留一个安静的位置</text>
+            <text class="onboarding__body">把想记住的样子，慢慢留在这里。</text>
           </view>
-          <text class="onboarding__note-text">这里默认只属于你。M0 只保存本地文字，照片仅用于这次预览。</text>
+        </view>
+        <view class="onboarding__footer">
+          <view class="onboarding__start">
+            <PrimaryButton
+              width="block"
+              :loading="isSubmitting"
+              loading-label="正在准备…"
+              @press="start"
+            >开始</PrimaryButton>
+          </view>
+          <text v-if="submitError" class="onboarding__error">刚才没有准备好，可以再试一次。</text>
+          <view class="onboarding__privacy">
+            <TextAction class="onboarding__privacy-link" @press="goPrivacy">隐私说明</TextAction>
+            <text class="onboarding__privacy-copy"> · 默认仅存于本机</text>
+          </view>
         </view>
       </view>
     </template>
@@ -47,22 +59,6 @@
       </view>
     </template>
 
-    <template #actions>
-      <template v-if="showContent">
-        <view class="onboarding__start">
-          <PrimaryButton
-            width="block"
-            :loading="isSubmitting"
-            loading-label="正在准备…"
-            @press="start"
-          >开始</PrimaryButton>
-        </view>
-        <text v-if="submitError" class="onboarding__error">刚才没有准备好，可以再试一次。</text>
-        <view class="onboarding__privacy">
-          <TextAction @press="goPrivacy">先看看隐私说明</TextAction>
-        </view>
-      </template>
-    </template>
     <DevPanel />
   </PageShell>
 </template>
@@ -147,123 +143,85 @@ function retry(): void {
 <style lang="scss" scoped>
 @import '../../styles/tokens.scss';
 
-// ---- decorative mark ----
-.onboarding__mark {
-  display: grid;
-  place-items: center;
-  width: 112rpx;
-  height: 112rpx;
-  margin-bottom: 56rpx;
-  border: $pm-border-hairline solid $pm-color-line;
-  border-radius: 50%;
-}
-
-.onboarding__mark-inner {
-  width: 36rpx;
-  height: 36rpx;
-  border: $pm-border-hairline solid $pm-color-olive;
-  border-radius: 50%;
-  box-shadow: 16rpx 12rpx 0 -10rpx $pm-color-olive;
-}
-
 .onboarding__content {
+  position: relative;
+  display: flex;
+  width: calc(100% + #{$pm-page-inline * 2});
+  min-height: 100vh;
+  margin-inline: -$pm-page-inline;
+  overflow: hidden;
+  background: $pm-color-ink;
+}
+
+.onboarding__scene,
+.onboarding__shade {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.onboarding__scene {
+  object-fit: cover;
+}
+
+.onboarding__shade {
+  background: linear-gradient(180deg, rgba(40, 38, 30, 0.06) 28%, rgba(40, 38, 30, 0.18) 56%, rgba(32, 31, 26, 0.72) 100%);
+}
+
+.onboarding__brand {
+  margin-bottom: 24rpx;
+  font-family: "Songti SC", STSong, serif;
+  font-size: 72rpx;
+  font-weight: $pm-weight-medium;
+  letter-spacing: 2rpx;
+  line-height: 1.2;
+  color: #5b371f;
+}
+
+.onboarding__copy {
+  position: absolute;
+  z-index: 1;
+  top: 21%;
+  right: $pm-page-inline;
+  left: $pm-page-inline;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
 }
 
-// ---- intro ----
+.onboarding__footer {
+  position: absolute;
+  z-index: 1;
+  right: $pm-page-inline;
+  bottom: 128rpx;
+  left: $pm-page-inline;
+  display: flex;
+  flex-direction: column;
+}
+
 .onboarding__intro {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: $pm-space-3;
-  text-align: left;
-}
-
-.onboarding__eyebrow {
-  font-size: $pm-font-support;
-  font-weight: $pm-weight-medium;
-  letter-spacing: 4rpx;
-  color: $pm-color-muted;
+  gap: 12rpx;
 }
 
 .onboarding__title {
-  font-size: $pm-font-display;
-  font-weight: $pm-weight-semibold;
-  line-height: $pm-leading-title;
-  color: $pm-color-ink;
+  font-size: 30rpx;
+  font-weight: $pm-weight-medium;
+  line-height: 1.5;
+  color: #80583a;
 }
 
 .onboarding__body {
-  font-size: $pm-font-body;
-  line-height: $pm-leading-body;
-  color: $pm-color-muted;
-}
-
-// ---- privacy note ----
-.onboarding__note {
-  display: flex;
-  gap: 24rpx;
-  align-items: flex-start;
-  margin-top: $pm-section-gap;
-  padding: 30rpx 32rpx;
-  background: $pm-color-olive-soft;
-  border-radius: $pm-radius-md;
-}
-
-.onboarding__lock-icon {
-  flex: 0 0 auto;
-  width: 34rpx;
-  height: 40rpx;
-  margin-top: 2rpx;
-  position: relative;
-}
-
-.onboarding__lock-shackle {
-  position: absolute;
-  top: 0;
-  left: 8rpx;
-  width: 18rpx;
-  height: 18rpx;
-  border: 2rpx solid $pm-color-olive;
-  border-bottom: none;
-  border-radius: 12rpx 12rpx 0 0;
-  box-sizing: border-box;
-}
-
-.onboarding__lock-body {
-  position: absolute;
-  top: 14rpx;
-  left: 2rpx;
-  width: 30rpx;
-  height: 24rpx;
-  border: 2rpx solid $pm-color-olive;
-  border-radius: 4rpx;
-  box-sizing: border-box;
-}
-
-.onboarding__lock-keyhole {
-  position: absolute;
-  top: 6rpx;
-  left: 50%;
-  width: 4rpx;
-  height: 8rpx;
-  transform: translateX(-50%);
-  border-radius: 4rpx;
-  background: $pm-color-olive;
-}
-
-.onboarding__note-text {
-  flex: 1;
-  font-size: $pm-font-support;
-  line-height: 1.65;
-  color: $pm-color-muted;
+  font-size: 28rpx;
+  line-height: 1.5;
+  color: #80583a;
 }
 
 // ---- actions ----
 .onboarding__start {
-  margin-top: $pm-section-gap;
+  margin-top: 44rpx;
   display: flex;
   width: 100%;
 
@@ -271,6 +229,9 @@ function retry(): void {
     flex: 1 1 auto;
     width: 100%;
     box-sizing: border-box;
+    background-color: rgba(255, 253, 248, 0.94);
+    color: $pm-color-ink;
+    box-shadow: 0 10rpx 30rpx rgba(48, 40, 26, 0.16);
   }
 
   :deep(primary-button) {
@@ -289,9 +250,33 @@ function retry(): void {
 }
 
 .onboarding__privacy {
-  margin-top: $pm-space-6;
+  margin-top: $pm-space-3;
   display: flex;
   justify-content: center;
+  align-items: center;
+
+  &-copy {
+    font-size: $pm-font-meta;
+    line-height: $pm-leading-compact;
+    color: rgba(255, 253, 248, 0.74);
+  }
+
+  :deep(.text-action),
+  :deep(.text-action__label) {
+    color: rgba(255, 253, 248, 0.82);
+  }
+}
+
+.onboarding__privacy-link {
+  min-width: auto;
+  min-height: auto;
+  padding: 0;
+
+  :deep(.text-action__label) {
+    font-size: $pm-font-meta;
+    text-decoration: underline;
+    text-underline-offset: 4rpx;
+  }
 }
 
 // ---- pending & error ----

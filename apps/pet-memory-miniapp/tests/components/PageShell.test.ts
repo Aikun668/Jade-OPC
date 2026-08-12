@@ -252,13 +252,13 @@ describe('PageShell', () => {
       expect(style).toBeDefined()
     })
 
-    it('quiet-landing has shellStyle with paddingTop', () => {
+    it('quiet-landing leaves the viewport un-inset for an immersive landing screen', () => {
       const wrapper = mount(PageShell, {
         props: { layout: 'quiet-landing' },
       })
       const shell = wrapper.find('.page-shell')
       const style = shell.attributes('style')
-      expect(style).toContain('padding-top')
+      expect(style).toBeUndefined()
     })
 
     it('title does not overlap with right capsule area', () => {

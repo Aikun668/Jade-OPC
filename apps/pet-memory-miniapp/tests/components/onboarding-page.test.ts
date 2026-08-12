@@ -1,4 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { useAppStore } from '../../src/stores/app'
@@ -6,6 +9,8 @@ import { useMemoryStore } from '../../src/stores/memory'
 import { provideNavigation, _resetNavigation } from '../../src/adapters/navigation-deps'
 import type { NavigationAdapter } from '../../src/adapters/navigation'
 import OnboardingPage from '../../src/pages/onboarding/index.vue'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // ---- helpers ----
 
@@ -106,15 +111,53 @@ describe('Onboarding page (01)', () => {
     const wrapper = mountPage()
     expect(wrapper.text()).toContain('宠物记忆')
     expect(wrapper.text()).toContain('给 Ta 留一个安静的位置')
-    expect(wrapper.text()).toContain('把想记住的样子')
+    expect(wrapper.text()).toContain('把想记住的样子，慢慢留在这里。')
   })
 
-  it('renders privacy note with lock indicator', () => {
+  it('keeps the entry copy above the lower action area so the dog photo remains unobstructed', () => {
     provideNavigation(mockNavigation())
     setReady(false)
     const wrapper = mountPage()
-    expect(wrapper.text()).toContain('默认只属于你')
-    expect(wrapper.text()).toContain('M0 只保存本地文字')
+    const scene = wrapper.find('.onboarding__scene')
+    const copy = wrapper.find('.onboarding__copy')
+    const footer = wrapper.find('.onboarding__footer')
+
+    expect(scene.exists()).toBe(true)
+    expect(scene.element.tagName.toLowerCase()).toBe('image')
+    expect(scene.attributes('src')).toBe('/static/ui/onboarding-photo-album-hero-v2.png')
+    expect(copy.text()).toContain('宠物记忆')
+    expect(wrapper.find('.onboarding__note').exists()).toBe(false)
+    expect(footer.exists()).toBe(true)
+    expect(copy.element.compareDocumentPosition(footer.element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(footer.find('.onboarding__brand').exists()).toBe(false)
+  })
+
+  it('uses the warm editorial type treatment from the approved visual reference', () => {
+    const source = readFileSync(
+      resolve(__dirname, '../../src/pages/onboarding/index.vue'),
+      'utf-8',
+    )
+
+    expect(source).toMatch(/\.onboarding__brand\s*\{[\s\S]*font-family:\s*"Songti SC",\s*STSong,\s*serif/)
+    expect(source).toMatch(/\.onboarding__brand\s*\{[\s\S]*font-size:\s*72rpx/)
+    expect(source).toMatch(/\.onboarding__brand\s*\{[\s\S]*color:\s*#5b371f/)
+    expect(source).toMatch(/\.onboarding__title\s*\{[\s\S]*font-size:\s*30rpx[\s\S]*color:\s*#80583a/)
+    expect(source).toMatch(/\.onboarding__body\s*\{[\s\S]*font-size:\s*28rpx[\s\S]*color:\s*#80583a/)
+    expect(source).toMatch(/\.onboarding__copy\s*\{[\s\S]*top:\s*21%/)
+  })
+
+  it('places the underlined privacy action before the local-storage reassurance', () => {
+    provideNavigation(mockNavigation())
+    setReady(false)
+    const wrapper = mountPage()
+    const privacy = wrapper.find('.onboarding__privacy')
+    const privacyLink = wrapper.find('.onboarding__privacy-link')
+    const privacyCopy = wrapper.find('.onboarding__privacy-copy')
+
+    expect(privacyLink.text()).toBe('隐私说明')
+    expect(privacyCopy.text()).toContain('默认仅存于本机')
+    expect(privacyLink.element.compareDocumentPosition(privacyCopy.element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(privacy.exists()).toBe(true)
   })
 
   it('renders "开始" primary button and privacy link', () => {
@@ -185,10 +228,13 @@ describe('Onboarding page (01)', () => {
 
   // ---- decorative mark ----
 
-  it('renders decorative mark', () => {
+  it('keeps the welcome page focused on entering and privacy', () => {
     provideNavigation(mockNavigation())
     setReady(false)
     const wrapper = mountPage()
-    expect(wrapper.find('.onboarding__mark').exists()).toBe(true)
+    expect(wrapper.find('.onboarding__mark').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('创建 Ta 的空间')
+    expect(wrapper.text()).not.toContain('登录')
+    expect(wrapper.text()).not.toContain('注册')
   })
 })
