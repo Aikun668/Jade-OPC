@@ -5,14 +5,36 @@
     @touchmove.stop.prevent
   >
     <view class="confirm-dialog__mask" />
-    <view class="confirm-dialog__panel">
+    <view
+      class="confirm-dialog__panel"
+      :class="{ 'confirm-dialog__panel--list': actionLayout === 'list' }"
+    >
       <text class="confirm-dialog__title">{{ title }}</text>
       <text v-if="description" class="confirm-dialog__desc">{{ description }}</text>
 
       <!-- error message -->
       <text v-if="error" class="confirm-dialog__error">{{ error }}</text>
 
-      <view class="confirm-dialog__actions">
+      <view
+        v-if="actionLayout === 'list'"
+        class="confirm-dialog__action-list"
+      >
+        <TextAction
+          v-for="action in listActions"
+          :key="action.key"
+          :class="[
+            'confirm-dialog__list-action',
+            `confirm-dialog__list-action--${action.role}`,
+          ]"
+          :tone="action.tone"
+          :disabled="pendingPhase !== 'idle'"
+          @press="pendingPhase === 'idle' && handleListAction(action.key)"
+        >
+          {{ action.label }}
+        </TextAction>
+      </view>
+
+      <view v-else class="confirm-dialog__actions">
         <PrimaryButton
           :loading="pendingPhase === 'pending-visible'"
           :loading-label="pendingPhase !== 'idle' ? pendingLabel : undefined"
@@ -46,6 +68,7 @@ import PrimaryButton from './PrimaryButton.vue'
 import TextAction from './TextAction.vue'
 
 export type ConfirmDialogTone = 'default' | 'danger'
+type ConfirmDialogListAction = 'confirm' | 'discard' | 'cancel'
 
 export interface ConfirmDialogProps {
   open: boolean
@@ -54,12 +77,16 @@ export interface ConfirmDialogProps {
   confirmLabel: string
   cancelLabel: string
   discardLabel?: string
+  actionLayout?: 'default' | 'list'
+  listOrder?: 'confirm-discard-cancel' | 'confirm-cancel-discard'
   tone?: ConfirmDialogTone
   pending?: boolean
   error?: string
 }
 
 const props = withDefaults(defineProps<ConfirmDialogProps>(), {
+  actionLayout: 'default',
+  listOrder: 'confirm-discard-cancel',
   tone: 'default',
   pending: false,
 })
@@ -72,6 +99,36 @@ const emit = defineEmits<{
 }>()
 
 const PENDING_HIDDEN_MS = 150
+
+const listActions = computed(() => {
+  const actions: Array<{
+    key: ConfirmDialogListAction
+    role: 'primary' | 'secondary' | 'cancel'
+    label: string
+    tone?: 'default' | 'muted' | 'danger'
+  }> = [
+    {
+      key: 'confirm',
+      role: 'primary',
+      label: props.confirmLabel,
+      tone: props.tone === 'danger' ? 'danger' : 'default',
+    },
+  ]
+
+  if (props.listOrder === 'confirm-cancel-discard') {
+    actions.push({ key: 'cancel', role: 'cancel', label: props.cancelLabel, tone: 'muted' })
+    if (props.discardLabel) {
+      actions.push({ key: 'discard', role: 'secondary', label: props.discardLabel })
+    }
+  } else {
+    if (props.discardLabel) {
+      actions.push({ key: 'discard', role: 'secondary', label: props.discardLabel })
+    }
+    actions.push({ key: 'cancel', role: 'cancel', label: props.cancelLabel, tone: 'muted' })
+  }
+
+  return actions
+})
 
 const pendingPhase = ref<'idle' | 'pending-hidden' | 'pending-visible'>('idle')
 let pendingTimer: ReturnType<typeof setTimeout> | null = null
@@ -116,6 +173,12 @@ function handleCancel() {
   if (pendingPhase.value !== 'idle') return
   emit('cancel')
 }
+
+function handleListAction(action: ConfirmDialogListAction) {
+  if (action === 'confirm') emit('confirm')
+  if (action === 'discard') emit('discard')
+  if (action === 'cancel') handleCancel()
+}
 </script>
 
 <style lang="scss" scoped>
@@ -149,6 +212,16 @@ function handleCancel() {
   gap: $pm-space-2;
 }
 
+.confirm-dialog__panel--list {
+  align-items: center;
+  text-align: center;
+
+  .confirm-dialog__title {
+    font-size: $pm-font-section-title;
+    line-height: $pm-leading-title;
+  }
+}
+
 .confirm-dialog__title {
   font-size: $pm-font-item-title;
   font-weight: $pm-weight-semibold;
@@ -174,4 +247,62 @@ function handleCancel() {
   gap: $pm-space-2;
   margin-top: $pm-space-4;
 }
+
+.confirm-dialog__action-list {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  margin-top: $pm-space-4;
+
+  :deep(.confirm-dialog__list-action) {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: $pm-control-height-regular;
+    padding-inline: $pm-space-5;
+    border: none;
+    border-radius: 0;
+    box-sizing: border-box;
+    color: $pm-color-ink;
+    font-size: $pm-font-body;
+  }
+
+  :deep(.confirm-dialog__list-action + .confirm-dialog__list-action) {
+    border-top: none;
+  }
+
+  :deep(.confirm-dialog__list-action + .confirm-dialog__list-action)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 26%;
+    width: 48%;
+    border-top: $pm-border-hairline solid $pm-color-line;
+  }
+
+  :deep(.confirm-dialog__list-action--primary) {
+    color: $pm-color-olive;
+    font-weight: $pm-weight-medium;
+  }
+
+  :deep(.confirm-dialog__list-action--secondary) {
+    color: $pm-color-ink;
+  }
+
+  :deep(.confirm-dialog__list-action--cancel) {
+    color: $pm-color-muted;
+  }
+
+  :deep(.confirm-dialog__list-action--disabled) {
+    color: $pm-color-muted;
+  }
+
+  :deep(.text-action__label) {
+    font-size: $pm-font-body;
+    text-align: center;
+  }
+}
+
 </style>

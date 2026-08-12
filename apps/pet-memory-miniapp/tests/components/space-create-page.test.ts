@@ -92,6 +92,7 @@ describe('Space-create page (03)', () => {
     setReady()
     const wrapper = mountPage()
     expect(wrapper.text()).toContain('最多 20 个字')
+    expect(wrapper.find('.space-create__name-input').attributes('maxlength')).toBe('20')
   })
 
   it('shows photo picker placeholder initially', () => {

@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import { afterEach, describe, it, expect, vi } from 'vitest'
 import type { PlatformLayout } from '../../src/adapters/platform-layout'
+import { destroyPlatformLayout, initPlatformLayout } from '../../src/adapters/platform-layout'
 
 const FALLBACK_NAV_HEIGHT = '88rpx'
 
@@ -208,5 +209,33 @@ describe('platform layout computation', () => {
   it('keyboardHeight defaults to 0px', () => {
     const result = computeLayout(393, 54, 62, 368, 94, 87, 32, 281, 34)
     expect(result.keyboardHeight).toBe('0px')
+  })
+
+  describe('mini-program startup compatibility', () => {
+    afterEach(() => {
+      destroyPlatformLayout()
+      delete (globalThis as typeof globalThis & { uni?: unknown }).uni
+    })
+
+    it('does not register the keyboard listener during platform initialization', () => {
+      const onKeyboardHeightChange = vi.fn()
+      ;(globalThis as typeof globalThis & { uni: Record<string, unknown> }).uni = {
+        getWindowInfo: () => ({ statusBarHeight: 54, windowWidth: 393, safeAreaInsets: { bottom: 34 } }),
+        getMenuButtonBoundingClientRect: () => ({
+          top: 62,
+          right: 368,
+          bottom: 94,
+          left: 281,
+          width: 87,
+          height: 32,
+        }),
+        onKeyboardHeightChange,
+        offKeyboardHeightChange: vi.fn(),
+      }
+
+      initPlatformLayout()
+
+      expect(onKeyboardHeightChange).not.toHaveBeenCalled()
+    })
   })
 })

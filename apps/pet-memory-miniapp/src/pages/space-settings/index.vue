@@ -32,22 +32,40 @@
       <!-- cover photo -->
       <view class="space-settings__cover">
         <view v-if="effectiveCoverUri" class="space-settings__cover-has">
-          <image
-            class="space-settings__cover-image"
-            :src="effectiveCoverUri"
-            mode="aspectFill"
-          />
-          <view class="space-settings__cover-tools">
-            <TextAction @press="handlePickPhoto">更换</TextAction>
-            <TextAction tone="muted" @press="handleRemovePhoto">移除</TextAction>
+          <view class="space-settings__cover-frame">
+            <image
+              class="space-settings__cover-image"
+              :src="effectiveCoverUri"
+              mode="aspectFill"
+            />
+            <TextAction
+              class="space-settings__cover-remove"
+              tone="muted"
+              aria-label="移除照片"
+              @press="handleRemovePhoto"
+            >
+              <template #prefix>
+                <view class="space-settings__close-icon" aria-hidden="true">
+                  <image
+                    class="space-settings__close-mark"
+                    src="/ui/close-outline.svg"
+                    mode="aspectFit"
+                    aria-hidden="true"
+                  />
+                </view>
+              </template>
+            </TextAction>
+            <TextAction
+              class="space-settings__cover-replace"
+              hover-class="none"
+              aria-label="更换照片"
+              @press="handlePickPhoto"
+            >更换</TextAction>
           </view>
         </view>
         <view v-else class="space-settings__cover-empty">
           <view class="space-settings__cover-add" @click="handlePickPhoto">
             <text class="space-settings__cover-add-label">添加照片</text>
-          </view>
-          <view class="space-settings__cover-tools">
-            <TextAction @press="handlePickPhoto">更换</TextAction>
           </view>
         </view>
       </view>
@@ -69,6 +87,7 @@
       <!-- save -->
       <view class="space-settings__save">
         <PrimaryButton
+          width="block"
           :loading="isSaving"
           loading-label="正在保存..."
           @press="handleSave"
@@ -83,7 +102,12 @@
             <text class="space-settings__row-title">隐私说明</text>
             <text class="space-settings__row-desc">本地数据、照片与 AI 的处理方式</text>
           </view>
-          <text class="space-settings__row-arrow">→</text>
+          <image
+            class="space-settings__row-arrow"
+            src="/ui/draft-arrow.svg"
+            mode="aspectFit"
+            aria-hidden="true"
+          />
         </view>
       </view>
 
@@ -93,7 +117,17 @@
         <text class="space-settings__danger-desc">
           将同时删除{{ deletionScopeText }}，无法恢复。
         </text>
-        <TextAction tone="danger" @press="handleDeleteTap">删除{{ space.name }}的空间</TextAction>
+        <TextAction class="space-settings__delete-action" tone="danger" @press="handleDeleteTap">
+          <template #prefix>
+            <image
+              class="space-settings__trash-icon space-settings__trash-icon--danger"
+              src="/ui/trash-outline.svg"
+              mode="aspectFit"
+              aria-hidden="true"
+            />
+          </template>
+          删除{{ space.name }}的空间
+        </TextAction>
       </view>
     </template>
 
@@ -393,21 +427,86 @@ defineExpose({ _setQueryForTest })
 
 .space-settings__cover-has {
   display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: $pm-space-4;
+  align-items: center;
+  justify-content: center;
+}
+
+.space-settings__cover-frame {
+  position: relative;
+  width: $pm-photo-space-create;
+  height: $pm-photo-space-create;
 }
 
 .space-settings__cover-image {
+  display: block;
   width: $pm-photo-space-create;
-  height: calc($pm-photo-space-create / $pm-photo-preview-ratio);
+  height: $pm-photo-space-create;
   border-radius: $pm-radius-md;
 }
 
-.space-settings__cover-tools {
+:deep(.space-settings__cover-remove) {
+  position: absolute;
+  top: -8rpx;
+  right: -8rpx;
   display: flex;
-  flex-direction: column;
   align-items: flex-start;
+  justify-content: flex-end;
+  width: 64rpx;
+  min-width: 64rpx;
+  height: 64rpx;
+  min-height: 64rpx;
+  padding: 0;
+  background: transparent;
+  border-radius: 50%;
+}
+
+:deep(.space-settings__cover-replace) {
+  position: absolute;
+  right: 8rpx;
+  bottom: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80rpx;
+  min-width: 80rpx;
+  height: 48rpx;
+  min-height: 48rpx;
+  padding: 0;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: $pm-radius-sm;
+  transform: none !important;
+  transition: none;
+}
+
+:deep(.space-settings__cover-replace:active) {
+  transform: none !important;
+  transition: none;
+  background: rgba(255, 255, 255, 0.92) !important;
+  opacity: 1;
+}
+
+:deep(.space-settings__cover-replace .text-action__label) {
+  font-size: $pm-font-meta;
+  color: $pm-color-olive;
+  white-space: nowrap;
+}
+
+.space-settings__close-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.space-settings__close-mark {
+  display: block;
+  width: 24rpx;
+  height: 24rpx;
 }
 
 .space-settings__cover-empty {
@@ -422,7 +521,7 @@ defineExpose({ _setQueryForTest })
   align-items: center;
   justify-content: center;
   width: $pm-photo-space-create;
-  height: calc($pm-photo-space-create / $pm-photo-preview-ratio);
+  height: $pm-photo-space-create;
   border: $pm-border-hairline dashed $pm-color-line;
   border-radius: $pm-radius-md;
 }
@@ -430,6 +529,17 @@ defineExpose({ _setQueryForTest })
 .space-settings__cover-add-label {
   font-size: $pm-font-support;
   color: $pm-color-muted;
+}
+
+.space-settings__trash-icon {
+  display: block;
+  flex: 0 0 auto;
+  width: $pm-icon-sm;
+  height: $pm-icon-sm;
+}
+
+.space-settings__trash-icon--muted {
+  opacity: 0.62;
 }
 
 // ---- name ----
@@ -475,6 +585,11 @@ defineExpose({ _setQueryForTest })
   :deep(.primary-button) {
     width: 100%;
   }
+
+  :deep(primary-button) {
+    display: block;
+    width: 100%;
+  }
 }
 
 .space-settings__save-error {
@@ -518,8 +633,10 @@ defineExpose({ _setQueryForTest })
 }
 
 .space-settings__row-arrow {
-  font-size: $pm-font-body;
-  color: $pm-color-muted;
+  display: block;
+  flex: 0 0 auto;
+  width: $pm-icon-sm;
+  height: $pm-icon-sm;
 }
 
 // ---- danger zone ----
@@ -543,5 +660,26 @@ defineExpose({ _setQueryForTest })
   color: $pm-color-muted;
   line-height: 1.6;
   margin-bottom: $pm-space-4;
+}
+
+:deep(.space-settings__delete-action) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: $pm-control-height-primary;
+  padding-inline: $pm-space-4;
+  box-sizing: border-box;
+  gap: $pm-space-2;
+  background: rgba(154, 93, 86, 0.1);
+  border: $pm-border-hairline solid rgba(154, 93, 86, 0.2);
+  border-radius: $pm-radius-sm;
+  color: $pm-color-danger;
+}
+
+:deep(.space-settings__delete-action .text-action__label) {
+  font-size: $pm-font-body;
+  color: $pm-color-danger;
 }
 </style>

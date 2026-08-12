@@ -12,7 +12,11 @@ vi.mock('@dcloudio/uni-app', () => {
     },
     onShow: () => {},
     onHide: () => {},
-    onReady: () => {},
+    onReady: (fn: () => void) => {
+      // Simulate the mini-program page-ready boundary asynchronously so tests
+      // can distinguish first render from post-ready navigation.
+      queueMicrotask(fn)
+    },
     onUnload: () => {},
   }
 })

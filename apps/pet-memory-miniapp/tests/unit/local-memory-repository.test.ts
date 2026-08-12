@@ -7,7 +7,8 @@ import { emptySnapshot } from '../../src/fixtures/empty-snapshot'
 import { completeSnapshot } from '../../src/fixtures/complete-snapshot'
 import { validateSnapshot } from '../../src/repositories/snapshot-validation'
 import { MemoryStorageAdapter } from '../helpers/memory-storage'
-import { LocalMemoryRepository } from '../../src/repositories/local-memory-repository'
+import { LocalMemoryRepository, M0_SNAPSHOT_KEY } from '../../src/repositories/local-memory-repository'
+import type { StorageAdapter } from '../../src/adapters/storage'
 
 // ---- 确定性 Clock 与 IdFactory ----
 
@@ -85,6 +86,55 @@ describe('LocalMemoryRepository', () => {
       await repo.bootstrap()
       expect(storage.setCalls).toContain('pet-memory:m0:snapshot')
     })
+
+    it('clears the old pre-generated complete-sample candidate during bootstrap', async () => {
+      const legacyCandidate = '第一次见到团团时，它正从纸箱里探出小脑袋，用一双好奇的眼睛打量着我。'
+      const storage = new MemoryStorageAdapter()
+      const legacySnapshot = {
+        ...completeSnapshot,
+        memories: completeSnapshot.memories.map(memory =>
+          memory.id === 'm_tuantu_photo1'
+            ? { ...memory, aiCandidateText: legacyCandidate }
+            : memory,
+        ),
+      }
+      await storage.set(M0_SNAPSHOT_KEY, legacySnapshot)
+
+      const repo = new LocalMemoryRepository(
+        storage,
+        new DeterministicClock('2026-06-01T00:00:00.000Z'),
+        new DeterministicIdFactory('test'),
+      )
+
+      const snapshot = await repo.bootstrap()
+
+      expect(snapshot.memories.find(memory => memory.id === 'm_tuantu_photo1')?.aiCandidateText).toBeNull()
+      expect((await storage.get<MemorySnapshot>(M0_SNAPSHOT_KEY))?.memories.find(memory => memory.id === 'm_tuantu_photo1')?.aiCandidateText).toBeNull()
+    })
+
+    it('bootstraps without requiring the structuredClone global', async () => {
+      const storage: StorageAdapter = {
+        get: async () => null,
+        set: async () => undefined,
+        remove: async () => undefined,
+      }
+      const repo = new LocalMemoryRepository(
+        storage,
+        new DeterministicClock('2026-06-01T00:00:00.000Z'),
+        new DeterministicIdFactory('test'),
+      )
+      const originalStructuredClone = globalThis.structuredClone
+      globalThis.structuredClone = undefined as unknown as typeof structuredClone
+
+      try {
+        await expect(repo.bootstrap()).resolves.toMatchObject({
+          sampleMode: 'empty',
+          spaces: [],
+        })
+      } finally {
+        globalThis.structuredClone = originalStructuredClone
+      }
+    })
   })
 
   describe('spaces', () => {
@@ -102,6 +152,18 @@ describe('LocalMemoryRepository', () => {
       expect(result.value.coverAssetId).toBeNull()
       expect(result.snapshot.spaces).toHaveLength(1)
       expect(result.snapshot.spaces[0].name).toBe('小白')
+    })
+
+    it('does not let callers mutate the repository state through returned results', async () => {
+      const repo = createRepo()
+      await repo.bootstrap()
+
+      const created = await repo.createSpace({ name: 'Safe', coverPhoto: null })
+      created.value.name = 'Mutated value'
+      created.snapshot.spaces[0].name = 'Mutated snapshot'
+
+      const nextWrite = await repo.createSpace({ name: 'Second', coverPhoto: null })
+      expect(nextWrite.snapshot.spaces[0].name).toBe('Safe')
     })
 
     it('creates a space with a cover photo', async () => {
@@ -473,6 +535,25 @@ describe('LocalMemoryRepository', () => {
       expect(result.value.originalText).toBe('new text')
       // updatedAt should change
       expect(new Date(result.value.updatedAt).getTime()).toBeGreaterThan(new Date(saved.value.updatedAt).getTime())
+    })
+
+    it('rejects clearing the only text from a text-only memory', async () => {
+      const repo = createRepo()
+      await repo.bootstrap()
+      const space = await repo.createSpace({ name: 'S', coverPhoto: null })
+      const saved = await repo.saveMemory({
+        spaceId: space.value.id,
+        entry: 'daily',
+        originalText: 'Only text',
+        assets: [],
+        sourceDraftId: null,
+      })
+
+      await expect(repo.updateMemory({
+        kind: 'original-text',
+        memoryId: saved.value.id,
+        originalText: '   ',
+      })).rejects.toThrow('Memory must have non-empty text or at least one photo')
     })
 
     it('updates memory ai candidate text', async () => {

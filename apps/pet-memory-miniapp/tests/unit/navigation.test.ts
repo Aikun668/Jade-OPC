@@ -8,6 +8,12 @@ import type { StableDestination } from '../../src/adapters/navigation'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
+it('waits for the platform navigateBack success callback before resolving', () => {
+  const source = readFileSync(join(__dirname, '../../src/main.ts'), 'utf8')
+
+  expect(source).toMatch(/uni\.navigateBack\(\{\s*delta,\s*success:\s*\(\)\s*=>\s*resolve\(\),\s*fail:\s*reject,?\s*\}\)/s)
+})
+
 function createMockPlatform() {
   const navigateTo = vi.fn()
   const navigateBack = vi.fn()

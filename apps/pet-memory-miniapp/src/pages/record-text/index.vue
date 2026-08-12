@@ -25,24 +25,25 @@
       <textarea
         class="record-text__textarea"
         :value="text"
-        placeholder="想到什么，就写下什么……"
+        :placeholder="textareaPlaceholder"
+        :focus="textareaFocused"
         :adjust-position="true"
         :hold-keyboard="true"
         @input="handleInput"
+        @blur="textareaFocused = false"
       />
       <view class="record-text__photos">
         <view
-          v-for="(photo, index) in selectedPhotos"
-          :key="index"
+          v-for="photo in visibleSelectedPhotos"
+          :key="photo.index"
           class="record-text__photo-item"
         >
           <image
-            v-if="photo.kind === 'new'"
             class="record-text__photo-thumb"
-            :src="photo.photo.uri"
+            :src="photo.uri"
             mode="aspectFill"
           />
-          <TextAction @press="handleRemovePhoto(index)">移除</TextAction>
+          <TextAction @press="handleRemovePhoto(photo.index)">移除</TextAction>
         </view>
         <view class="record-text__add-photo">
           <TextAction :disabled="isPicking" @press="handlePickPhotos">
@@ -59,39 +60,15 @@
     <text v-if="isOverLimit" class="record-text__overlimit">已超过 2,000 字，可以整理一下再保存。</text>
 
     <view v-if="!parseError" class="record-text__help">
-      <TextAction @press="toggleHelp">有点想不起来</TextAction>
+      <TextAction @press="cycleWritingAssistPrompt">有点想不起来</TextAction>
     </view>
-
-    <view v-if="!parseError && showHelp" class="record-text__help-panel">
-      <view class="record-text__help-options">
-        <view
-          class="record-text__help-option"
-          @click="handleHelpOption('smaller')"
-        >
-          <text>换个更小的片段</text>
-        </view>
-        <view
-          class="record-text__help-option"
-          @click="handleHelpOption('action')"
-        >
-          <text>先写下一个动作</text>
-        </view>
-        <view
-          class="record-text__help-option"
-          @click="handleHelpOption('exit')"
-        >
-          <text>这次先不写</text>
-        </view>
-      </view>
-    </view>
-
-    <text v-if="!parseError && helpHint" class="record-text__help-hint">{{ helpHint }}</text>
 
     <template v-if="!parseError" #actions>
       <view class="record-text__actions">
         <view class="record-text__save">
           <PrimaryButton
             width="block"
+            :disabled="isSavingMemory || isSavingDraft"
             :loading="isSavingMemory"
             loading-label="正在保存…"
             @press="handleSaveMemory"
@@ -115,6 +92,8 @@
       confirm-label="保存草稿"
       discard-label="放弃"
       cancel-label="继续写"
+      action-layout="list"
+      list-order="confirm-cancel-discard"
       @confirm="handleConfirmLeave"
       @discard="handleDiscardLeave"
       @cancel="showReturnDialog = false"
@@ -123,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import PageShell from '../../components/PageShell.vue'
 import PrimaryButton from '../../components/PrimaryButton.vue'
@@ -148,6 +127,7 @@ import type { TextEntry } from '../../features/recording/entry-prompts'
 import type { PickResult } from '../../adapters/photo-picker'
 
 const MAX_LENGTH = 2000
+type UniTextareaInputEvent = Event & { detail?: { value?: unknown } }
 
 const memStore = useMemoryStore()
 const nav = getNavigation()
@@ -163,8 +143,13 @@ const text = ref('')
 const isSavingMemory = ref(false)
 const isSavingDraft = ref(false)
 const saveError = ref(false)
-const showHelp = ref(false)
-const helpHint = ref('')
+const WRITING_ASSIST_PROMPTS = [
+  'Ta 当时在哪里？',
+  '你先注意到了谁？',
+  '那一刻最先发生了什么？',
+] as const
+const writingAssistPromptIndex = ref(-1)
+const textareaFocused = ref(false)
 const sourceDraftId = ref<string | null>(null)
 const showReturnDialog = ref(false)
 const parseError = ref<{ reason: string; param: string } | null>(null)
@@ -177,6 +162,29 @@ const promptText = computed(() => {
   if (!entry.value) return ''
   return getPrompt(entry.value)
 })
+
+const textareaPlaceholder = computed(() => {
+  if (writingAssistPromptIndex.value >= 0) {
+    return WRITING_ASSIST_PROMPTS[writingAssistPromptIndex.value]
+  }
+  return '想到什么，就写下什么……'
+})
+
+const visibleSelectedPhotos = computed(() => {
+  const visible: Array<{ index: number; uri: string }> = []
+  selectedPhotos.value.forEach((photo, index) => {
+    const uri = getSelectedPhotoUri(photo)
+    if (uri) visible.push({ index, uri })
+  })
+  return visible
+})
+
+function getSelectedPhotoUri(photo: SelectedPhoto): string | null {
+  if (photo.kind === 'new') return photo.photo.uri
+  const asset = memStore.findAsset(photo.assetId)
+  if (!asset || asset.availability !== 'available' || !asset.uri) return null
+  return asset.uri
+}
 
 const isOverLimit = computed(() => text.value.length > MAX_LENGTH)
 
@@ -193,10 +201,13 @@ function isDirty(): boolean {
   return false
 }
 
-function handleInput(e: any): void {
-  text.value = e.detail.value
+function handleInput(e: Event): void {
+  const value = (e as UniTextareaInputEvent).detail?.value
+  if (typeof value !== 'string') return
+  text.value = value
   saveError.value = false
-  helpHint.value = ''
+  writingAssistPromptIndex.value = -1
+  textareaFocused.value = false
 }
 
 // ---- photo picking ----
@@ -231,6 +242,9 @@ async function handlePickPhotos(): Promise<void> {
     case 'failed':
       pickError.value = '照片选择失败，可以再试一次。'
       break
+    case 'limit-reached':
+      pickError.value = '最多只能选择 9 张照片。'
+      break
   }
 }
 
@@ -242,7 +256,7 @@ function handleRemovePhoto(index: number): void {
 // ---- saving ----
 
 async function handleSaveMemory(): Promise<void> {
-  if (isSavingMemory.value) return
+  if (isSavingMemory.value || isSavingDraft.value) return
   if (!isDirty()) return
   if (!entry.value) return
   saveError.value = false
@@ -285,27 +299,15 @@ async function handleSaveDraft(): Promise<void> {
   }
 }
 
-// ---- help ----
+// ---- writing assist ----
 
-function toggleHelp(): void {
-  showHelp.value = !showHelp.value
-  helpHint.value = ''
-}
-
-function handleHelpOption(option: 'smaller' | 'action' | 'exit'): void {
-  showHelp.value = false
-  switch (option) {
-    case 'smaller':
-      helpHint.value = '试试只写下此刻最清晰的那一个画面。'
-      break
-    case 'action':
-      helpHint.value = '从 Ta 刚刚做的一个动作开始写。'
-      break
-    case 'exit':
-      helpHint.value = ''
-      handleBack()
-      break
-  }
+function cycleWritingAssistPrompt(): void {
+  writingAssistPromptIndex.value =
+    (writingAssistPromptIndex.value + 1) % WRITING_ASSIST_PROMPTS.length
+  textareaFocused.value = false
+  void nextTick(() => {
+    textareaFocused.value = true
+  })
 }
 
 // ---- back ----
@@ -319,6 +321,7 @@ function handleBack(): void {
 }
 
 async function handleConfirmLeave(): Promise<void> {
+  if (isSavingMemory.value || isSavingDraft.value) return
   showReturnDialog.value = false
   if (isDirty() && entry.value) {
     isSavingDraft.value = true
@@ -383,6 +386,8 @@ onLoad((options: Record<string, string> | undefined) => {
 // ---- test-only ----
 
 function _setQueryForTest(query: Record<string, unknown>): void {
+  writingAssistPromptIndex.value = -1
+  textareaFocused.value = false
   const parsed = parseTextRecordRoute(query)
   if (parsed.kind !== 'valid') {
     parseError.value = { reason: parsed.reason, param: parsed.param }
@@ -486,29 +491,6 @@ defineExpose({ _setQueryForTest, _setTextForTest, _setPhotosForTest })
   margin-top: $pm-space-2;
 }
 
-.record-text__help-panel {
-  margin-top: $pm-space-3;
-  padding: $pm-space-4;
-  background: $pm-color-surface;
-  border: $pm-border-hairline solid $pm-color-line;
-  border-radius: $pm-radius-sm;
-}
-
-.record-text__help-options {
-  display: flex;
-  flex-direction: column;
-  gap: $pm-space-3;
-}
-
-.record-text__help-option {
-  padding-block: $pm-space-2;
-  font-size: $pm-font-body;
-  color: $pm-color-olive;
-  min-height: $pm-hit-target-min;
-  display: flex;
-  align-items: center;
-}
-
 .record-text__save {
   display: flex;
   width: 100%;
@@ -518,6 +500,7 @@ defineExpose({ _setQueryForTest, _setTextForTest, _setPhotosForTest })
     width: 100%;
   }
 
+  // The mini-program custom-component host otherwise shrink-wraps to its label.
   :deep(primary-button) {
     display: block;
     width: 100%;
@@ -536,13 +519,6 @@ defineExpose({ _setQueryForTest, _setTextForTest, _setPhotosForTest })
   display: flex;
   justify-content: center;
   margin-top: $pm-space-2;
-}
-
-.record-text__help-hint {
-  display: block;
-  margin-top: $pm-space-2;
-  font-size: $pm-font-support;
-  color: $pm-color-olive;
 }
 
 .record-text__save-error {

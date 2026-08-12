@@ -43,7 +43,7 @@
         class="space-create__name-input"
         v-model="name"
         placeholder="Ta 的名字"
-        :maxlength="50"
+        :maxlength="20"
         @focus="keyboardOpen = true"
         @blur="keyboardOpen = false"
       />

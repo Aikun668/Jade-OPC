@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import ConfirmDialog from '../../src/components/ConfirmDialog.vue'
 import BottomSheet from '../../src/components/BottomSheet.vue'
 
@@ -37,6 +39,39 @@ describe('ConfirmDialog', () => {
       props: { ...baseProps, description: '删除后不可恢复' },
     })
     expect(wrapper.text()).toContain('删除后不可恢复')
+  })
+
+  it('keeps confirmation actions in one aligned full-width stack', () => {
+    const wrapper = mount(ConfirmDialog, {
+      props: {
+        ...baseProps,
+        discardLabel: '不保留，另起一段',
+        actionLayout: 'list',
+      },
+    })
+
+    expect(wrapper.find('.confirm-dialog__panel--list').exists()).toBe(true)
+    expect(wrapper.find('.confirm-dialog__action-list').exists()).toBe(true)
+    expect(wrapper.findAll('.confirm-dialog__list-action')).toHaveLength(3)
+    expect(wrapper.find('.confirm-dialog__list-action--primary').exists()).toBe(true)
+    expect(wrapper.find('.confirm-dialog__list-action--secondary').exists()).toBe(true)
+    expect(wrapper.find('.confirm-dialog__list-action--cancel').exists()).toBe(true)
+    expect(wrapper.find('.confirm-dialog__action-chevron').exists()).toBe(false)
+  })
+
+  it('keeps list-dialog hierarchy centered without an inner frame', () => {
+    const source = readFileSync(
+      resolve(__dirname, '../../src/components/ConfirmDialog.vue'),
+      'utf8',
+    )
+
+    expect(source).toMatch(
+      /\.confirm-dialog__panel--list\s*\{[\s\S]*?\.confirm-dialog__title\s*\{[\s\S]*?font-size:\s*\$pm-font-section-title;/,
+    )
+    expect(source).toContain('width: 48%;')
+    expect(source).not.toMatch(
+      /:deep\(\.confirm-dialog__list-action \+ \.confirm-dialog__list-action\)\s*\{\s*border-top:\s*\$pm-border/,
+    )
   })
 
   it('emits confirm when primary button is pressed', async () => {

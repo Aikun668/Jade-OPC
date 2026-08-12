@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { createPinia, setActivePinia } from 'pinia'
 import { provideNavigation, _resetNavigation } from '../../src/adapters/navigation-deps'
 import { providePhotoPicker, _resetPhotoPicker } from '../../src/adapters/photo-picker-deps'
@@ -133,25 +135,31 @@ describe('Record-photo page', () => {
   })
 
   it('removes the photo only after confirmation and restores the empty state', async () => {
+    vi.useFakeTimers()
     provideNavigation(mockNavigation())
     providePhotoPicker(mockPhotoPicker())
     const page = await import('../../src/pages/record-photo/index.vue')
-    const wrapper = mount(page.default, {
-      global: { stubs: { PageShell: stubPageShell(), MissingContentState: true, PhotoStack: true, PhotoViewer: true } },
-    })
-    setQuery(wrapper, { spaceId: 's_tuantu' })
-    setPhotos(wrapper, [{ kind: 'new', photo: { uri: '/fixtures/photo.png', name: 'photo.png' } }])
-    await wrapper.vm.$nextTick()
+    try {
+      const wrapper = mount(page.default, {
+        global: { stubs: { PageShell: stubPageShell(), MissingContentState: true, PhotoStack: true, PhotoViewer: true } },
+      })
+      setQuery(wrapper, { spaceId: 's_tuantu' })
+      setPhotos(wrapper, [{ kind: 'new', photo: { uri: '/fixtures/photo.png', name: 'photo.png' } }])
+      await wrapper.vm.$nextTick()
 
-    await wrapper.find('.record-photo__remove-button').trigger('click')
-    await wrapper.find('.confirm-dialog-root .primary-button').trigger('click')
-    await wrapper.vm.$nextTick()
+      await wrapper.find('.record-photo__remove-button').trigger('click')
+      await wrapper.find('.confirm-dialog-root .primary-button').trigger('click')
+      vi.advanceTimersByTime(240)
+      await wrapper.vm.$nextTick()
 
-    expect(wrapper.find('.record-photo__media--empty').exists()).toBe(true)
-    expect(wrapper.find('.record-photo__media--selected').exists()).toBe(false)
-    expect(wrapper.findAll('.record-photo__choice')).toHaveLength(0)
-    expect(wrapper.find('.record-photo__session-note').exists()).toBe(false)
-    expect(wrapper.find('.confirm-dialog-root').exists()).toBe(false)
+      expect(wrapper.find('.record-photo__media--empty').exists()).toBe(true)
+      expect(wrapper.find('.record-photo__media--selected').exists()).toBe(false)
+      expect(wrapper.findAll('.record-photo__choice')).toHaveLength(0)
+      expect(wrapper.find('.record-photo__session-note').exists()).toBe(false)
+      expect(wrapper.find('.confirm-dialog-root').exists()).toBe(false)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('keeps the photo when removal is cancelled', async () => {
@@ -171,6 +179,27 @@ describe('Record-photo page', () => {
 
     expect(wrapper.find('.record-photo__media--selected').exists()).toBe(true)
     expect(wrapper.find('.record-photo__media--empty').exists()).toBe(false)
+  })
+
+  it('uses the centered list layout for the unsaved-photo exit dialog', async () => {
+    const nav = mockNavigation()
+    provideNavigation(nav)
+    providePhotoPicker(mockPhotoPicker())
+    const page = await import('../../src/pages/record-photo/index.vue')
+    const wrapper = mount(page.default, {
+      global: { stubs: { PageShell: stubPageShell(), MissingContentState: true, PhotoStack: true, PhotoViewer: true } },
+    })
+    setQuery(wrapper, { spaceId: 's_tuantu' })
+    setPhotos(wrapper, [{ kind: 'new', photo: { uri: '/fixtures/photo.png', name: 'photo.png' } }])
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('.mock-back').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.confirm-dialog__panel--list').exists()).toBe(true)
+    expect(wrapper.findAll('.confirm-dialog__list-action')).toHaveLength(3)
+    expect(wrapper.text()).toContain('照片还没处理，要离开吗？')
+    expect(wrapper.text()).toContain('离开前照片不会自动保存。')
   })
 
   it('shows session note', async () => {
@@ -201,6 +230,50 @@ describe('Record-photo page', () => {
 
     expect(wrapper.text()).toContain('先只留下照片')
     expect(wrapper.text()).toContain('说说最先想起的事')
+  })
+
+  it('replaces a single selected photo instead of appending another one', async () => {
+    provideNavigation(mockNavigation())
+    providePhotoPicker(mockPhotoPicker({
+      kind: 'selected',
+      photos: [{ uri: '/fixtures/replacement.png' }],
+    }))
+    const page = await import('../../src/pages/record-photo/index.vue')
+    const wrapper = mount(page.default, {
+      global: { stubs: { PageShell: stubPageShell(), MissingContentState: true, PhotoStack: true, PhotoViewer: true } },
+    })
+    setQuery(wrapper, { spaceId: 's_tuantu' })
+    setPhotos(wrapper, [{ kind: 'new', photo: { uri: '/fixtures/original.png' } }])
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('.record-photo__photo-actions .text-action').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.findAll('.record-photo__single-preview')).toHaveLength(1)
+    expect(wrapper.find('.record-photo__single-preview').attributes('src')).toBe('/fixtures/replacement.png')
+  })
+
+  it('locks the photo-only save while a draft save is in progress', () => {
+    const source = readFileSync(
+      resolve(__dirname, '../../src/pages/record-photo/index.vue'),
+      'utf8',
+    )
+
+    expect(source).toMatch(/function handleSavePhotosOnly\(\): Promise<void> \{\s*if \(isSavingMemory\.value \|\| isSavingDraft\.value\) return/)
+  })
+
+  it('uses compact sizing for the replacement-photo action', () => {
+    const source = readFileSync(
+      resolve(__dirname, '../../src/pages/record-photo/index.vue'),
+      'utf8',
+    )
+
+    expect(source).toMatch(
+      /\.record-photo__photo-actions\s*\{[\s\S]*?min-height:\s*\$pm-control-height-compact;/,
+    )
+    expect(source).toMatch(
+      /\.record-photo__photo-actions\s*\{[\s\S]*?padding-inline:\s*\$pm-space-2;/,
+    )
   })
 
   it('shows MissingContentState when spaceId is invalid', async () => {

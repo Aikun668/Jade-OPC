@@ -228,6 +228,20 @@ describe('validateSnapshot', () => {
     expect(result.kind).toBe('invalid')
   })
 
+  it('rejects duplicate asset references in one memory', () => {
+    const snapshot = makeValidCompleteSnapshot()
+    snapshot.memories[1].assetIds = ['a2', 'a2']
+
+    expect(validateSnapshot(snapshot).kind).toBe('invalid')
+  })
+
+  it('rejects duplicate asset references in one draft', () => {
+    const snapshot = makeValidCompleteSnapshot()
+    snapshot.drafts[0].assetIds = ['a3', 'a3']
+
+    expect(validateSnapshot(snapshot).kind).toBe('invalid')
+  })
+
   it('rejects asset with ownerType/ownerId mismatch (memory asset pointing to space)', () => {
     const snapshot = makeValidEmptySnapshot()
     snapshot.spaces = [{ id: 's1', name: 'A', coverAssetId: 'a1', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }]

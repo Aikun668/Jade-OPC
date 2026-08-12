@@ -19,7 +19,10 @@ function mockNavigation(overrides: Partial<NavigationAdapter> = {}): NavigationA
 function stubPageShell() {
   return {
     template: `
-      <view class="mock-pageshell">
+      <view
+        class="mock-pageshell"
+        :data-keyboard-open="$attrs['keyboard-open'] || $attrs.keyboardOpen || 'false'"
+      >
         <view v-if="$attrs['show-back'] || $attrs.showBack" class="mock-back" @click="$emit('back')">back</view>
         <view>{{ $attrs.title || '' }}</view>
         <slot name="intro" />
@@ -135,6 +138,58 @@ describe('Memory-edit page (10)', () => {
     expect(textarea.element.value).toBe('团团今天在窗台上晒了一下午太阳。')
   })
 
+  it('keeps the bottom actions layout fixed when the editor receives focus', async () => {
+    provideNavigation(mockNavigation())
+    const appStore = useAppStore()
+    const memStore = useMemoryStore()
+
+    appStore.$patch({ bootstrapStatus: 'ready' } as any)
+    memStore._commitSnapshot(mkSnapshot({
+      spaces: [{ id: 's1', name: 'test', coverAssetId: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' }],
+      memories: [testMemory],
+    }))
+
+    const page = await import('../../src/pages/memory-edit/index.vue')
+    const wrapper = mount(page.default, {
+      global: { stubs: { PageShell: stubPageShell() } },
+    })
+
+    setQuery(wrapper, { memoryId: 'm1' })
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('textarea').trigger('focus')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.mock-pageshell').attributes('data-keyboard-open')).toBe('false')
+  })
+
+  it('keeps a reserved actions region before the route memory is ready', async () => {
+    provideNavigation(mockNavigation())
+    const appStore = useAppStore()
+    const memStore = useMemoryStore()
+
+    appStore.$patch({ bootstrapStatus: 'loading' } as any)
+    memStore._commitSnapshot(mkSnapshot({
+      spaces: [{ id: 's1', name: 'test', coverAssetId: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' }],
+      memories: [testMemory],
+    }))
+
+    const page = await import('../../src/pages/memory-edit/index.vue')
+    const wrapper = mount(page.default, {
+      global: { stubs: { PageShell: stubPageShell() } },
+    })
+
+    expect(wrapper.find('.memory-edit__actions').exists()).toBe(true)
+    expect(wrapper.findAllComponents({ name: 'PrimaryButton' })).toHaveLength(0)
+
+    setQuery(wrapper, { memoryId: 'm1' })
+    appStore.$patch({ bootstrapStatus: 'ready' } as any)
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.memory-edit__actions').exists()).toBe(true)
+    expect(wrapper.findAllComponents({ name: 'PrimaryButton' })).toHaveLength(1)
+  })
+
   // ---- save ----
 
   it('T8-E04: save after modification calls updateMemory and navigates back', async () => {
@@ -174,6 +229,68 @@ describe('Memory-edit page (10)', () => {
       originalText: '修改后的内容',
     })
     expect(nav.back).toHaveBeenCalled()
+  })
+
+  it('updates the editor from a mini-program input event detail value', async () => {
+    provideNavigation(mockNavigation())
+    const appStore = useAppStore()
+    const memStore = useMemoryStore()
+    appStore.$patch({ bootstrapStatus: 'ready' } as any)
+    memStore._commitSnapshot(mkSnapshot({
+      spaces: [{ id: 's1', name: 'test', coverAssetId: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' }],
+      memories: [testMemory],
+    }))
+
+    const page = await import('../../src/pages/memory-edit/index.vue')
+    const wrapper = mount(page.default, { global: { stubs: { PageShell: stubPageShell() } } })
+    setQuery(wrapper, { memoryId: 'm1' })
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('textarea').trigger('input', { detail: { value: '来自微信事件的新内容' } })
+    await wrapper.vm.$nextTick()
+
+    expect((wrapper.find('textarea').element as HTMLTextAreaElement).value).toBe('来自微信事件的新内容')
+  })
+
+  it('shows the leave warning description in its confirmation dialog', async () => {
+    provideNavigation(mockNavigation())
+    const appStore = useAppStore()
+    const memStore = useMemoryStore()
+    appStore.$patch({ bootstrapStatus: 'ready' } as any)
+    memStore._commitSnapshot(mkSnapshot({
+      spaces: [{ id: 's1', name: 'test', coverAssetId: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' }],
+      memories: [testMemory],
+    }))
+
+    const page = await import('../../src/pages/memory-edit/index.vue')
+    const wrapper = mount(page.default, { global: { stubs: { PageShell: stubPageShell() } } })
+    setQuery(wrapper, { memoryId: 'm1' })
+    await wrapper.vm.$nextTick()
+    await wrapper.find('textarea').setValue('modified')
+    await wrapper.find('.mock-back').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).toContain('现在离开，刚才的修改不会保留。')
+  })
+
+  it('disables save when the edited text exceeds the limit', async () => {
+    provideNavigation(mockNavigation())
+    const appStore = useAppStore()
+    const memStore = useMemoryStore()
+    appStore.$patch({ bootstrapStatus: 'ready' } as any)
+    memStore._commitSnapshot(mkSnapshot({
+      spaces: [{ id: 's1', name: 'test', coverAssetId: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' }],
+      memories: [testMemory],
+    }))
+
+    const page = await import('../../src/pages/memory-edit/index.vue')
+    const wrapper = mount(page.default, { global: { stubs: { PageShell: stubPageShell() } } })
+    setQuery(wrapper, { memoryId: 'm1' })
+    await wrapper.vm.$nextTick()
+    await wrapper.find('textarea').setValue('a'.repeat(2001))
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.memory-edit__save button').attributes('disabled')).toBeDefined()
   })
 
   // ---- "这次先不改" (no modifications) ----

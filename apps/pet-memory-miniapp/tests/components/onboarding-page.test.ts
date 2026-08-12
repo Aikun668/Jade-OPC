@@ -78,13 +78,17 @@ describe('Onboarding page (01)', () => {
     expect(wrapper.text()).not.toContain('开始')
   })
 
-  it('T5B-M09: redirects to spaces when onboarding already completed', async () => {
+  it('T5B-M09: waits for the first page render before replacing completed onboarding', async () => {
     const nav = mockNavigation()
     provideNavigation(nav)
     setReady(true)
-    const wrapper = mountPage()
-    // Should trigger redirect to spaces
-    expect(nav.resetTo).toHaveBeenCalledWith({ page: 'spaces' })
+    mountPage()
+    // Startup only needs to replace the onboarding page; reLaunch can time out while
+    // the mini-program page stack is still settling during dev hot reload.
+    expect(nav.replace).not.toHaveBeenCalled()
+    await Promise.resolve()
+    expect(nav.replace).toHaveBeenCalledWith('/pages/spaces/index')
+    expect(nav.resetTo).not.toHaveBeenCalled()
   })
 
   it('shows onboarding content when bootstrap ready and onboarding=false', () => {

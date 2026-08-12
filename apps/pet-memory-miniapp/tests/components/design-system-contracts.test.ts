@@ -82,6 +82,7 @@ const REQUIRED_RADII = [
 const REQUIRED_CONTROLS = [
   '$pm-control-height-primary',
   '$pm-control-height-regular',
+  '$pm-control-height-compact',
   '$pm-hit-target-min',
   '$pm-icon-sm',
   '$pm-icon-md',

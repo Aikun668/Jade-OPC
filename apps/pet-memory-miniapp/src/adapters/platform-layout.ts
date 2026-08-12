@@ -33,8 +33,6 @@ const FALLBACK: PlatformLayout = {
 
 const layout = ref<PlatformLayout>({ ...FALLBACK })
 
-let keyboardCallback: ((res: { height: number }) => void) | null = null
-
 function isCapsuleRectValid(
   rect: { top: number; right: number; bottom: number; left: number; width: number; height: number },
   statusBarH: number,
@@ -94,26 +92,12 @@ function readPlatformValues(): PlatformLayout {
 
 export function initPlatformLayout(): void {
   layout.value = readPlatformValues()
-
-  try {
-    keyboardCallback = (res: { height: number }) => {
-      layout.value = { ...layout.value, keyboardHeight: `${res.height}px` }
-    }
-    uni.onKeyboardHeightChange(keyboardCallback)
-  } catch {
-    // Keyboard listener not available on all platforms
-  }
 }
 
 export function destroyPlatformLayout(): void {
-  if (keyboardCallback) {
-    try {
-      uni.offKeyboardHeightChange(keyboardCallback)
-    } catch {
-      // offKeyboardHeightChange not available on all platforms
-    }
-    keyboardCallback = null
-  }
+  // Keyboard layout is controlled by page-level focus/blur state. Keeping
+  // this lifecycle hook preserves the adapter contract without registering
+  // a global listener that is unstable in the WeChat DevTools bridge.
 }
 
 export function usePlatformLayout(): Ref<PlatformLayout> {

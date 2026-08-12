@@ -112,6 +112,7 @@ describe('Task 10 M0 integration journeys', () => {
     expect(memory.recentMemories('s_tuantu')).toHaveLength(2)
     expect(memory.allMemories('s_tuantu')).toHaveLength(2)
     expect(memory.findMemory('m_tuantu_photo1')?.assetIds).toHaveLength(2)
+    expect(memory.findMemory('m_tuantu_photo1')?.aiCandidateText).toBeNull()
 
     const original = memory.findMemory('m_tuantu_daily1')!.originalText
     await memory.updateMemory({

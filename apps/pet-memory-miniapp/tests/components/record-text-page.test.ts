@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { createPinia, setActivePinia } from 'pinia'
 import { useMemoryStore } from '../../src/stores/memory'
 import { provideNavigation, _resetNavigation } from '../../src/adapters/navigation-deps'
@@ -50,6 +52,27 @@ describe('Record-text page (06)', () => {
     setActivePinia(createPinia())
     _resetNavigation()
     _resetPhotoPicker()
+  })
+
+  it('locks the primary save while a draft save is in progress', () => {
+    const source = readFileSync(
+      resolve(__dirname, '../../src/pages/record-text/index.vue'),
+      'utf8',
+    )
+
+    expect(source).toMatch(/:disabled="isSavingMemory \|\| isSavingDraft"/)
+    expect(source).toMatch(/function handleSaveMemory\(\): Promise<void> \{\s*if \(isSavingMemory\.value \|\| isSavingDraft\.value\) return/)
+  })
+
+  it('keeps the primary button host full-width in the mini-program', () => {
+    const source = readFileSync(
+      resolve(__dirname, '../../src/pages/record-text/index.vue'),
+      'utf8',
+    )
+
+    expect(source).toMatch(
+      /:deep\(primary-button\)\s*\{\s*display:\s*block;\s*width:\s*100%;/,
+    )
   })
 
   // ---- rendering ----
@@ -136,6 +159,7 @@ describe('Record-text page (06)', () => {
     await wrapper.vm.$nextTick()
 
     expect(wrapper.text()).toContain('加一张照片')
+    expect(wrapper.findAll('.record-text__photo-item .text-action')).toHaveLength(0)
   })
 
   it('renders a small image icon before the add-photo action', async () => {
@@ -228,9 +252,9 @@ describe('Record-text page (06)', () => {
     expect(nav.back).toHaveBeenCalled()
   })
 
-  // ---- help panel ----
+  // ---- writing assist prompts ----
 
-  it('"有点想不起来" toggles help panel visibility', async () => {
+  it('"有点想不起来" directly cycles prompts without opening a panel', async () => {
     provideNavigation(mockNavigation())
     setReady()
     const page = await import('../../src/pages/record-text/index.vue')
@@ -241,164 +265,48 @@ describe('Record-text page (06)', () => {
     vm._setQueryForTest({ spaceId: 's1', entry: 'daily' })
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).toContain('有点想不起来')
-    // Panel should be hidden initially
-    expect(wrapper.find('.record-text__help-panel').exists()).toBe(false)
-
-    // Click "有点想不起来" → panel opens
     const helpBtn = wrapper.find('.record-text__help .text-action')
-    await helpBtn.trigger('click')
-    expect(wrapper.find('.record-text__help-panel').exists()).toBe(true)
-    expect(wrapper.text()).toContain('换个更小的片段')
-    expect(wrapper.text()).toContain('先写下一个动作')
-    expect(wrapper.text()).toContain('这次先不写')
-
-    // Click again → panel closes
-    await helpBtn.trigger('click')
-    expect(wrapper.find('.record-text__help-panel').exists()).toBe(false)
-  })
-
-  it('"换个更小的片段" closes panel, shows hint, does not change text', async () => {
-    provideNavigation(mockNavigation())
-    setReady()
-    const page = await import('../../src/pages/record-text/index.vue')
-    const wrapper = mount(page.default, {
-      global: { stubs: { PageShell: stubPageShell() } },
-    })
-
-    const vm = wrapper.vm as any
-    vm._setQueryForTest({ spaceId: 's1', entry: 'daily' })
-    if (vm._setTextForTest) vm._setTextForTest('我的原话')
-    await wrapper.vm.$nextTick()
-
-    // Open help panel
-    const helpBtn = wrapper.find('.record-text__help .text-action')
-    await helpBtn.trigger('click')
-    expect(wrapper.find('.record-text__help-panel').exists()).toBe(true)
-
-    // Click "换个更小的片段"
-    const options = wrapper.findAll('.record-text__help-option')
-    const smallerOption = options.find(o => o.text().includes('更小的片段'))
-    await smallerOption!.trigger('click')
-
-    // Panel closed
-    expect(wrapper.find('.record-text__help-panel').exists()).toBe(false)
-    // Hint shown
-    expect(wrapper.text()).toContain('试试只写下此刻最清晰的那一个画面')
-    // Text unchanged
-    expect(vm._setTextForTest).toBeDefined()
-  })
-
-  it('"先写下一个动作" closes panel, shows hint, does not change text', async () => {
-    provideNavigation(mockNavigation())
-    setReady()
-    const page = await import('../../src/pages/record-text/index.vue')
-    const wrapper = mount(page.default, {
-      global: { stubs: { PageShell: stubPageShell() } },
-    })
-
-    const vm = wrapper.vm as any
-    vm._setQueryForTest({ spaceId: 's1', entry: 'daily' })
-    if (vm._setTextForTest) vm._setTextForTest('我的原话')
-    await wrapper.vm.$nextTick()
-
-    // Open help panel
-    const helpBtn = wrapper.find('.record-text__help .text-action')
-    await helpBtn.trigger('click')
-
-    // Click "先写下一个动作"
-    const options = wrapper.findAll('.record-text__help-option')
-    const actionOption = options.find(o => o.text().includes('动作'))
-    await actionOption!.trigger('click')
-
-    // Panel closed
-    expect(wrapper.find('.record-text__help-panel').exists()).toBe(false)
-    // Hint shown
-    expect(wrapper.text()).toContain('从 Ta 刚刚做的一个动作开始写')
-  })
-
-  it('"这次先不写" triggers return protection when dirty', async () => {
-    const nav = mockNavigation()
-    provideNavigation(nav)
-    setReady()
-    const page = await import('../../src/pages/record-text/index.vue')
-    const wrapper = mount(page.default, {
-      global: { stubs: { PageShell: stubPageShell() } },
-    })
-
-    const vm = wrapper.vm as any
-    if (vm._setQueryForTest) vm._setQueryForTest({ spaceId: 's1', entry: 'daily' })
-    if (vm._setTextForTest) vm._setTextForTest('有内容')
-    await wrapper.vm.$nextTick()
-
-    // Open help panel
-    const helpBtn = wrapper.find('.record-text__help .text-action')
-    await helpBtn.trigger('click')
-
-    // Click "这次先不写"
-    const options = wrapper.findAll('.record-text__help-option')
-    const exitOption = options.find(o => o.text().includes('先不写'))
-    await exitOption!.trigger('click')
-
-    // Panel closed
-    expect(wrapper.find('.record-text__help-panel').exists()).toBe(false)
-    // Return protection dialog shown
-    expect(wrapper.text()).toContain('这段还没保存')
-  })
-
-  it('"这次先不写" navigates back directly when not dirty', async () => {
-    const nav = mockNavigation()
-    provideNavigation(nav)
-    setReady()
-    const page = await import('../../src/pages/record-text/index.vue')
-    const wrapper = mount(page.default, {
-      global: { stubs: { PageShell: stubPageShell() } },
-    })
-
-    const vm = wrapper.vm as any
-    vm._setQueryForTest({ spaceId: 's1', entry: 'daily' })
-    await wrapper.vm.$nextTick()
-
-    // Open help panel
-    const helpBtn = wrapper.find('.record-text__help .text-action')
-    await helpBtn.trigger('click')
-
-    // Click "这次先不写" with empty text
-    const options = wrapper.findAll('.record-text__help-option')
-    const exitOption = options.find(o => o.text().includes('先不写'))
-    await exitOption!.trigger('click')
-
-    expect(nav.back).toHaveBeenCalled()
-  })
-
-  it('help hint clears when user starts typing', async () => {
-    provideNavigation(mockNavigation())
-    setReady()
-    const page = await import('../../src/pages/record-text/index.vue')
-    const wrapper = mount(page.default, {
-      global: { stubs: { PageShell: stubPageShell() } },
-    })
-
-    const vm = wrapper.vm as any
-    vm._setQueryForTest({ spaceId: 's1', entry: 'daily' })
-    await wrapper.vm.$nextTick()
-
-    // Open help panel and select "smaller"
-    const helpBtn = wrapper.find('.record-text__help .text-action')
-    await helpBtn.trigger('click')
-    const options = wrapper.findAll('.record-text__help-option')
-    const smallerOption = options.find(o => o.text().includes('更小的片段'))
-    await smallerOption!.trigger('click')
-
-    expect(wrapper.text()).toContain('试试只写下此刻最清晰的那一个画面')
-
-    // Simulate text input — hint should disappear
     const textarea = wrapper.find('textarea')
-    await textarea.trigger('input', { detail: { value: '新内容' } })
-    expect(wrapper.text()).not.toContain('试试只写下此刻最清晰的那一个画面')
+    expect(wrapper.find('.record-text__help-panel').exists()).toBe(false)
+
+    await helpBtn.trigger('click')
+    await wrapper.vm.$nextTick()
+    expect(textarea.attributes('placeholder')).toBe('Ta 当时在哪里？')
+    expect(wrapper.find('.record-text__help-panel').exists()).toBe(false)
+
+    await helpBtn.trigger('click')
+    await wrapper.vm.$nextTick()
+    expect(textarea.attributes('placeholder')).toBe('你先注意到了谁？')
+
+    // The prompt list loops back to the first prompt.
+    await helpBtn.trigger('click')
+    await helpBtn.trigger('click')
+    await wrapper.vm.$nextTick()
+    expect(textarea.attributes('placeholder')).toBe('Ta 当时在哪里？')
+    expect(wrapper.findAll('.record-text__help-option')).toHaveLength(0)
   })
 
-  it('help hint clears when toggling help panel', async () => {
+  it('writing-assist prompt changes do not overwrite existing text', async () => {
+    provideNavigation(mockNavigation())
+    setReady()
+    const page = await import('../../src/pages/record-text/index.vue')
+    const wrapper = mount(page.default, {
+      global: { stubs: { PageShell: stubPageShell() } },
+    })
+
+    const vm = wrapper.vm as any
+    vm._setQueryForTest({ spaceId: 's1', entry: 'daily' })
+    vm._setTextForTest('我的原话')
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('.record-text__help .text-action').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('textarea').element.value).toBe('我的原话')
+    expect(wrapper.find('textarea').attributes('placeholder')).toBe('Ta 当时在哪里？')
+  })
+
+  it('typing clears the writing-assist prompt and restores the default placeholder', async () => {
     provideNavigation(mockNavigation())
     setReady()
     const page = await import('../../src/pages/record-text/index.vue')
@@ -410,17 +318,51 @@ describe('Record-text page (06)', () => {
     vm._setQueryForTest({ spaceId: 's1', entry: 'daily' })
     await wrapper.vm.$nextTick()
 
-    // Open help panel, select option to show hint
     const helpBtn = wrapper.find('.record-text__help .text-action')
     await helpBtn.trigger('click')
-    const options = wrapper.findAll('.record-text__help-option')
-    const smallerOption = options.find(o => o.text().includes('更小的片段'))
-    await smallerOption!.trigger('click')
-    expect(wrapper.text()).toContain('试试只写下此刻最清晰的那一个画面')
+    expect(wrapper.find('textarea').attributes('placeholder')).toBe('Ta 当时在哪里？')
 
-    // Open help again — hint should clear
+    await wrapper.find('textarea').trigger('input', { detail: { value: '新内容' } })
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('textarea').attributes('placeholder')).toBe('想到什么，就写下什么……')
+  })
+
+  it('does not render the removed writing-assist option panel', async () => {
+    provideNavigation(mockNavigation())
+    setReady()
+    const page = await import('../../src/pages/record-text/index.vue')
+    const wrapper = mount(page.default, {
+      global: { stubs: { PageShell: stubPageShell() } },
+    })
+    const vm = wrapper.vm as any
+    vm._setQueryForTest({ spaceId: 's1', entry: 'daily' })
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.record-text__help-panel').exists()).toBe(false)
+    expect(wrapper.findAll('.record-text__help-option')).toHaveLength(0)
+  })
+
+  /*
+   * The old two-step scene/action selection is intentionally removed. Keep
+   * this boundary visible in the test file so future prompt changes do not
+   * accidentally restore the intermediate panel.
+   */
+  it('keeps the help action as a single direct interaction', async () => {
+    provideNavigation(mockNavigation())
+    setReady()
+    const page = await import('../../src/pages/record-text/index.vue')
+    const wrapper = mount(page.default, {
+      global: { stubs: { PageShell: stubPageShell() } },
+    })
+    const vm = wrapper.vm as any
+    vm._setQueryForTest({ spaceId: 's1', entry: 'daily' })
+    await wrapper.vm.$nextTick()
+
+    const helpBtn = wrapper.find('.record-text__help .text-action')
     await helpBtn.trigger('click')
-    expect(wrapper.text()).not.toContain('试试只写下此刻最清晰的那一个画面')
+    await wrapper.vm.$nextTick()
+    expect(wrapper.findAll('.record-text__help-option')).toHaveLength(0)
+    expect(wrapper.find('textarea').attributes('placeholder')).toBe('Ta 当时在哪里？')
   })
 
   it('back button navigates back', async () => {
@@ -462,7 +404,13 @@ describe('Record-text page (06)', () => {
     await wrapper.vm.$nextTick()
 
     expect(wrapper.text()).toContain('这段还没保存')
+    expect(wrapper.find('.confirm-dialog__panel--list').exists()).toBe(true)
     expect(wrapper.text()).toContain('放弃')
+    expect(wrapper.findAll('.confirm-dialog__list-action').map((action) => action.text())).toEqual([
+      '保存草稿',
+      '继续写',
+      '放弃',
+    ])
 
     // Click "放弃"
     const dialog = wrapper.findComponent({ name: 'ConfirmDialog' })
@@ -743,7 +691,7 @@ describe('Record-text page (06)', () => {
     expect(nav.back).toHaveBeenCalled()
   })
 
-  it('pre-fills photos when draft with assets is loaded', async () => {
+  it('does not show a remove action for unavailable draft photo references', async () => {
     provideNavigation(mockNavigation())
     providePhotoPicker(mockPhotoPicker())
     setReady()
@@ -773,8 +721,49 @@ describe('Record-text page (06)', () => {
     const textarea = wrapper.find('textarea')
     expect(textarea.element.value).toBe('有图的草稿')
 
-    // Photo items restored as 'existing' kind — check via remove buttons
+    // Unresolved asset IDs are not visible photos and must not expose a remove action.
+    expect(wrapper.findAll('.record-text__photo-item')).toHaveLength(0)
     const removeBtns = wrapper.findAll('.record-text__photo-item .text-action')
-    expect(removeBtns.length).toBe(2)
+    expect(removeBtns.length).toBe(0)
+    expect(wrapper.find('.record-text__add-photo').exists()).toBe(true)
+  })
+
+  it('shows thumbnails and remove actions for available restored draft photos', async () => {
+    provideNavigation(mockNavigation())
+    providePhotoPicker(mockPhotoPicker())
+    setReady()
+
+    const memStore = useMemoryStore()
+    memStore._commitSnapshot({
+      spaces: [{ id: 's1', name: 'test', coverAssetId: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' }],
+      drafts: [{
+        id: 'd_assets', spaceId: 's1', entry: 'daily' as const,
+        text: '有图的草稿', assetIds: ['a_existing1', 'a_existing2'],
+        createdAt: '2026-05-01T00:00:00.000Z', updatedAt: '2026-05-01T00:00:00.000Z',
+      }],
+      memories: [],
+      assets: [
+        {
+          id: 'a_existing1', ownerType: 'draft', ownerId: 'd_assets',
+          uri: '/tmp/existing-1.png', persistence: 'session-only', availability: 'available', order: 0,
+        },
+        {
+          id: 'a_existing2', ownerType: 'draft', ownerId: 'd_assets',
+          uri: '/tmp/existing-2.png', persistence: 'session-only', availability: 'available', order: 1,
+        },
+      ],
+    })
+
+    const page = await import('../../src/pages/record-text/index.vue')
+    const wrapper = mount(page.default, {
+      global: { stubs: { PageShell: stubPageShell() } },
+    })
+
+    const vm = wrapper.vm as any
+    vm._setQueryForTest({ spaceId: 's1', draftId: 'd_assets' })
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.findAll('.record-text__photo-thumb')).toHaveLength(2)
+    expect(wrapper.findAll('.record-text__photo-item .text-action')).toHaveLength(2)
   })
 })

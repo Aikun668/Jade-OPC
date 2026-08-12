@@ -2,7 +2,7 @@ import type { MemorySnapshot } from '../types/domain'
 
 /**
  * 完整样本：团团 + 豆豆两个空间。
- * - 团团：空间照片、两段正式记忆（有图+无图）、一条草稿
+ * - 团团：空间照片、两段正式记忆（有图+无图）、一条草稿；正式记忆初始不预生成 AI 草稿
  * - 豆豆：无空间照片、无正式记忆
  *
  * 所有照片使用 bundled 持久化，路径为批准的打包资源。
@@ -44,7 +44,7 @@ export const completeSnapshot: MemorySnapshot = {
       spaceId: 's_tuantu',
       entry: 'photo',
       originalText: '第一次见到团团时，它正从纸箱里探出脑袋看着我。',
-      aiCandidateText: '第一次见到团团时，它正从纸箱里探出小脑袋，用一双好奇的眼睛打量着我。',
+      aiCandidateText: null,
       assetIds: ['a_tuantu_photo1', 'a_tuantu_photo2'],
       createdAt: '2026-04-15T14:00:00.000Z',
       updatedAt: '2026-04-20T09:00:00.000Z',

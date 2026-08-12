@@ -49,7 +49,7 @@
           <text class="record-photo__remove-icon" aria-hidden="true">×</text>
         </button>
         <view class="record-photo__photo-actions">
-          <TextAction @press="handlePickPhotos">更换照片</TextAction>
+          <TextAction @press="handleReplacePhoto">更换照片</TextAction>
         </view>
       </view>
       <view v-else-if="selectedPhotos.length > 1" class="record-photo__stack-media">
@@ -68,22 +68,22 @@
       </view>
 
       <view v-if="selectedPhotos.length > 1" class="record-photo__photo-actions record-photo__photo-actions--stack">
-        <TextAction @press="handlePickPhotos">更换照片</TextAction>
+        <TextAction @press="handlePickPhotos">添加照片</TextAction>
       </view>
 
       <text v-if="pickError" class="record-photo__pick-feedback">{{ pickError }}</text>
     </view>
 
-    <transition name="record-photo-post">
-      <view
-        v-if="!parseError && selectedPhotos.length > 0"
-        class="record-photo__post-photo"
-      >
+    <view
+      v-if="postPhotoRendered && !parseError"
+      class="record-photo__post-photo"
+      :class="{ 'record-photo__post-photo--visible': postPhotoVisible }"
+    >
         <view class="record-photo__choice-list">
           <view
             class="record-photo__choice"
-            :class="{ 'record-photo__choice--disabled': selectedPhotos.length === 0 }"
-            :aria-disabled="selectedPhotos.length === 0 ? 'true' : undefined"
+            :class="{ 'record-photo__choice--disabled': selectedPhotos.length === 0 || isSavingMemory || isSavingDraft }"
+            :aria-disabled="selectedPhotos.length === 0 || isSavingMemory || isSavingDraft ? 'true' : undefined"
             @click="handleSavePhotosOnly"
           >
             <view class="record-photo__choice-copy">
@@ -110,8 +110,7 @@
         <view class="record-photo__session-note">
           <text class="record-photo__session-note-text">M0 中，这些照片只用于本次会话预览，不会被描述为已经永久保存。</text>
         </view>
-      </view>
-    </transition>
+    </view>
 
     <ConfirmDialog
       v-if="!parseError"
@@ -121,6 +120,7 @@
       confirm-label="保存草稿"
       discard-label="放弃"
       cancel-label="继续编辑"
+      action-layout="list"
       @confirm="handleConfirmLeave"
       @discard="handleDiscardLeave"
       @cancel="showReturnDialog = false"
@@ -149,7 +149,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import PageShell from '../../components/PageShell.vue'
 import TextAction from '../../components/TextAction.vue'
@@ -185,6 +185,8 @@ function getPicker() {
 
 const spaceId = ref('')
 const selectedPhotos = ref<SelectedPhoto[]>([])
+const postPhotoRendered = ref(false)
+const postPhotoVisible = ref(false)
 const isSavingMemory = ref(false)
 const isSavingDraft = ref(false)
 const isPicking = ref(false)
@@ -196,6 +198,8 @@ const parseError = ref<{ reason: string; param: string } | null>(null)
 const viewerOpen = ref(false)
 const viewerIndex = ref(0)
 const removePhotoIndex = ref(0)
+const POST_PHOTO_LEAVE_DURATION_MS = 240
+let postPhotoHideTimer: ReturnType<typeof setTimeout> | null = null
 
 const firstPhotoUri = computed(() => {
   const first = selectedPhotos.value[0]
@@ -225,6 +229,40 @@ const displayPhotos = computed<PhotoViewModel[]>(() =>
 
 const initialAssetIds = ref<string[]>([])
 
+function clearPostPhotoHideTimer(): void {
+  if (postPhotoHideTimer === null) return
+  clearTimeout(postPhotoHideTimer)
+  postPhotoHideTimer = null
+}
+
+watch(
+  () => selectedPhotos.value.length > 0,
+  (hasPhoto) => {
+    clearPostPhotoHideTimer()
+
+    if (hasPhoto) {
+      postPhotoRendered.value = true
+      postPhotoVisible.value = false
+      void nextTick(() => {
+        if (selectedPhotos.value.length > 0) postPhotoVisible.value = true
+      })
+      return
+    }
+
+    if (!postPhotoRendered.value) return
+    postPhotoVisible.value = false
+    postPhotoHideTimer = setTimeout(() => {
+      postPhotoRendered.value = false
+      postPhotoHideTimer = null
+    }, POST_PHOTO_LEAVE_DURATION_MS)
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  clearPostPhotoHideTimer()
+})
+
 function isDirty(): boolean {
   return selectedPhotos.value.length > 0
 }
@@ -242,6 +280,26 @@ async function handlePickPhotos(): Promise<void> {
     result = { kind: 'failed' }
   }
   isPicking.value = false
+  applyPickResult(result)
+}
+
+async function handleReplacePhoto(): Promise<void> {
+  if (isPicking.value || isSavingMemory.value || isSavingDraft.value) return
+  pickError.value = ''
+  isPicking.value = true
+  let result: PickResult
+  try {
+    result = await getPicker().pick({ remaining: 1 })
+  } catch {
+    result = { kind: 'failed' }
+  }
+  isPicking.value = false
+
+  if (result.kind === 'selected') {
+    const photo = result.photos[0]
+    if (photo) selectedPhotos.value = [{ kind: 'new', photo }]
+    return
+  }
   applyPickResult(result)
 }
 
@@ -263,6 +321,9 @@ function applyPickResult(result: PickResult): void {
       break
     case 'failed':
       pickError.value = '照片选择失败，可以再试一次。'
+      break
+    case 'limit-reached':
+      pickError.value = `最多只能选择 ${MAX_PHOTOS} 张照片。`
       break
   }
 }
@@ -296,7 +357,7 @@ function handleViewerChange(index: number): void {
 // ---- saving ----
 
 async function handleSavePhotosOnly(): Promise<void> {
-  if (isSavingMemory.value) return
+  if (isSavingMemory.value || isSavingDraft.value) return
   if (selectedPhotos.value.length === 0) return
   saveError.value = false
   isSavingMemory.value = true
@@ -347,6 +408,7 @@ function handleBack(): void {
 }
 
 async function handleConfirmLeave(): Promise<void> {
+  if (isSavingMemory.value || isSavingDraft.value) return
   showReturnDialog.value = false
   if (selectedPhotos.value.length > 0) {
     isSavingDraft.value = true
@@ -512,8 +574,8 @@ defineExpose({ _setQueryForTest, _setPhotosForTest })
   bottom: $pm-space-3;
 
   :deep(.text-action) {
-    min-height: $pm-control-height-regular;
-    padding-inline: $pm-space-3;
+    min-height: $pm-control-height-compact;
+    padding-inline: $pm-space-2;
     border-radius: $pm-radius-sm;
     background: $pm-color-surface;
     color: $pm-color-ink;
@@ -564,20 +626,20 @@ defineExpose({ _setQueryForTest, _setPhotosForTest })
   color: $pm-color-ink;
 }
 
-.record-photo-post-enter-active,
-.record-photo-post-leave-active {
+.record-photo__post-photo {
+  opacity: 0;
+  transform: translateY(40rpx);
   transition:
     opacity 360ms cubic-bezier(0.22, 0.8, 0.28, 1),
     transform 360ms cubic-bezier(0.22, 0.8, 0.28, 1);
 }
 
-.record-photo-post-enter-from,
-.record-photo-post-leave-to {
-  opacity: 0;
-  transform: translateY(40rpx);
+.record-photo__post-photo--visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-.record-photo-post-leave-active {
+.record-photo__post-photo:not(.record-photo__post-photo--visible) {
   transition-duration: 240ms;
   transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
 }

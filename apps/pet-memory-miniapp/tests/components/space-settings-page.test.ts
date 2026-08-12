@@ -163,10 +163,21 @@ describe('Space-settings page (Task 9 Step 9-2)', () => {
 
     // Cover shown
     expect(wrapper.text()).toContain('更换')
-    expect(wrapper.text()).toContain('移除')
+    expect(wrapper.find('.space-settings__cover-remove').attributes('aria-label')).toBeTruthy()
+
+    expect(wrapper.find('.space-settings__cover-frame').exists()).toBe(true)
+    expect(wrapper.find('.space-settings__cover-tools').exists()).toBe(false)
+    expect(wrapper.find('.space-settings__cover-remove').exists()).toBe(true)
+    expect(wrapper.find('.space-settings__cover-remove .space-settings__close-icon').exists()).toBe(true)
+    expect(wrapper.find('.space-settings__cover-replace').exists()).toBe(true)
+    expect(wrapper.find('.space-settings__cover-replace').attributes('hover-class')).toBe('none')
+    expect(wrapper.find('.space-settings__cover-replace .space-settings__photo-icon').exists()).toBe(false)
+    expect(wrapper.find('.space-settings__cover-replace .text-action__label').exists()).toBe(true)
 
     // Privacy entry exists
     expect(wrapper.text()).toContain('隐私说明')
+    expect(wrapper.find('.space-settings__row-arrow').element.tagName.toLowerCase()).toBe('image')
+    expect(wrapper.find('.space-settings__row-arrow').attributes('src')).toBe('/ui/draft-arrow.svg')
 
     // Danger zone exists
     expect(wrapper.text()).toContain('删除这个空间')
@@ -274,9 +285,8 @@ describe('Space-settings page (Task 9 Step 9-2)', () => {
     setQuery(wrapper, { spaceId: 's1' })
     await wrapper.vm.$nextTick()
 
-    // Click "移除" (TextAction)
-    const removeBtn = wrapper.findAllComponents({ name: 'TextAction' }).find(b => b.text().includes('移除'))
-    await removeBtn!.vm.$emit('press')
+    // Click the top-right remove control
+    await wrapper.find('.space-settings__cover-remove').trigger('click')
     await wrapper.vm.$nextTick()
 
     // Now save

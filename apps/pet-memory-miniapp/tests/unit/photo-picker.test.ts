@@ -119,14 +119,11 @@ describe('UniPhotoPicker', () => {
       })
     })
 
-    it('clamps remaining to minimum 1', async () => {
-      succeed({ tempFiles: [{ tempFilePath: '/tmp/photo.jpg' }] })
+    it('does not open the picker when no photo slots remain', async () => {
+      const result = await makePicker().pick({ remaining: 0 })
 
-      await makePicker().pick({ remaining: 0 })
-
-      expect(chooseMediaMock).toHaveBeenCalledWith(
-        expect.objectContaining({ count: 1 }),
-      )
+      expect(result).toEqual({ kind: 'limit-reached' })
+      expect(chooseMediaMock).not.toHaveBeenCalled()
     })
 
     it('clamps remaining to maximum 9', async () => {

@@ -9,6 +9,7 @@ export type PickResult =
   | { kind: 'cancelled' }
   | { kind: 'denied' }
   | { kind: 'failed' }
+  | { kind: 'limit-reached' }
 
 export interface PhotoPicker {
   pick(options: { remaining: number }): Promise<PickResult>

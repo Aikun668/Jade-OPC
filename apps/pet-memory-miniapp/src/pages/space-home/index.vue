@@ -59,8 +59,19 @@
       </view>
 
       <!-- primary action: leave a memory -->
-      <view class="space-home__primary-action">
-        <PrimaryButton width="content" @press="goRecord">
+      <view
+        class="space-home__primary-action"
+        :class="{ 'space-home__primary-action--compact': draft }"
+      >
+        <TextAction
+          v-if="draft"
+          class="space-home__new-memory-link"
+          aria-label="留下一段记忆"
+          @press="goRecord"
+        >
+          留下一段记忆
+        </TextAction>
+        <PrimaryButton v-else width="content" @press="goRecord">
           {{ primaryActionLabel }}
         </PrimaryButton>
       </view>
@@ -102,6 +113,7 @@
         confirm-label="继续写这段"
         discard-label="不保留，另起一段"
         cancel-label="先不动"
+        action-layout="list"
         @confirm="handleResumeContinue"
         @discard="handleResumeStartNew"
         @cancel="showResumeDialog = false"
@@ -384,6 +396,22 @@ defineExpose({ _setQueryForTest })
 
   :deep(.primary-button) {
     width: 100%;
+  }
+}
+
+.space-home__primary-action--compact {
+  margin-top: $pm-space-3;
+  margin-bottom: $pm-space-4;
+}
+
+.space-home__new-memory-link {
+  padding-inline: 0;
+
+  :deep(.text-action__label) {
+    font-size: $pm-font-body;
+    color: $pm-color-olive;
+    text-decoration: underline;
+    text-underline-offset: 6rpx;
   }
 }
 

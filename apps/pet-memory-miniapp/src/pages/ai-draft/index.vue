@@ -1,7 +1,8 @@
 <template>
   <PageShell
-    layout="task-form"
-    title="整理措辞"
+    layout="standard-flow"
+    compact-intro
+    title="整理草稿"
     :show-back="true"
     @back="handleBack"
   >
@@ -37,21 +38,21 @@
 
     <!-- authorization-required -->
     <template v-else-if="pageState === 'authorization-required'">
-      <view class="ai-draft__consent">
+      <view class="ai-draft__consent ai-draft__consent--flow">
         <text class="ai-draft__consent-text">
-          整理后的文字会覆盖原话吗？不会。你随时可以回来用原话替换它。
+          将基于这段原话生成一版可编辑的草稿。原话会一直保留。
         </text>
       </view>
     </template>
 
     <!-- loading -->
     <view v-else-if="pageState === 'loading'" class="ai-draft__center">
-      <text v-if="showDraftLoading" class="ai-draft__status-text">正在整理这段原话…</text>
+      <text v-if="showDraftLoading" class="ai-draft__status-text">正在生成一版草稿…</text>
     </view>
 
     <!-- insufficient -->
     <view v-else-if="pageState === 'insufficient'" class="ai-draft__center">
-      <text class="ai-draft__status-text">这段文字太短，还不足以整理成另一个版本。</text>
+      <text class="ai-draft__status-text">这段文字太短，还不足以生成一版草稿。</text>
       <text class="ai-draft__status-sub">你可以回到原话编辑页，写得更多再试试。</text>
     </view>
 
@@ -62,54 +63,56 @@
 
     <!-- success / save-pending / save-error -->
     <template v-else-if="pageState === 'success' || pageState === 'save-pending' || pageState === 'save-error'">
-      <textarea
-        class="ai-draft__textarea"
-        :value="candidate"
-        :maxlength="-1"
-        placeholder="AI 整理的候选稿…"
-        @input="onCandidateInput"
-      />
+      <view class="ai-draft__candidate">
+        <textarea
+          class="ai-draft__textarea"
+          :value="candidate"
+          :maxlength="-1"
+          placeholder="整理后的草稿…"
+          @input="onCandidateInput"
+        />
 
-      <view v-if="pageState === 'save-error'" class="ai-draft__hint ai-draft__hint--error">
-        <text>刚才没有保存成功。候选稿还在这里，可以再试一次。</text>
+        <view v-if="pageState === 'save-error'" class="ai-draft__hint ai-draft__hint--error">
+          <text>刚才没有保存成功。这版草稿还在这里，可以再试一次。</text>
+        </view>
       </view>
     </template>
 
     <template #actions v-if="isReady && memory !== null">
       <!-- authorization -->
-      <view v-if="pageState === 'authorization-required'" class="ai-draft__actions">
+      <view v-if="pageState === 'authorization-required'" class="ai-draft__actions ai-draft__actions--flow">
         <PrimaryButton @press="handleAuthorize">
-          同意整理
+          生成一版草稿
         </PrimaryButton>
-        <TextAction @press="handleBack">这次先不整理</TextAction>
+        <TextAction @press="handleBack">这次先不生成</TextAction>
       </view>
 
       <!-- success / save-pending / save-error -->
       <view
         v-else-if="pageState === 'success' || pageState === 'save-pending' || pageState === 'save-error'"
-        class="ai-draft__actions"
+        class="ai-draft__actions ai-draft__actions--flow"
       >
         <PrimaryButton
           :disabled="pageState === 'save-pending'"
           @press="handleSave"
         >
-          使用这个版本
+          使用这版草稿
         </PrimaryButton>
         <TextAction
           v-if="pageState === 'save-error'"
           @press="handleRetry"
         >
-          重新整理
+          重新生成
         </TextAction>
       </view>
 
       <!-- insufficient / unavailable / loading -->
       <view
         v-else-if="pageState === 'insufficient' || pageState === 'unavailable'"
-        class="ai-draft__actions"
+        class="ai-draft__actions ai-draft__actions--flow"
       >
         <PrimaryButton @press="handleRetry">
-          重新整理
+          重新生成
         </PrimaryButton>
         <TextAction @press="handleBack">返回</TextAction>
       </view>
@@ -197,10 +200,11 @@ const isAuthorizing = ref(false)
 const showDraftLoading = ref(false)
 let draftDelayTimer: ReturnType<typeof setTimeout> | null = null
 
-// Reset on memory change
-watch(memory, () => {
-  pageState.value = 'authorization-required'
-  candidate.value = ''
+// Initialize from the persisted candidate when returning to edit it.
+watch(memory, (nextMemory) => {
+  const savedCandidate = nextMemory?.aiCandidateText ?? ''
+  pageState.value = savedCandidate ? 'success' : 'authorization-required'
+  candidate.value = savedCandidate
   isAuthorizing.value = false
 })
 
@@ -290,9 +294,11 @@ function handleBack(): void {
   nav.back()
 }
 
-function onCandidateInput(e: Event): void {
+function onCandidateInput(e: { detail?: { value?: unknown }; target?: EventTarget | null }): void {
+  const detailValue = e.detail?.value
   const target = e.target as HTMLTextAreaElement | null
-  if (target) candidate.value = target.value
+  const nextValue = typeof detailValue === 'string' ? detailValue : target?.value
+  if (typeof nextValue === 'string') candidate.value = nextValue
 }
 
 // ---- test helpers ----
@@ -336,7 +342,7 @@ defineExpose({ _setQueryForTest, _overridePageStateForTest })
 }
 
 .ai-draft__intro {
-  margin-bottom: $pm-space-6;
+  margin-bottom: 0;
 }
 
 .ai-draft__intro-label {
@@ -353,9 +359,15 @@ defineExpose({ _setQueryForTest, _overridePageStateForTest })
 }
 
 .ai-draft__consent {
-  padding: $pm-space-5;
+  padding: $pm-space-4;
   border-radius: $pm-radius-md;
   background: $pm-color-olive-soft;
+}
+
+.ai-draft__consent--flow,
+.ai-draft__candidate {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .ai-draft__consent-text {
@@ -413,5 +425,16 @@ defineExpose({ _setQueryForTest, _overridePageStateForTest })
   :deep(.primary-button) {
     width: 100%;
   }
+
+  // The custom component host must also stretch; otherwise the inner
+  // button's 100% width resolves against a content-sized host.
+  :deep(primary-button) {
+    display: block;
+    width: 100%;
+  }
+}
+
+:deep(.page-shell__actions--standard-flow) {
+  margin-top: $pm-space-5;
 }
 </style>

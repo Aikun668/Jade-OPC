@@ -22,6 +22,19 @@ import { completeSnapshot } from '../fixtures/complete-snapshot'
 
 export const M0_SNAPSHOT_KEY = 'pet-memory:m0:snapshot'
 
+// The complete fixture used to ship with a candidate on the photo memory.
+// Clear only that exact legacy fixture value; user-created candidates remain
+// persisted normally.
+const LEGACY_COMPLETE_SAMPLE_CANDIDATE =
+  '第一次见到团团时，它正从纸箱里探出小脑袋，用一双好奇的眼睛打量着我。'
+
+function cloneValue<T>(value: T): T {
+  // M0 snapshots only contain JSON data. Use the JSON round-trip here because
+  // the WeChat mini-program runtime does not expose the browser/Node
+  // `structuredClone` global.
+  return JSON.parse(JSON.stringify(value)) as T
+}
+
 export class LocalMemoryRepository implements MemoryRepository {
   private current: MemorySnapshot | null = null
 
@@ -38,16 +51,21 @@ export class LocalMemoryRepository implements MemoryRepository {
       if (validated.kind !== 'valid') {
         throw new Error('Empty snapshot fixture is invalid')
       }
-      await this.storage.set(M0_SNAPSHOT_KEY, emptySnapshot)
-      this.current = emptySnapshot
-      return emptySnapshot
+      const initialSnapshot = cloneValue(emptySnapshot)
+      await this.storage.set(M0_SNAPSHOT_KEY, cloneValue(initialSnapshot))
+      this.current = initialSnapshot
+      return cloneValue(initialSnapshot)
     }
 
     const result = validateSnapshot(raw)
     if (result.kind === 'valid') {
-      const expired = expireSessionAssets(result.snapshot)
-      this.current = expired
-      return expired
+      const normalized = normalizeLegacyCompleteSample(result.snapshot)
+      if (normalized !== result.snapshot) {
+        await this.storage.set(M0_SNAPSHOT_KEY, cloneValue(normalized))
+      }
+      const expired = expireSessionAssets(normalized)
+      this.current = cloneValue(expired)
+      return cloneValue(this.current)
     }
 
     if (result.kind === 'unsupported-version') {
@@ -94,7 +112,7 @@ export class LocalMemoryRepository implements MemoryRepository {
     }
 
     const committed = await this.commit(candidate)
-    return { value: space, snapshot: committed }
+    return { value: cloneValue(space), snapshot: committed }
   }
 
   async updateSpace(input: UpdateSpaceInput): Promise<RepositoryWriteResult<MemorySpace>> {
@@ -150,7 +168,7 @@ export class LocalMemoryRepository implements MemoryRepository {
     }
 
     const committed = await this.commit(candidate)
-    return { value: updatedSpace, snapshot: committed }
+    return { value: cloneValue(updatedSpace), snapshot: committed }
   }
 
   async deleteSpace(spaceId: string): Promise<MemorySnapshot> {
@@ -285,7 +303,7 @@ export class LocalMemoryRepository implements MemoryRepository {
     }
 
     const committed = await this.commit(candidate)
-    return { value: memory, snapshot: committed }
+    return { value: cloneValue(memory), snapshot: committed }
   }
 
   async updateMemory(input: UpdateMemoryInput): Promise<RepositoryWriteResult<MemoryItem>> {
@@ -300,6 +318,9 @@ export class LocalMemoryRepository implements MemoryRepository {
 
     let updatedMemory: MemoryItem
     if (input.kind === 'original-text') {
+      if (!input.originalText.trim() && oldMemory.assetIds.length === 0) {
+        throw new Error('Memory must have non-empty text or at least one photo')
+      }
       updatedMemory = { ...oldMemory, originalText: input.originalText, updatedAt: now }
     } else {
       updatedMemory = { ...oldMemory, aiCandidateText: input.aiCandidateText, updatedAt: now }
@@ -310,7 +331,7 @@ export class LocalMemoryRepository implements MemoryRepository {
 
     const candidate: MemorySnapshot = { ...snap, memories }
     const committed = await this.commit(candidate)
-    return { value: updatedMemory, snapshot: committed }
+    return { value: cloneValue(updatedMemory), snapshot: committed }
   }
 
   async deleteMemory(memoryId: string): Promise<MemorySnapshot> {
@@ -417,7 +438,7 @@ export class LocalMemoryRepository implements MemoryRepository {
 
     const candidate: MemorySnapshot = { ...snap, drafts, assets }
     const committed = await this.commit(candidate)
-    return { value: draft, snapshot: committed }
+    return { value: cloneValue(draft), snapshot: committed }
   }
 
   async deleteDraft(draftId: string): Promise<MemorySnapshot> {
@@ -461,9 +482,10 @@ export class LocalMemoryRepository implements MemoryRepository {
       const reason = result.kind === 'invalid' ? result.reason : result.kind
       throw new Error(`Candidate snapshot invalid: ${reason}`)
     }
-    await this.storage.set(M0_SNAPSHOT_KEY, candidate)
-    this.current = candidate
-    return candidate
+    const committed = cloneValue(candidate)
+    await this.storage.set(M0_SNAPSHOT_KEY, cloneValue(committed))
+    this.current = committed
+    return cloneValue(committed)
   }
 
   private assetBelongsToSpace(asset: LocalAsset, spaceId: string, snap: MemorySnapshot): boolean {
@@ -478,4 +500,23 @@ export class LocalMemoryRepository implements MemoryRepository {
     }
     return false
   }
+}
+
+function normalizeLegacyCompleteSample(snapshot: MemorySnapshot): MemorySnapshot {
+  if (snapshot.sampleMode !== 'complete') return snapshot
+
+  let changed = false
+  const memories = snapshot.memories.map(memory => {
+    const isLegacyFixtureMemory =
+      memory.id === 'm_tuantu_photo1' &&
+      memory.originalText === '第一次见到团团时，它正从纸箱里探出脑袋看着我。' &&
+      memory.aiCandidateText === LEGACY_COMPLETE_SAMPLE_CANDIDATE
+
+    if (!isLegacyFixtureMemory) return memory
+
+    changed = true
+    return { ...memory, aiCandidateText: null }
+  })
+
+  return changed ? { ...snapshot, memories } : snapshot
 }

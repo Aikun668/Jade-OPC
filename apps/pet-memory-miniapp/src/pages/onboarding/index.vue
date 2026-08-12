@@ -69,6 +69,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { onReady } from '@dcloudio/uni-app'
 import PageShell from '../../components/PageShell.vue'
 import PrimaryButton from '../../components/PrimaryButton.vue'
 import TextAction from '../../components/TextAction.vue'
@@ -83,6 +84,7 @@ const nav = getNavigation()
 const isSubmitting = ref(false)
 const submitError = ref(false)
 let didRedirect = false
+let pageReady = false
 
 const isBootstrapping = computed(() =>
   appStore.bootstrapStatus === 'idle' || appStore.bootstrapStatus === 'loading',
@@ -94,16 +96,29 @@ const showContent = computed(() =>
   appStore.bootstrapStatus === 'ready' && !appStore.hasCompletedOnboarding,
 )
 
-// Redirect to spaces if onboarding already completed
+function redirectIfReady(): void {
+  if (didRedirect || !pageReady) return
+  if (appStore.bootstrapStatus !== 'ready' || !appStore.hasCompletedOnboarding) return
+
+  didRedirect = true
+  // Wait until the bootstrap page has completed its first render before
+  // replacing it. Navigating earlier can make the WeChat renderer treat the
+  // first page data as an update and emit a framework-level error.
+  void nav.replace(PAGE_URLS.spaces).catch(() => {
+    didRedirect = false
+  })
+}
+
+// Redirect to spaces only after the bootstrap page is ready for its first
+// render. The watcher handles the case where bootstrap finishes afterwards.
+onReady(() => {
+  pageReady = true
+  redirectIfReady()
+})
+
 watch(
   () => appStore.bootstrapStatus,
-  (status) => {
-    if (didRedirect) return
-    if (status === 'ready' && appStore.hasCompletedOnboarding) {
-      didRedirect = true
-      nav.resetTo({ page: 'spaces' })
-    }
-  },
+  () => redirectIfReady(),
   { immediate: true },
 )
 

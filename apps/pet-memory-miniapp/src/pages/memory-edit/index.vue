@@ -1,9 +1,9 @@
 <template>
   <PageShell
-    layout="task-form"
+    layout="standard-flow"
+    compact-intro
     title="编辑原话"
     :show-back="true"
-    :keyboard-open="keyboardOpen"
     @back="handleBack"
   >
     <template #intro>
@@ -44,8 +44,6 @@
         :maxlength="-1"
         placeholder="你留下的话…"
         @input="onInput"
-        @focus="keyboardOpen = true"
-        @blur="keyboardOpen = false"
       />
 
       <view v-if="isOverLimit" class="memory-edit__hint memory-edit__hint--warn">
@@ -57,27 +55,32 @@
       </view>
     </template>
 
-    <template #actions v-if="isReady && memory !== null">
+    <template #actions>
       <view class="memory-edit__actions">
-        <PrimaryButton
-          :disabled="isSaving"
-          @press="handleSave"
-        >
-          保存修改
-        </PrimaryButton>
-        <TextAction
-          :disabled="isSaving"
-          @press="handleCancel"
-        >
-          这次先不改
-        </TextAction>
+        <template v-if="isReady && memory !== null">
+          <view class="memory-edit__save">
+            <PrimaryButton
+              width="block"
+              :disabled="isSaving || isOverLimit"
+              @press="handleSave"
+            >
+              保存修改
+            </PrimaryButton>
+          </view>
+          <TextAction
+            :disabled="isSaving"
+            @press="handleCancel"
+          >
+            这次先不改
+          </TextAction>
+        </template>
       </view>
     </template>
 
     <ConfirmDialog
       :open="showReturnDialog"
       title="修改还没保存"
-      message="现在离开，刚才的修改不会保留。"
+      description="现在离开，刚才的修改不会保留。"
       confirm-label="先不保存"
       cancel-label="继续修改"
       @confirm="handleReturnDiscard"
@@ -164,7 +167,6 @@ const initialText = ref('')
 const isSaving = ref(false)
 const saveError = ref(false)
 const showReturnDialog = ref(false)
-const keyboardOpen = ref(false)
 
 const isDirty = computed(() => text.value !== initialText.value)
 const isOverLimit = computed(() => text.value.length > MAX_LENGTH)
@@ -179,11 +181,11 @@ watch(memory, (m) => {
 })
 
 // ---- actions ----
-function onInput(e: Event) {
+function onInput(e: { detail?: { value?: unknown }; target?: EventTarget | null }): void {
+  const detailValue = e.detail?.value
   const target = e.target as HTMLTextAreaElement | null
-  if (target) {
-    text.value = target.value
-  }
+  const nextValue = typeof detailValue === 'string' ? detailValue : target?.value
+  if (typeof nextValue === 'string') text.value = nextValue
   if (saveError.value) saveError.value = false
 }
 
@@ -264,7 +266,7 @@ defineExpose({ _setQueryForTest })
 }
 
 .memory-edit__note {
-  margin-bottom: $pm-space-6;
+  margin-bottom: 0;
 }
 
 .memory-edit__note-text {
@@ -308,9 +310,26 @@ defineExpose({ _setQueryForTest })
   flex-direction: column;
   align-items: center;
   width: 100%;
+  min-height: calc(#{$pm-control-height-primary} + #{$pm-space-3} + #{$pm-control-height-regular});
   gap: $pm-space-3;
+}
+
+.memory-edit__save {
+  display: flex;
+  width: 100%;
 
   :deep(.primary-button) {
+    // Preserve PrimaryButton's flex centering; block here makes the label
+    // sit against the top of the native WeChat button.
+    display: flex;
+    flex: 1 1 auto;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  // Keep the component selector explicit for mp-weixin's scoped style output.
+  :deep(primary-button) {
+    display: block;
     width: 100%;
   }
 }

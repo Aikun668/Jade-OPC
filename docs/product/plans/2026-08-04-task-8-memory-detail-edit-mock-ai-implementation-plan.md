@@ -58,7 +58,7 @@ Task 8 只在修改 `memory-detail`、导航、Store 或 Repository 时补相应
 
 | 原型 | 小程序目标 | 必须保留的产品语义 |
 |---|---|---|
-| `MemoryDetailScreen` | `src/pages/memory-detail/index.vue` | 日期、照片/叠放、原话、候选稿说明、编辑入口；本轮不放删除操作 |
+| `MemoryDetailScreen` | `src/pages/memory-detail/index.vue` | 日期、照片/叠放、原话、候选稿说明、AI 入口、底部编辑与删除操作 |
 | `MemoryEditScreen` | `src/pages/memory-edit/index.vue` | 只编辑原话、明确修改范围、保存与“这次先不改”、未保存保护 |
 | `AiDraftScreen` | `src/pages/ai-draft/index.vue` | 按次授权、安静等待、固定候选稿、原话引用、保存候选稿或继续使用原话 |
 | `.detail-*`、`.ai-invitation` | 当前页面 scoped SCSS | 复用设计令牌和 `PageShell`，不能照搬浏览器选择器实现 |
@@ -87,7 +87,7 @@ Task 8 只在修改 `memory-detail`、导航、Store 或 Repository 时补相应
 - `apps/pet-memory-miniapp/src/features/routing/route-params.ts`：新增 `parseMemoryDetailRoute()`，同时解析 `memoryId` 与可选 `source`。
 - `apps/pet-memory-miniapp/src/adapters/navigation.ts`：扩展 `StableDestination.memory-detail` 的 `source`，并增加 `memory-edit`、`ai-draft` 的页面 URL 常量。
 - `apps/pet-memory-miniapp/src/pages.json`：注册 `pages/memory-edit/index` 和 `pages/ai-draft/index`，统一使用 `navigationStyle: custom`。
-- `apps/pet-memory-miniapp/src/pages/memory-detail/index.vue`：加入候选稿展示、AI 入口、编辑入口、来源解析和缺失状态；不加入删除按钮。
+- `apps/pet-memory-miniapp/src/pages/memory-detail/index.vue`：加入候选稿展示、AI 入口、底部编辑与删除操作、来源解析和缺失状态。
 - `apps/pet-memory-miniapp/src/pages/record-photo/index.vue`：正式保存详情导航增加 `source: 'new-memory'`。
 - `apps/pet-memory-miniapp/src/pages/record-text/index.vue`：正式保存详情导航增加 `source: 'new-memory'`。
 - `apps/pet-memory-miniapp/tests/unit/route-params.test.ts`：覆盖详情来源白名单、缺失兼容和非法来源。
@@ -402,13 +402,12 @@ Expected: PASS，三种场景和并发锁均可复现。
 
 - 有原话时渲染“你留下的话”和原话全文；
 - 有照片时保留 Task 7 的 `PhotoStack` / `PhotoViewer`；
-- `aiCandidateText` 非空时渲染独立“整理后的候选版本”，不替换原话；
-- `aiCandidateText` 为空时不渲染候选稿区域；
+- `aiCandidateText` 非空时显示已保存的“整理草稿”预览与“查看并编辑草稿”入口，不替换原话；
+- `aiCandidateText` 为空时只显示“生成一版草稿”入口；进入 AI 页面但未生成或未保存后返回，不产生候选稿区域；
 - 原话为空的纯照片记忆不显示 AI 整理入口；
 - 原话存在时显示低强调“整理一个候选稿”；
-- 导航右侧显示“编辑原话”；
-- `source` 缺失时兼容为 `space-home`，非法 source 显示缺失参数状态；
-- 详情页不出现删除按钮或删除占位文字。
+- 详情底部显示带编辑图标的“编辑原话”和带删除图标的“删除这段记忆”；
+- `source` 缺失时兼容为 `space-home`，非法 source 显示缺失参数状态。
 
 - [ ] **Step 2: 运行详情测试确认失败**
 
@@ -426,13 +425,13 @@ Expected: 新增候选稿、入口和 source 断言先失败，Task 7 已有照�
 
 ```text
 PageShell reading
-├─ navigation-right：编辑原话
 ├─ 日期
 ├─ PhotoStack / PhotoViewer（可选）
 ├─ 纯照片摘要（仅照片记忆）
 ├─ 你留下的话（原话存在时）
-├─ 整理候选稿入口（仅原话存在时）
-└─ 已保存候选版本（aiCandidateText 存在时）
+├─ 生成草稿入口（仅原话存在且 aiCandidateText 为空时）
+├─ 已保存整理草稿（aiCandidateText 非空时，提供查看并编辑）
+└─ 底部编辑原话 / 删除这段记忆操作
 ```
 
 候选稿区使用中性标签和低强调说明，永远把原话放在候选稿之前。编辑入口使用 `PAGE_URLS['memory-edit']`，AI 入口使用 `PAGE_URLS['ai-draft']`，两者只携带编码后的 `memoryId`。
@@ -813,7 +812,7 @@ D:\My_Grand_Projects2026\My-OPC\apps\pet-memory-miniapp\dist\build\mp-weixin
 - AI 失败、取消和保存失败均保留原话与当前编辑内容；
 - 快速重复点击不产生重复请求或重复记忆；
 - 09 的照片叠放、失效降级和 Task 7 行为没有回归；
-- 页面没有删除入口、真实 AI 承诺、模型身份或夸张成功反馈。
+- 页面没有真实 AI 承诺、模型身份或夸张成功反馈；详情页的删除操作只通过用户明确确认后执行。
 
 ### 10.4 视觉证据
 
@@ -885,7 +884,7 @@ Task 8 只有满足以下全部条件，才可标记为 `reviewer-accepted`：
 
 1. 09 详情可从 `04`、`08` 和新建成功路径进入，来源参数白名单正确；
 2. 09 正确显示日期、照片/失效降级、原话和独立候选稿；
-3. 09 有编辑原话和 AI 候选稿入口，但没有删除入口；
+3. 09 有编辑原话、删除这段记忆和 AI 候选稿入口；候选稿默认隐藏，点击整理入口后才展示；
 4. 10 支持预填、编辑、2,000 字上限、保存失败恢复和统一返回保护；
 5. 11 支持按次授权、loading、success、insufficient、unavailable、保存失败和候选稿退出保护；
 6. `MockAiDraftService` 固定返回三种场景，延迟为 700ms，不能根据用户文本动态编造；

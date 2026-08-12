@@ -141,6 +141,10 @@ function handleOpen() {
   font: inherit;
   color: inherit;
   display: block;
+
+  &::after {
+    border: none;
+  }
 }
 
 .photo-stack__canvas {

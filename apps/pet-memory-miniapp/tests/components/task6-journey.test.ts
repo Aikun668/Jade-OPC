@@ -249,9 +249,10 @@ describe('Task 6 journey (04 → 05 → 06 → 09 → 04)', () => {
     ;(wrapper.vm as any)._setQueryForTest({ spaceId: 's_tuantu' })
     await wrapper.vm.$nextTick()
 
-    // Click "留下一段新的记忆"
-    const buttons = wrapper.findAllComponents({ name: 'PrimaryButton' })
-    const recordBtn = buttons.find(b => b.text().includes('留下一段新的记忆'))
+    // Click the compact "留下一段记忆" link
+    const recordBtn = wrapper
+      .findAllComponents({ name: 'TextAction' })
+      .find((action) => action.classes().includes('space-home__new-memory-link'))
     await recordBtn!.vm.$emit('press')
     await wrapper.vm.$nextTick()
 

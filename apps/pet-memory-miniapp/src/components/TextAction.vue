@@ -6,6 +6,7 @@
       { 'text-action--disabled': disabled },
     ]"
     :disabled="disabled"
+    :hover-class="hoverClass"
     @click.stop="handlePress"
   >
     <slot name="prefix" />
@@ -22,10 +23,12 @@ export type TextActionTone = 'default' | 'muted' | 'danger'
 export interface TextActionProps {
   tone?: TextActionTone
   disabled?: boolean
+  hoverClass?: string
 }
 
 const props = withDefaults(defineProps<TextActionProps>(), {
   tone: 'default',
+  hoverClass: undefined,
 })
 
 const emit = defineEmits<{

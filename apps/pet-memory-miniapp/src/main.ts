@@ -35,7 +35,9 @@ export function createApp() {
 
   provideNavigation(new UniNavigationAdapter(
     (url: string) => uni.navigateTo({ url }).then(() => undefined),
-    (delta?: number) => { uni.navigateBack({ delta }); return Promise.resolve(); },
+    (delta?: number) => new Promise<void>((resolve, reject) => {
+      uni.navigateBack({ delta, success: () => resolve(), fail: reject })
+    }),
     (url: string) => uni.redirectTo({ url }).then(() => undefined),
     (url: string) => uni.reLaunch({ url }).then(() => undefined),
     () => getCurrentPages(),

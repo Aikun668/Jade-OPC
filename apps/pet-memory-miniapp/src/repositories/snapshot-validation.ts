@@ -136,6 +136,9 @@ export function validateSnapshot(value: unknown): SnapshotReadResult {
 
   // check memory assetIds
   for (const m of memories) {
+    if (new Set(m.assetIds).size !== m.assetIds.length) {
+      return { kind: 'invalid', reason: `Memory ${m.id} has duplicate asset references` }
+    }
     for (const assetId of m.assetIds) {
       if (!assetIdSet.has(assetId)) {
         return { kind: 'invalid', reason: `Memory ${m.id} references non-existent asset ${assetId}` }
@@ -145,6 +148,9 @@ export function validateSnapshot(value: unknown): SnapshotReadResult {
 
   // check draft assetIds
   for (const d of drafts) {
+    if (new Set(d.assetIds).size !== d.assetIds.length) {
+      return { kind: 'invalid', reason: `Draft ${d.id} has duplicate asset references` }
+    }
     for (const assetId of d.assetIds) {
       if (!assetIdSet.has(assetId)) {
         return { kind: 'invalid', reason: `Draft ${d.id} references non-existent asset ${assetId}` }

@@ -108,6 +108,10 @@ export function parseTextRecordRoute(
     value.draftId = draftId.trim()
   }
 
+  if (raw === undefined && !value.draftId) {
+    return { kind: 'invalid', reason: 'missing-param', param: 'entry' }
+  }
+
   return { kind: 'valid', value }
 }
 

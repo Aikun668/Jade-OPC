@@ -143,6 +143,14 @@ describe('TextAction', () => {
     expect(wrapper.find('.text-action--default').exists()).toBe(true)
   })
 
+  it('forwards hoverClass to the native button', () => {
+    const wrapper = mount(TextAction, {
+      props: { hoverClass: 'none' },
+      slots: { default: '更换' },
+    })
+    expect(wrapper.attributes('hover-class')).toBe('none')
+  })
+
   it('renders muted tone class', () => {
     const wrapper = mount(TextAction, {
       props: { tone: 'muted' },

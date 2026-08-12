@@ -204,7 +204,7 @@ describe('Space-home page (04)', () => {
 
     const text = wrapper.text()
     expect(text).toContain('草稿内容...')
-    expect(text).toContain('留下一段新的记忆')
+    expect(text).toContain('留下一段记忆')
   })
 
   // T5A-M27: no-draft-with-memory (1-3 memories)
@@ -265,7 +265,7 @@ describe('Space-home page (04)', () => {
     expect(text).toContain('未完成的草稿')
     expect(text).toContain('最近留下')
     expect(text).toContain('查看全部记忆')
-    expect(text).toContain('留下一段新的记忆')
+    expect(text).toContain('留下一段记忆')
   })
 
   // T5A-M28: max 3 memories on home
@@ -625,6 +625,57 @@ describe('Space-home page (04)', () => {
     expect(draftNotice.exists()).toBe(true)
   })
 
+  it('uses a compact underlined new-memory link when a draft already exists', async () => {
+    provideNavigation(mockNavigation())
+    const appStore = useAppStore()
+    const memStore = useMemoryStore()
+
+    appStore.$patch({ bootstrapStatus: 'ready' } as any)
+    memStore._commitSnapshot(mkSnapshot({
+      spaces: [
+        { id: 's1', name: '有草稿', coverAssetId: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+      ],
+      drafts: [
+        { id: 'd1', spaceId: 's1', entry: 'daily' as const, text: '草稿内容', assetIds: [], createdAt: '2026-05-01T00:00:00.000Z', updatedAt: '2026-05-01T00:00:00.000Z' },
+      ],
+    }))
+
+    const wrapper = mount(SpaceHomePage, {
+      global: { stubs: { PageShell: { template: '<view><slot /></view>' }, DraftNotice: false } },
+    })
+
+    setQuery(wrapper, { spaceId: 's1' })
+    await wrapper.vm.$nextTick()
+
+    const link = wrapper.find('.space-home__new-memory-link')
+    expect(link.exists()).toBe(true)
+    expect(link.text()).toContain('留下一段记忆')
+    expect(wrapper.find('.space-home__primary-action .primary-button').exists()).toBe(false)
+  })
+
+  it('keeps the full primary button when no draft exists', async () => {
+    provideNavigation(mockNavigation())
+    const appStore = useAppStore()
+    const memStore = useMemoryStore()
+
+    appStore.$patch({ bootstrapStatus: 'ready' } as any)
+    memStore._commitSnapshot(mkSnapshot({
+      spaces: [
+        { id: 's1', name: '无草稿', coverAssetId: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+      ],
+    }))
+
+    const wrapper = mount(SpaceHomePage, {
+      global: { stubs: { PageShell: { template: '<view><slot /></view>' }, DraftNotice: false } },
+    })
+
+    setQuery(wrapper, { spaceId: 's1' })
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.space-home__new-memory-link').exists()).toBe(false)
+    expect(wrapper.find('.space-home__primary-action .primary-button').exists()).toBe(true)
+  })
+
   // T5A-M33: space name is shown in the identity block, not duplicated in nav
   it('does not duplicate the space name in the navigation title', async () => {
     provideNavigation(mockNavigation())
@@ -732,7 +783,7 @@ describe('Space-home page (04)', () => {
 
     const text = wrapper.text()
     expect(text).toContain('团团')
-    expect(text).toContain('留下一段新的记忆')
+    expect(text).toContain('留下一段记忆')
     expect(text).toContain('最近留下')
     expect(text).toContain('查看全部记忆')
     expect(text).toContain('···')
@@ -747,7 +798,7 @@ describe('Space-home page (04)', () => {
 
   // ---- draft resume (Step 4.6) ----
 
-  it('shows resume dialog when clicking "留下一段新的记忆" with existing draft', async () => {
+  it('shows resume dialog when clicking "留下一段记忆" with existing draft', async () => {
     provideNavigation(mockNavigation())
     const appStore = useAppStore()
     const memStore = useMemoryStore()
@@ -769,9 +820,10 @@ describe('Space-home page (04)', () => {
     setQuery(wrapper, { spaceId: 's1' })
     await wrapper.vm.$nextTick()
 
-    // Click the "留下一段新的记忆" button
-    const buttons = wrapper.findAllComponents({ name: 'PrimaryButton' })
-    const recordBtn = buttons.find(b => b.text().includes('留下一段新的记忆'))
+    // Click the compact "留下一段记忆" link
+    const recordBtn = wrapper
+      .findAllComponents({ name: 'TextAction' })
+      .find((action) => action.classes().includes('space-home__new-memory-link'))
     await recordBtn!.vm.$emit('press')
     await wrapper.vm.$nextTick()
 
@@ -806,8 +858,9 @@ describe('Space-home page (04)', () => {
     await wrapper.vm.$nextTick()
 
     // Trigger record button → shows resume dialog
-    const buttons = wrapper.findAllComponents({ name: 'PrimaryButton' })
-    const recordBtn = buttons.find(b => b.text().includes('留下一段新的记忆'))
+    const recordBtn = wrapper
+      .findAllComponents({ name: 'TextAction' })
+      .find((action) => action.classes().includes('space-home__new-memory-link'))
     await recordBtn!.vm.$emit('press')
     await wrapper.vm.$nextTick()
 
@@ -848,8 +901,9 @@ describe('Space-home page (04)', () => {
     await wrapper.vm.$nextTick()
 
     // Trigger resume dialog
-    const buttons = wrapper.findAllComponents({ name: 'PrimaryButton' })
-    const recordBtn = buttons.find(b => b.text().includes('留下一段新的记忆'))
+    const recordBtn = wrapper
+      .findAllComponents({ name: 'TextAction' })
+      .find((action) => action.classes().includes('space-home__new-memory-link'))
     await recordBtn!.vm.$emit('press')
     await wrapper.vm.$nextTick()
 
@@ -893,8 +947,9 @@ describe('Space-home page (04)', () => {
     await wrapper.vm.$nextTick()
 
     // Trigger resume dialog
-    const buttons = wrapper.findAllComponents({ name: 'PrimaryButton' })
-    const recordBtn = buttons.find(b => b.text().includes('留下一段新的记忆'))
+    const recordBtn = wrapper
+      .findAllComponents({ name: 'TextAction' })
+      .find((action) => action.classes().includes('space-home__new-memory-link'))
     await recordBtn!.vm.$emit('press')
     await wrapper.vm.$nextTick()
 

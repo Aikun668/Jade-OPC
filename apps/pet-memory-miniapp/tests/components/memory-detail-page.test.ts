@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { useAppStore } from '../../src/stores/app'
@@ -74,6 +76,23 @@ describe('Memory-detail page (09)', () => {
     _resetNavigation()
   })
 
+  it('uses one spacing rhythm for the candidate card and bottom actions', () => {
+    const source = readFileSync(
+      resolve(__dirname, '../../src/pages/memory-detail/index.vue'),
+      'utf-8',
+    )
+
+    expect(source).toMatch(
+      /\.memory-detail__candidate\s*\{[\s\S]*margin-top:\s*\$pm-space-4;[\s\S]*padding:\s*\$pm-space-3\s+\$pm-space-4;/,
+    )
+    expect(source).toMatch(
+      /\.memory-detail__candidate-action\s*\{[\s\S]*margin-top:\s*\$pm-space-3;/,
+    )
+    expect(source).toMatch(
+      /\.memory-detail__actions\s*\{[\s\S]*display:\s*flex;[\s\S]*justify-content:\s*space-between;[\s\S]*margin-top:\s*\$pm-space-6;[\s\S]*padding-top:\s*\$pm-space-3;/,
+    )
+  })
+
   // ---- rendering ----
 
   it('renders date label from memory createdAt', async () => {
@@ -119,8 +138,9 @@ describe('Memory-detail page (09)', () => {
     expect(wrapper.text()).toContain('团团今天在窗台上晒了一下午太阳。')
   })
 
-  it('T8-D01: renders aiCandidateText in separate candidate section when present', async () => {
-    provideNavigation(mockNavigation())
+  it('T8-D01: shows only the saved candidate with a view/edit entry', async () => {
+    const nav = mockNavigation()
+    provideNavigation(nav)
     const appStore = useAppStore()
     const memStore = useMemoryStore()
 
@@ -141,14 +161,17 @@ describe('Memory-detail page (09)', () => {
     setQuery(wrapper, { memoryId: 'm1' })
     await wrapper.vm.$nextTick()
 
-    // Both original and candidate are shown
+    // A saved candidate replaces the invitation instead of duplicating it.
     expect(wrapper.text()).toContain('这是原话')
+    expect(wrapper.find('.memory-detail__ai-invitation').exists()).toBe(false)
+    expect(wrapper.find('.memory-detail__candidate').exists()).toBe(true)
     expect(wrapper.text()).toContain('这是AI改写')
-    // Original appears before candidate
-    const text = wrapper.text()
-    const origIdx = text.indexOf('这是原话')
-    const candIdx = text.indexOf('这是AI改写')
-    expect(origIdx).toBeLessThan(candIdx)
+
+    const editDraftAction = wrapper.findAllComponents({ name: 'TextAction' })
+      .find(action => action.text().includes('查看并编辑草稿'))
+    expect(editDraftAction).toBeTruthy()
+    await editDraftAction!.vm.$emit('press')
+    expect(nav.push).toHaveBeenCalledWith('/pages/ai-draft/index?memoryId=m1')
   })
 
   it('T8-D02: does not show candidate section when aiCandidateText is null', async () => {
@@ -169,6 +192,15 @@ describe('Memory-detail page (09)', () => {
     setQuery(wrapper, { memoryId: 'm1' })
     await wrapper.vm.$nextTick()
 
+    expect(wrapper.find('.memory-detail__candidate').exists()).toBe(false)
+
+    const aiAction = wrapper.findAllComponents({ name: 'TextAction' })
+      .find(action => action.text().includes('生成一版草稿'))
+    expect(aiAction).toBeTruthy()
+    await aiAction!.vm.$emit('press')
+    await wrapper.vm.$nextTick()
+
+    // Entering and leaving the AI page without generating must not reveal a candidate section.
     expect(wrapper.find('.memory-detail__candidate').exists()).toBe(false)
   })
 
@@ -399,7 +431,7 @@ describe('Memory-detail page (09)', () => {
     await wrapper.vm.$nextTick()
 
     const textActions = wrapper.findAllComponents({ name: 'TextAction' })
-    const aiAction = textActions.find(ta => ta.text().includes('整理一个候选稿'))
+    const aiAction = textActions.find(ta => ta.text().includes('生成一版草稿'))
     expect(aiAction).toBeTruthy()
     await aiAction!.vm.$emit('press')
     expect(nav.push).toHaveBeenCalledWith('/pages/ai-draft/index?memoryId=m1')
@@ -451,7 +483,7 @@ describe('Memory-detail page (09)', () => {
 
   // ---- edit/AI entry ----
 
-  it('T8-D03: shows edit entry in navigation-right when ready', async () => {
+  it('T8-D03: shows edit and delete actions together at the bottom when ready', async () => {
     provideNavigation(mockNavigation())
     const appStore = useAppStore()
     const memStore = useMemoryStore()
@@ -469,7 +501,11 @@ describe('Memory-detail page (09)', () => {
     setQuery(wrapper, { memoryId: 'm1' })
     await wrapper.vm.$nextTick()
 
+    expect(wrapper.find('.memory-detail__actions').exists()).toBe(true)
+    expect(wrapper.find('image.memory-detail__action-icon--edit').attributes('src')).toBe('/ui/edit-outline.svg')
+    expect(wrapper.find('image.memory-detail__action-icon--delete').attributes('src')).toBe('/ui/trash-outline.svg')
     expect(wrapper.text()).toContain('编辑原话')
+    expect(wrapper.text()).toContain('删除这段记忆')
   })
 
   it('T8-D04: shows AI invitation when originalText exists', async () => {
@@ -490,7 +526,10 @@ describe('Memory-detail page (09)', () => {
     setQuery(wrapper, { memoryId: 'm1' })
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).toContain('整理一个候选稿')
+    expect(wrapper.text()).toContain('把这段话整理成一段记忆')
+    expect(wrapper.text()).toContain('会基于你留下的内容生成一版可编辑的草稿。原话会一直保留。')
+    expect(wrapper.text()).toContain('生成一版草稿')
+    expect(wrapper.find('.memory-detail__ai-action-arrow').attributes('src')).toBe('/ui/draft-arrow.svg')
   })
 
   it('T8-D05: hides AI invitation for photo-only memory (no originalText)', async () => {
@@ -511,7 +550,7 @@ describe('Memory-detail page (09)', () => {
     setQuery(wrapper, { memoryId: 'm1' })
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).not.toContain('整理一个候选稿')
+    expect(wrapper.text()).not.toContain('生成一版草稿')
   })
 
   // ---- no content from URL ----

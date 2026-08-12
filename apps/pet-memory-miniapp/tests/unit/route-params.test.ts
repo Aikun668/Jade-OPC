@@ -336,13 +336,20 @@ describe('parseTextRecordRoute', () => {
     }
   })
 
-  it('T4A-M02: missing entry is valid (entry may come from draft)', () => {
+  it('rejects a route without either an entry or a draft ID', () => {
     const result = parseTextRecordRoute({ spaceId: 's1' })
-    expect(result.kind).toBe('valid')
-    if (result.kind === 'valid') {
-      expect(result.value.spaceId).toBe('s1')
-      expect(result.value.entry).toBeUndefined()
+    expect(result.kind).toBe('invalid')
+    if (result.kind === 'invalid') {
+      expect(result.reason).toBe('missing-param')
+      expect(result.param).toBe('entry')
     }
+  })
+
+  it('allows a draft route to omit entry', () => {
+    expect(parseTextRecordRoute({ spaceId: 's1', draftId: 'd1' })).toEqual({
+      kind: 'valid',
+      value: { spaceId: 's1', entry: undefined, draftId: 'd1' },
+    })
   })
 
   it('T4A-M06: entry only accepts daily/photo/meeting/relationship', () => {

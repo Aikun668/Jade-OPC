@@ -4,12 +4,6 @@
     :show-back="true"
     @back="handleBack"
   >
-    <template #navigation-right>
-      <TextAction v-if="isReady && memory !== null" @press="goEdit">
-        编辑原话
-      </TextAction>
-    </template>
-
     <!-- bootstrap loading -->
     <view v-if="!isReady" class="memory-detail__center">
       <text class="memory-detail__muted">{{ loadingLabel }}</text>
@@ -54,22 +48,61 @@
         <text class="memory-detail__text">{{ memory.originalText }}</text>
       </view>
 
-      <view v-if="memory.originalText" class="memory-detail__ai-invitation">
-        <text class="memory-detail__ai-hint">如果你愿意，可以把这段原话整理成一个可编辑的候选版本。原话会一直保留。</text>
-        <TextAction @press="goAiDraft">
-          整理一个候选稿
+      <view v-if="memory.originalText && !memory.aiCandidateText" class="memory-detail__ai-invitation">
+        <text class="memory-detail__ai-title">把这段话整理成一段记忆</text>
+        <text class="memory-detail__ai-hint">会基于你留下的内容生成一版可编辑的草稿。原话会一直保留。</text>
+        <TextAction class="memory-detail__ai-action" @press="goAiDraft">
+          生成一版草稿
+          <template #suffix>
+            <image
+              class="memory-detail__ai-action-arrow"
+              src="/ui/draft-arrow.svg"
+              mode="aspectFit"
+              aria-hidden="true"
+            />
+          </template>
         </TextAction>
       </view>
 
       <view v-if="memory.aiCandidateText" class="memory-detail__candidate">
         <view class="memory-detail__candidate-label">
-          <text class="memory-detail__eyebrow">候选版本</text>
+          <text class="memory-detail__eyebrow">整理草稿</text>
         </view>
-        <text class="memory-detail__text">{{ memory.aiCandidateText }}</text>
+        <text class="memory-detail__text memory-detail__candidate-text">{{ memory.aiCandidateText }}</text>
+        <TextAction class="memory-detail__candidate-action" @press="goAiDraft">
+          查看并编辑草稿
+          <template #suffix>
+            <image
+              class="memory-detail__ai-action-arrow"
+              src="/ui/draft-arrow.svg"
+              mode="aspectFit"
+              aria-hidden="true"
+            />
+          </template>
+        </TextAction>
       </view>
 
-      <view class="memory-detail__delete">
+      <view class="memory-detail__actions">
+        <TextAction @press="goEdit">
+          <template #prefix>
+            <image
+              class="memory-detail__action-icon memory-detail__action-icon--edit"
+              src="/ui/edit-outline.svg"
+              mode="aspectFit"
+              aria-hidden="true"
+            />
+          </template>
+          编辑原话
+        </TextAction>
         <TextAction tone="danger" @press="handleDeletePress">
+          <template #prefix>
+            <image
+              class="memory-detail__action-icon memory-detail__action-icon--delete"
+              src="/ui/trash-outline.svg"
+              mode="aspectFit"
+              aria-hidden="true"
+            />
+          </template>
           删除这段记忆
         </TextAction>
       </view>
@@ -78,7 +111,7 @@
     <ConfirmDialog
       :open="deleteDialogOpen"
       title="删除这段记忆"
-      description="删除后，这段记忆、候选版本和它附带的照片都将不可恢复。"
+      description="删除后，这段记忆、整理草稿和它附带的照片都将不可恢复。"
       confirm-label="删除"
       cancel-label="取消"
       tone="danger"
@@ -287,9 +320,11 @@ defineExpose({ _setQueryForTest })
 
 .memory-detail__date {
   display: block;
-  font-size: $pm-font-support;
+  font-size: $pm-font-meta;
   color: $pm-color-muted;
-  margin-bottom: $pm-space-8;
+  opacity: 0.78;
+  margin-top: $pm-space-2;
+  margin-bottom: $pm-space-4;
 }
 
 .memory-detail__photos {
@@ -306,7 +341,7 @@ defineExpose({ _setQueryForTest })
 }
 
 .memory-detail__original {
-  padding-bottom: $pm-space-6;
+  padding-bottom: $pm-space-4;
   border-bottom: $pm-border-hairline solid $pm-color-line;
 }
 
@@ -326,32 +361,92 @@ defineExpose({ _setQueryForTest })
 }
 
 .memory-detail__ai-invitation {
+  width: 100%;
+  box-sizing: border-box;
   margin-top: $pm-space-6;
   border-radius: $pm-radius-md;
-  background: $pm-color-olive-soft;
-  padding: $pm-space-5;
+  background: $pm-color-surface;
+  padding: $pm-space-4;
+}
+
+.memory-detail__ai-title {
+  display: block;
+  margin-bottom: $pm-space-2;
+  font-size: $pm-font-body;
+  font-weight: $pm-weight-medium;
+  color: $pm-color-ink;
 }
 
 .memory-detail__ai-hint {
   display: block;
-  font-size: $pm-font-body;
+  font-size: $pm-font-support;
   color: $pm-color-muted;
-  margin-bottom: $pm-space-3;
+  margin-bottom: $pm-space-2;
+}
+
+.memory-detail__ai-action {
+  width: 100%;
+  justify-content: flex-start;
+  gap: $pm-space-1;
+  padding-inline: 0;
+
+  :deep(.text-action__label) {
+    font-size: $pm-font-body;
+    color: $pm-color-olive;
+  }
+}
+
+.memory-detail__ai-action-arrow {
+  width: $pm-icon-sm;
+  height: $pm-icon-sm;
+  flex: 0 0 auto;
 }
 
 .memory-detail__candidate {
-  margin-top: $pm-space-6;
-  padding-left: $pm-space-4;
-  border-left: 6rpx solid $pm-color-olive-soft;
+  margin-top: $pm-space-4;
+  border-radius: $pm-radius-md;
+  background: $pm-color-surface;
+  padding: $pm-space-3 $pm-space-4;
 }
 
 .memory-detail__candidate-label {
   margin-bottom: $pm-space-2;
 }
 
-.memory-detail__delete {
+.memory-detail__candidate-text {
+  line-height: $pm-leading-body;
+}
+
+.memory-detail__candidate-action {
+  margin-top: $pm-space-3;
+  padding-inline: 0;
+  gap: $pm-space-1;
+
+  :deep(.text-action__label) {
+    font-size: $pm-font-support;
+    color: $pm-color-olive;
+  }
+}
+
+.memory-detail__actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-top: $pm-space-6;
-  padding-top: $pm-space-6;
+  padding-top: $pm-space-3;
   border-top: $pm-border-hairline solid $pm-color-line;
+
+  :deep(.text-action) {
+    width: auto;
+    gap: $pm-space-1;
+    padding-inline: 0;
+  }
+}
+
+.memory-detail__action-icon {
+  display: block;
+  flex: 0 0 auto;
+  width: $pm-icon-sm;
+  height: $pm-icon-sm;
 }
 </style>

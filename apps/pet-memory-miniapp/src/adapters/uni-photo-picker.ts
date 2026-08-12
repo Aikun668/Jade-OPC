@@ -12,6 +12,9 @@ interface ChooseMediaResult {
 
 export class UniPhotoPicker implements PhotoPicker {
   async pick(options: { remaining: number }): Promise<PickResult> {
+    if (options.remaining <= 0) {
+      return { kind: 'limit-reached' }
+    }
     const count = Math.max(1, Math.min(9, options.remaining))
     try {
       const res = await new Promise<ChooseMediaResult>((resolve, reject) => {

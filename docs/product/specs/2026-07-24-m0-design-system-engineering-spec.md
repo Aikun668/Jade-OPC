@@ -207,6 +207,7 @@ $pm-shadow-paper: 0 8rpx 24rpx rgba(57, 58, 49, 0.045);
 ```scss
 $pm-control-height-primary: 96rpx;
 $pm-control-height-regular: 88rpx;
+$pm-control-height-compact: 64rpx;
 $pm-hit-target-min: 88rpx;
 $pm-icon-sm: 32rpx;
 $pm-icon-md: 40rpx;
@@ -674,6 +675,7 @@ line-height: $pm-leading-compact;
 - `default` 使用 `$pm-color-olive`；
 - `muted` 使用 `$pm-color-muted`；
 - `danger` 使用 `$pm-color-danger`，只用于不可恢复操作；
+- 嵌入照片预览中的次级替换操作可使用 `$pm-control-height-compact`，但不改变照片容器尺寸；
 - 默认无背景、无边框、无下划线；
 - 点击热区不得因文字较短而低于 `$pm-hit-target-min`；
 - 对齐位置由父布局控制，组件内部不提供任意 `left / center / right` 视觉变体；
@@ -1321,6 +1323,15 @@ bootstrap 完成 + 对象存在
 保存记忆失败使用：“刚才没有保存下来，这段内容还在这里。可以再试一次。”
 
 保存修改失败使用：“刚才没有保存修改，原话还在这里。可以再试一次。”
+
+文字记录的辅助写作入口：
+
+- 默认 placeholder 使用 `想到什么，就写下什么……`；
+- “有点想不起来”只提供两个可立即执行的写法：“从一个画面开始”和“从一个动作开始”；
+- 选择写法后关闭帮助面板、切换对应的具体 placeholder，并将输入框设为 focus；
+- 不改变当前首问，不自动填写输入框，不改变已有原话；
+- 暂时离开使用页面返回和既有退出保护，不混入写作辅助选项；
+- 键盘打开时帮助面板和底部操作不能被遮挡。
 
 退出状态：
 
@@ -2010,7 +2021,7 @@ draft-notice
 | 06 | 文字记录；`06-record-text.png` | `TaskFormLayout` | 问题提示 → 原话输入 → 添加照片 → 辅助入口 → 保存原话 → 保存草稿 | 返回记录入口；使用表单键盘规则 |
 | 07 | 照片记录；`07-record-photo.png` | `StandardFlowLayout` | 页面说明 → 大图预览与缩略图条 → “先只留下照片” → “说说最先想起的事” → 会话照片说明 | 返回记录入口；缩略图横向滚动不影响页面纵向滚动；本页不新增文字输入框 |
 | 08 | 全部记忆；`08-memories.png` | `StandardFlowLayout` | 空间名称与数量 → `MemoryList` → 列表结束说明 | 返回空间首页；使用原生页面滚动 |
-| 09 | 记忆详情；`09-memory-detail.png` | `ReadingLayout` | 日期 → 照片或 `PhotoStack` → 原话 → AI 整理入口 | 返回实际来源页；右侧编辑原话；全部操作随内容滚动 |
+| 09 | 记忆详情；`09-memory-detail.png` | `ReadingLayout` | 日期 → 照片或 `PhotoStack` → 原话 → AI 整理入口 → 底部编辑/删除操作 | 返回实际来源页；候选稿仅在点击整理入口后展示；全部操作随内容滚动 |
 | 10 | 编辑原话；`10-memory-edit.png` | `TaskFormLayout` | 修改范围说明 → 原话输入 → 保存修改 → 取消修改 | 返回记忆详情；使用表单键盘规则 |
 | 11 | AI 候选稿；`11-ai-draft.png` | `TaskFormLayout` | AI 范围说明 → 候选稿标识 → 候选稿输入 → 原话引用 → 保存候选稿 → 继续只用原话 | 返回记忆详情；使用表单键盘规则 |
 | 12 | Ta 的空间设置；`12-space-settings.png` | `StandardFlowLayout` | 空间照片 → 名字字段与保存 → 隐私入口 → 删除范围与删除操作 | 返回空间首页；自然滚动；危险区始终位于最后并与保存区至少间隔 `$pm-section-gap` |
