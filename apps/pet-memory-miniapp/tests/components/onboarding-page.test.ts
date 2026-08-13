@@ -59,10 +59,21 @@ function setReady(onboarding: boolean) {
   })
 }
 
+function triggerPageShow(): void {
+  const lifecycle = (globalThis as typeof globalThis & {
+    __uniLifecycle: { onShow: Array<() => void> }
+  }).__uniLifecycle
+
+  for (const callback of lifecycle.onShow) callback()
+}
+
 describe('Onboarding page (01)', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     _resetNavigation()
+    ;(globalThis as typeof globalThis & {
+      __uniLifecycle: { onShow: Array<() => void> }
+    }).__uniLifecycle.onShow.length = 0
     vi.stubGlobal('uni', {
       getWindowInfo: () => ({ windowWidth: 390 }),
       getMenuButtonBoundingClientRect: () => ({
@@ -111,7 +122,7 @@ describe('Onboarding page (01)', () => {
     const wrapper = mountPage()
     expect(wrapper.text()).toContain('宠物记忆')
     expect(wrapper.text()).toContain('给 Ta 留一个安静的位置')
-    expect(wrapper.text()).toContain('把想记住的样子，慢慢留在这里。')
+    expect(wrapper.text()).toContain('把想记住的样子，慢慢留在这里……')
   })
 
   it('keeps the entry copy above the lower action area so the dog photo remains unobstructed', () => {
@@ -124,7 +135,7 @@ describe('Onboarding page (01)', () => {
 
     expect(scene.exists()).toBe(true)
     expect(scene.element.tagName.toLowerCase()).toBe('image')
-    expect(scene.attributes('src')).toBe('/static/ui/onboarding-photo-album-hero-v2.png')
+    expect(scene.attributes('src')).toBe('/ui/onboarding-photo-album-hero-v2.png')
     expect(copy.text()).toContain('宠物记忆')
     expect(wrapper.find('.onboarding__note').exists()).toBe(false)
     expect(footer.exists()).toBe(true)
@@ -139,11 +150,12 @@ describe('Onboarding page (01)', () => {
     )
 
     expect(source).toMatch(/\.onboarding__brand\s*\{[\s\S]*font-family:\s*"Songti SC",\s*STSong,\s*serif/)
-    expect(source).toMatch(/\.onboarding__brand\s*\{[\s\S]*font-size:\s*72rpx/)
+    expect(source).toMatch(/\.onboarding__brand\s*\{[\s\S]*font-size:\s*80rpx/)
     expect(source).toMatch(/\.onboarding__brand\s*\{[\s\S]*color:\s*#5b371f/)
-    expect(source).toMatch(/\.onboarding__title\s*\{[\s\S]*font-size:\s*30rpx[\s\S]*color:\s*#80583a/)
-    expect(source).toMatch(/\.onboarding__body\s*\{[\s\S]*font-size:\s*28rpx[\s\S]*color:\s*#80583a/)
-    expect(source).toMatch(/\.onboarding__copy\s*\{[\s\S]*top:\s*21%/)
+    expect(source).toMatch(/\.onboarding__title\s*\{[\s\S]*font-size:\s*32rpx[\s\S]*color:\s*#80583a/)
+    expect(source).toMatch(/\.onboarding__body\s*\{[\s\S]*font-size:\s*30rpx[\s\S]*color:\s*#80583a/)
+    expect(source).toMatch(/\.onboarding__copy\s*\{[\s\S]*top:\s*18%/)
+    expect(source).toMatch(/\.onboarding__start[\s\S]*\.primary-button__label[\s\S]*font-size:\s*34rpx/)
   })
 
   it('places the underlined privacy action before the local-storage reassurance', () => {
@@ -196,6 +208,30 @@ describe('Onboarding page (01)', () => {
 
     expect(appStore.completeOnboarding).toHaveBeenCalled()
     expect(nav.push).toHaveBeenCalledWith('/pages/space-create/index')
+  })
+
+  it('redirects to spaces when returning from space-create after onboarding', async () => {
+    const nav = mockNavigation()
+    provideNavigation(nav)
+    setReady(false)
+
+    const appStore = useAppStore()
+    vi.spyOn(appStore, 'completeOnboarding').mockImplementation(async () => {
+      appStore.hasCompletedOnboarding = true
+    })
+
+    const wrapper = mountPage()
+    await Promise.resolve()
+    const startBtn = wrapper.find('.onboarding__start button')
+    await startBtn.trigger('click')
+
+    expect(nav.push).toHaveBeenCalledWith('/pages/space-create/index')
+    expect(nav.replace).not.toHaveBeenCalled()
+
+    triggerPageShow()
+    await wrapper.vm.$nextTick()
+
+    expect(nav.replace).toHaveBeenCalledWith('/pages/spaces/index')
   })
 
   it('T5B-M16: shows error message on completeOnboarding failure', async () => {

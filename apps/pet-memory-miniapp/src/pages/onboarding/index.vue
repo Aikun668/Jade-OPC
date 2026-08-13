@@ -22,7 +22,7 @@
       <view class="onboarding__content">
         <image
           class="onboarding__scene"
-          src="/static/ui/onboarding-photo-album-hero-v2.png"
+          src="/ui/onboarding-photo-album-hero-v2.png"
           mode="aspectFill"
           aria-hidden="true"
         />
@@ -31,7 +31,7 @@
           <text class="onboarding__brand">宠物记忆</text>
           <view class="onboarding__intro">
             <text class="onboarding__title">给 Ta 留一个安静的位置</text>
-            <text class="onboarding__body">把想记住的样子，慢慢留在这里。</text>
+            <text class="onboarding__body">把想记住的样子，慢慢留在这里……</text>
           </view>
         </view>
         <view class="onboarding__footer">
@@ -65,7 +65,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { onReady } from '@dcloudio/uni-app'
+import { onReady, onShow } from '@dcloudio/uni-app'
 import PageShell from '../../components/PageShell.vue'
 import PrimaryButton from '../../components/PrimaryButton.vue'
 import TextAction from '../../components/TextAction.vue'
@@ -79,6 +79,7 @@ const nav = getNavigation()
 
 const isSubmitting = ref(false)
 const submitError = ref(false)
+const isStarting = ref(false)
 let didRedirect = false
 let pageReady = false
 
@@ -93,7 +94,7 @@ const showContent = computed(() =>
 )
 
 function redirectIfReady(): void {
-  if (didRedirect || !pageReady) return
+  if (didRedirect || !pageReady || isStarting.value) return
   if (appStore.bootstrapStatus !== 'ready' || !appStore.hasCompletedOnboarding) return
 
   didRedirect = true
@@ -112,6 +113,13 @@ onReady(() => {
   redirectIfReady()
 })
 
+// The onboarding page remains in the navigation stack while the first space
+// is being created. When that page becomes visible again, completed onboarding
+// must resolve to the spaces page instead of rendering the loading fallback.
+onShow(() => {
+  redirectIfReady()
+})
+
 watch(
   () => appStore.bootstrapStatus,
   () => redirectIfReady(),
@@ -121,6 +129,7 @@ watch(
 async function start(): Promise<void> {
   submitError.value = false
   isSubmitting.value = true
+  isStarting.value = true
   try {
     await appStore.completeOnboarding()
     await nav.push(PAGE_URLS['space-create'])
@@ -128,6 +137,7 @@ async function start(): Promise<void> {
     submitError.value = true
   } finally {
     isSubmitting.value = false
+    isStarting.value = false
   }
 }
 
@@ -172,7 +182,7 @@ function retry(): void {
 .onboarding__brand {
   margin-bottom: 24rpx;
   font-family: "Songti SC", STSong, serif;
-  font-size: 72rpx;
+  font-size: 80rpx;
   font-weight: $pm-weight-medium;
   letter-spacing: 2rpx;
   line-height: 1.2;
@@ -182,7 +192,7 @@ function retry(): void {
 .onboarding__copy {
   position: absolute;
   z-index: 1;
-  top: 21%;
+  top: 18%;
   right: $pm-page-inline;
   left: $pm-page-inline;
   display: flex;
@@ -207,14 +217,14 @@ function retry(): void {
 }
 
 .onboarding__title {
-  font-size: 30rpx;
+  font-size: 32rpx;
   font-weight: $pm-weight-medium;
   line-height: 1.5;
   color: #80583a;
 }
 
 .onboarding__body {
-  font-size: 28rpx;
+  font-size: 30rpx;
   line-height: 1.5;
   color: #80583a;
 }
@@ -232,6 +242,10 @@ function retry(): void {
     background-color: rgba(255, 253, 248, 0.94);
     color: $pm-color-ink;
     box-shadow: 0 10rpx 30rpx rgba(48, 40, 26, 0.16);
+  }
+
+  :deep(.primary-button__label) {
+    font-size: 34rpx;
   }
 
   :deep(primary-button) {

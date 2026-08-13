@@ -1,5 +1,13 @@
 import { vi } from 'vitest'
 
+const uniLifecycle = vi.hoisted(() => ({
+  onShow: [] as Array<() => void>,
+}))
+
+;(globalThis as typeof globalThis & {
+  __uniLifecycle: typeof uniLifecycle
+}).__uniLifecycle = uniLifecycle
+
 // @dcloudio/uni-app shim — vitest jsdom environment doesn't support
 // uni-app's internal Vue lifecycle hooks. Mock lifecycle registrars
 // as no-ops to prevent "vue.injectHook is not a function" errors.
@@ -10,7 +18,9 @@ vi.mock('@dcloudio/uni-app', () => {
       // where onLoad callback fires immediately with route query.
       fn({})
     },
-    onShow: () => {},
+    onShow: (fn: () => void) => {
+      uniLifecycle.onShow.push(fn)
+    },
     onHide: () => {},
     onReady: (fn: () => void) => {
       // Simulate the mini-program page-ready boundary asynchronously so tests
