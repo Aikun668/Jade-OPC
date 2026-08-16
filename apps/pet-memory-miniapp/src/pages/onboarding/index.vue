@@ -22,7 +22,7 @@
       <view class="onboarding__content">
         <image
           class="onboarding__scene"
-          src="/ui/onboarding-photo-album-hero-v2.png"
+          src="/ui/onboarding-photo-album-hero-v3-sunlit.jpg"
           mode="aspectFill"
           aria-hidden="true"
         />
@@ -65,7 +65,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { onReady, onShow } from '@dcloudio/uni-app'
+import { onReady } from '@dcloudio/uni-app'
 import PageShell from '../../components/PageShell.vue'
 import PrimaryButton from '../../components/PrimaryButton.vue'
 import TextAction from '../../components/TextAction.vue'
@@ -113,13 +113,6 @@ onReady(() => {
   redirectIfReady()
 })
 
-// The onboarding page remains in the navigation stack while the first space
-// is being created. When that page becomes visible again, completed onboarding
-// must resolve to the spaces page instead of rendering the loading fallback.
-onShow(() => {
-  redirectIfReady()
-})
-
 watch(
   () => appStore.bootstrapStatus,
   () => redirectIfReady(),
@@ -132,7 +125,7 @@ async function start(): Promise<void> {
   isStarting.value = true
   try {
     await appStore.completeOnboarding()
-    await nav.push(PAGE_URLS['space-create'])
+    await nav.push(`${PAGE_URLS['space-create']}?source=onboarding`)
   } catch {
     submitError.value = true
   } finally {
@@ -197,6 +190,7 @@ function retry(): void {
   left: $pm-page-inline;
   display: flex;
   flex-direction: column;
+  animation: onboarding-copy-in 1100ms cubic-bezier(0.25, 0.1, 0.25, 1) 160ms both;
 }
 
 .onboarding__footer {
@@ -207,6 +201,7 @@ function retry(): void {
   left: $pm-page-inline;
   display: flex;
   flex-direction: column;
+  animation: onboarding-footer-in 1400ms cubic-bezier(0.25, 0.1, 0.25, 1) 1500ms both;
 }
 
 .onboarding__intro {
@@ -227,6 +222,28 @@ function retry(): void {
   font-size: 30rpx;
   line-height: 1.5;
   color: #80583a;
+}
+
+@keyframes onboarding-copy-in {
+  from {
+    opacity: 0;
+    transform: translateY(12rpx);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes onboarding-footer-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 // ---- actions ----

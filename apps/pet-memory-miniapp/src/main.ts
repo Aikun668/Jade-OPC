@@ -10,6 +10,8 @@ import { UniNavigationAdapter } from './adapters/navigation'
 import { provideNavigation } from './adapters/navigation-deps'
 import { UniPhotoPicker } from './adapters/uni-photo-picker'
 import { providePhotoPicker } from './adapters/photo-picker-deps'
+import { UniPhotoFileStorage } from './adapters/uni-photo-file-storage'
+import { providePhotoFileStorage } from './adapters/photo-file-storage-deps'
 import { MockAiDraftService } from './services/mock-ai-draft-service'
 import { provideAiDraftService } from './services/ai-draft-service-deps'
 import { useDevScenarios } from './features/developer/dev-scenarios'
@@ -21,12 +23,14 @@ export function createApp() {
   app.use(pinia)
 
   const storage = new UniStorageAdapter()
+  const photoFileStorage = new UniPhotoFileStorage()
   const clock = new SystemClock()
   const idFactory = new NanoIdFactory()
-  const repo = new LocalMemoryRepository(storage, clock, idFactory)
+  const repo = new LocalMemoryRepository(storage, clock, idFactory, photoFileStorage)
   provideRepository(repo)
 
   providePhotoPicker(new UniPhotoPicker())
+  providePhotoFileStorage(photoFileStorage)
 
   const devScenarios = useDevScenarios()
   provideAiDraftService(

@@ -2,6 +2,7 @@ import { vi } from 'vitest'
 
 const uniLifecycle = vi.hoisted(() => ({
   onShow: [] as Array<() => void>,
+  nextLoadOptions: undefined as Record<string, unknown> | undefined,
 }))
 
 ;(globalThis as typeof globalThis & {
@@ -16,7 +17,9 @@ vi.mock('@dcloudio/uni-app', () => {
     onLoad: (fn: (options?: Record<string, unknown>) => void) => {
       // Fire synchronously with empty options — mimics a real page load
       // where onLoad callback fires immediately with route query.
-      fn({})
+      const options = uniLifecycle.nextLoadOptions ?? {}
+      uniLifecycle.nextLoadOptions = undefined
+      fn(options)
     },
     onShow: (fn: () => void) => {
       uniLifecycle.onShow.push(fn)

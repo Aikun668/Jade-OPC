@@ -2,7 +2,6 @@
   <PageShell
     layout="task-form"
     :show-back="true"
-    :keyboard-open="keyboardOpen"
     @back="handleBack"
   >
     <template #intro>
@@ -44,8 +43,6 @@
         v-model="name"
         placeholder="Ta 的名字"
         :maxlength="20"
-        @focus="keyboardOpen = true"
-        @blur="keyboardOpen = false"
       />
       <text class="space-create__name-helper">最多 20 个字。昵称、名字，或者你习惯的称呼都可以。</text>
       <text v-if="nameError" class="space-create__name-error">{{ nameError }}</text>
@@ -78,6 +75,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import PageShell from '../../components/PageShell.vue'
 import PrimaryButton from '../../components/PrimaryButton.vue'
 import TextAction from '../../components/TextAction.vue'
@@ -85,12 +83,15 @@ import ConfirmDialog from '../../components/ConfirmDialog.vue'
 import { useMemoryStore } from '../../stores/memory'
 import { getNavigation } from '../../adapters/navigation-deps'
 import { getPhotoPicker } from '../../adapters/photo-picker-deps'
+import { getPhotoFileStorage } from '../../adapters/photo-file-storage-deps'
 import { validateSpaceName } from '../../features/spaces/space-form'
+import { parseSpaceCreateRoute } from '../../features/routing/route-params'
 import type { NewSessionAssetInput } from '../../types/domain'
 
 const memStore = useMemoryStore()
 const nav = getNavigation()
 const photoPicker = getPhotoPicker()
+const photoFileStorage = getPhotoFileStorage()
 
 const name = ref('')
 const coverPhoto = ref<{ uri: string } | null>(null)
@@ -101,7 +102,12 @@ const submitError = ref(false)
 const nameError = ref('')
 const photoError = ref('')
 const showReturnDialog = ref(false)
-const keyboardOpen = ref(false)
+const openedFromOnboarding = ref(false)
+
+onLoad((options: Record<string, unknown> | undefined) => {
+  const parsed = parseSpaceCreateRoute(options || {})
+  openedFromOnboarding.value = parsed.kind === 'valid' && parsed.value.source === 'onboarding'
+})
 
 watch(name, () => {
   nameError.value = ''
@@ -158,9 +164,12 @@ async function handleSubmit(): Promise<void> {
 
   isSubmitting.value = true
   try {
+    const persistedCoverPhoto = coverPhotoInput.value
+      ? { uri: await photoFileStorage.save(coverPhotoInput.value.uri), persistence: 'local' as const }
+      : null
     const result = await memStore.createSpace({
       name: validation.value,
-      coverPhoto: coverPhotoInput.value,
+      coverPhoto: persistedCoverPhoto,
     })
     await nav.resetTo({ page: 'space-home', spaceId: result.id })
   } catch {
@@ -174,13 +183,22 @@ function handleBack(): void {
   if (isDirty()) {
     showReturnDialog.value = true
   } else {
-    nav.back()
+    leaveCreateFlow()
   }
 }
 
 function handleConfirmLeave(): void {
   showReturnDialog.value = false
-  nav.back()
+  leaveCreateFlow()
+}
+
+function leaveCreateFlow(): void {
+  if (openedFromOnboarding.value) {
+    void nav.resetTo({ page: 'spaces' })
+    return
+  }
+
+  void nav.back()
 }
 </script>
 

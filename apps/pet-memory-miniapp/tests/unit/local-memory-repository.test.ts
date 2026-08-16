@@ -9,6 +9,7 @@ import { validateSnapshot } from '../../src/repositories/snapshot-validation'
 import { MemoryStorageAdapter } from '../helpers/memory-storage'
 import { LocalMemoryRepository, M0_SNAPSHOT_KEY } from '../../src/repositories/local-memory-repository'
 import type { StorageAdapter } from '../../src/adapters/storage'
+import type { PhotoFileStorage } from '../../src/adapters/photo-file-storage'
 
 // ---- 确定性 Clock 与 IdFactory ----
 
@@ -180,6 +181,83 @@ describe('LocalMemoryRepository', () => {
       expect(coverAsset).toBeTruthy()
       expect(coverAsset!.persistence).toBe('session-only')
       expect(coverAsset!.ownerType).toBe('space')
+    })
+
+    it('keeps a locally persisted cover photo available after bootstrap', async () => {
+      const storage = new MemoryStorageAdapter()
+      const repo = new LocalMemoryRepository(
+        storage,
+        new DeterministicClock('2026-06-01T00:00:00.000Z'),
+        new DeterministicIdFactory('test'),
+      )
+      await repo.bootstrap()
+
+      const created = await repo.createSpace({
+        name: '小花',
+        coverPhoto: { uri: '/saved/cover.jpg', persistence: 'local' },
+      })
+
+      const restartedRepo = new LocalMemoryRepository(
+        storage,
+        new DeterministicClock('2026-06-01T00:00:01.000Z'),
+        new DeterministicIdFactory('restart'),
+      )
+      const restarted = await restartedRepo.bootstrap()
+      const restartedSpace = restarted.spaces.find(space => space.name === '小花')
+      const coverAsset = restarted.assets.find(a => a.id === restartedSpace?.coverAssetId)
+
+      expect(coverAsset).toMatchObject({
+        uri: '/saved/cover.jpg',
+        ownerType: 'space',
+        persistence: 'local',
+        availability: 'available',
+      })
+    })
+
+    it('migrates a still-readable legacy space cover into local storage on bootstrap', async () => {
+      const storage = new MemoryStorageAdapter()
+      const legacySnapshot = {
+        ...emptySnapshot,
+        spaces: [{
+          id: 's_legacy',
+          name: '小花',
+          coverAssetId: 'a_legacy',
+          createdAt: '2026-06-01T00:00:00.000Z',
+          updatedAt: '2026-06-01T00:00:00.000Z',
+        }],
+        assets: [{
+          id: 'a_legacy',
+          ownerType: 'space' as const,
+          ownerId: 's_legacy',
+          uri: '/tmp/legacy-cover.jpg',
+          persistence: 'session-only' as const,
+          availability: 'available' as const,
+          order: 0,
+        }],
+      }
+      await storage.set(M0_SNAPSHOT_KEY, legacySnapshot)
+
+      const fileStorage: PhotoFileStorage = {
+        save: async (uri) => {
+          expect(uri).toBe('/tmp/legacy-cover.jpg')
+          return '/saved/legacy-cover.jpg'
+        },
+      }
+      const repo = new LocalMemoryRepository(
+        storage,
+        new DeterministicClock('2026-06-01T00:00:00.000Z'),
+        new DeterministicIdFactory('test'),
+        fileStorage,
+      )
+
+      const snapshot = await repo.bootstrap()
+
+      expect(snapshot.assets).toContainEqual(expect.objectContaining({
+        id: 'a_legacy',
+        uri: '/saved/legacy-cover.jpg',
+        persistence: 'local',
+        availability: 'available',
+      }))
     })
 
     it('updates a space name (keep cover)', async () => {
@@ -978,6 +1056,53 @@ describe('LocalMemoryRepository', () => {
       const snapshot = await repo.bootstrap()
       expect(snapshot.spaces).toHaveLength(1)
       expect(snapshot.spaces[0].name).toBe('Original')
+    })
+
+    it('preserves user records in the empty sample when switching away and back', async () => {
+      const repo = createRepo()
+      await repo.bootstrap()
+      await repo.createSpace({ name: '我的空样本空间', coverPhoto: null })
+
+      await repo.resetSample('complete')
+      const restored = await repo.resetSample('empty')
+
+      expect(restored.sampleMode).toBe('empty')
+      expect(restored.spaces).toHaveLength(1)
+      expect(restored.spaces[0].name).toBe('我的空样本空间')
+    })
+
+    it('preserves complete sample edits when switching away and back', async () => {
+      const repo = createRepo()
+      await repo.bootstrap()
+      await repo.resetSample('complete')
+      await repo.updateSpace({
+        spaceId: 's_tuantu',
+        name: '修改后的团团',
+        coverPhotoChange: { kind: 'keep' },
+      })
+
+      await repo.resetSample('empty')
+      const restored = await repo.resetSample('complete')
+
+      expect(restored.sampleMode).toBe('complete')
+      expect(restored.spaces.find(space => space.id === 's_tuantu')?.name).toBe('修改后的团团')
+    })
+
+    it('migrates the legacy single snapshot without losing it on first switch', async () => {
+      const storage = new MemoryStorageAdapter()
+      const repo = new LocalMemoryRepository(
+        storage,
+        new DeterministicClock('2026-06-01T00:00:00.000Z'),
+        new DeterministicIdFactory('test'),
+      )
+      await repo.bootstrap()
+      await repo.createSpace({ name: '旧数据空间', coverPhoto: null })
+
+      await repo.resetSample('complete')
+      const restored = await repo.resetSample('empty')
+
+      expect(restored.spaces).toHaveLength(1)
+      expect(restored.spaces[0].name).toBe('旧数据空间')
     })
   })
 

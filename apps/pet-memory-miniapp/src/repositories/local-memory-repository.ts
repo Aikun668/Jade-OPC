@@ -14,6 +14,7 @@ import type {
   RepositoryWriteResult,
 } from '../types/domain'
 import type { StorageAdapter } from '../adapters/storage'
+import type { PhotoFileStorage } from '../adapters/photo-file-storage'
 import type { Clock } from '../utils/dates'
 import type { IdFactory } from '../utils/ids'
 import { validateSnapshot, expireSessionAssets } from './snapshot-validation'
@@ -21,6 +22,8 @@ import { emptySnapshot } from '../fixtures/empty-snapshot'
 import { completeSnapshot } from '../fixtures/complete-snapshot'
 
 export const M0_SNAPSHOT_KEY = 'pet-memory:m0:snapshot'
+const M0_ACTIVE_SAMPLE_MODE_KEY = 'pet-memory:m0:active-sample-mode'
+const M0_SAMPLE_SNAPSHOT_PREFIX = 'pet-memory:m0:sample'
 
 // The complete fixture used to ship with a candidate on the photo memory.
 // Clear only that exact legacy fixture value; user-created candidates remain
@@ -35,6 +38,14 @@ function cloneValue<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
 }
 
+function isSampleMode(value: unknown): value is SampleMode {
+  return value === 'empty' || value === 'complete'
+}
+
+function makeSampleStorageKey(mode: SampleMode): string {
+  return `${M0_SAMPLE_SNAPSHOT_PREFIX}:${mode}`
+}
+
 export class LocalMemoryRepository implements MemoryRepository {
   private current: MemorySnapshot | null = null
 
@@ -42,37 +53,30 @@ export class LocalMemoryRepository implements MemoryRepository {
     private storage: StorageAdapter,
     private clock: Clock,
     private idFactory: IdFactory,
+    private photoFileStorage?: PhotoFileStorage,
   ) {}
 
   async bootstrap(): Promise<MemorySnapshot> {
-    const raw = await this.storage.get<MemorySnapshot>(M0_SNAPSHOT_KEY)
+    const activeMode = await this.storage.get<unknown>(M0_ACTIVE_SAMPLE_MODE_KEY)
+    const activeSnapshot = isSampleMode(activeMode)
+      ? await this.storage.get<MemorySnapshot>(makeSampleStorageKey(activeMode))
+      : null
+
+    const raw = activeSnapshot ?? await this.storage.get<MemorySnapshot>(M0_SNAPSHOT_KEY)
     if (raw === null) {
       const validated = validateSnapshot(emptySnapshot)
       if (validated.kind !== 'valid') {
         throw new Error('Empty snapshot fixture is invalid')
       }
       const initialSnapshot = cloneValue(emptySnapshot)
-      await this.storage.set(M0_SNAPSHOT_KEY, cloneValue(initialSnapshot))
-      this.current = initialSnapshot
-      return cloneValue(initialSnapshot)
+      return this.bootstrapWithSnapshot(initialSnapshot)
     }
 
-    const result = validateSnapshot(raw)
-    if (result.kind === 'valid') {
-      const normalized = normalizeLegacyCompleteSample(result.snapshot)
-      if (normalized !== result.snapshot) {
-        await this.storage.set(M0_SNAPSHOT_KEY, cloneValue(normalized))
-      }
-      const expired = expireSessionAssets(normalized)
-      this.current = cloneValue(expired)
-      return cloneValue(this.current)
+    const snapshot = await this.normalizeStoredSnapshot(raw)
+    if (isSampleMode(activeMode) && snapshot.sampleMode !== activeMode) {
+      throw new Error(`Stored sample mode mismatch: expected ${activeMode}, got ${snapshot.sampleMode}`)
     }
-
-    if (result.kind === 'unsupported-version') {
-      throw new Error(`Unsupported snapshot version: ${result.version}. Current version: 1`)
-    }
-
-    throw new Error(`Stored snapshot is invalid: ${result.kind === 'invalid' ? result.reason : result.kind}`)
+    return this.bootstrapWithSnapshot(snapshot)
   }
 
   async createSpace(input: CreateSpaceInput): Promise<RepositoryWriteResult<MemorySpace>> {
@@ -97,7 +101,7 @@ export class LocalMemoryRepository implements MemoryRepository {
         ownerType: 'space',
         ownerId: id,
         uri: input.coverPhoto.uri,
-        persistence: 'session-only',
+        persistence: input.coverPhoto.persistence ?? 'session-only',
         availability: 'available',
         order: 0,
       }
@@ -143,7 +147,7 @@ export class LocalMemoryRepository implements MemoryRepository {
         ownerType: 'space',
         ownerId: input.spaceId,
         uri: input.coverPhotoChange.photo.uri,
-        persistence: 'session-only',
+        persistence: input.coverPhotoChange.photo.persistence ?? 'session-only',
         availability: 'available',
         order: 0,
       }
@@ -463,8 +467,21 @@ export class LocalMemoryRepository implements MemoryRepository {
   }
 
   async resetSample(mode: SampleMode): Promise<MemorySnapshot> {
-    const fixture = mode === 'empty' ? emptySnapshot : completeSnapshot
-    return this.commit(fixture)
+    const current = this.ensureCurrent()
+    if (current.sampleMode !== mode) {
+      await this.persistSnapshot(current)
+    }
+
+    const stored = await this.storage.get<MemorySnapshot>(makeSampleStorageKey(mode))
+    const next = stored === null
+      ? cloneValue(mode === 'empty' ? emptySnapshot : completeSnapshot)
+      : await this.normalizeStoredSnapshot(stored)
+
+    if (next.sampleMode !== mode) {
+      throw new Error(`Stored sample mode mismatch: expected ${mode}, got ${next.sampleMode}`)
+    }
+
+    return this.commit(next)
   }
 
   // ---- private helpers ----
@@ -483,9 +500,39 @@ export class LocalMemoryRepository implements MemoryRepository {
       throw new Error(`Candidate snapshot invalid: ${reason}`)
     }
     const committed = cloneValue(candidate)
-    await this.storage.set(M0_SNAPSHOT_KEY, cloneValue(committed))
+    await this.persistSnapshot(committed)
     this.current = committed
     return cloneValue(committed)
+  }
+
+  private async bootstrapWithSnapshot(snapshot: MemorySnapshot): Promise<MemorySnapshot> {
+    const committed = await this.persistSnapshot(snapshot)
+    this.current = committed
+    return cloneValue(committed)
+  }
+
+  private async normalizeStoredSnapshot(raw: MemorySnapshot): Promise<MemorySnapshot> {
+    const result = validateSnapshot(raw)
+    if (result.kind !== 'valid') {
+      if (result.kind === 'unsupported-version') {
+        throw new Error(`Unsupported snapshot version: ${result.version}. Current version: 1`)
+      }
+      throw new Error(`Stored snapshot is invalid: ${result.kind === 'invalid' ? result.reason : result.kind}`)
+    }
+
+    const normalized = normalizeLegacyCompleteSample(result.snapshot)
+    const migrated = await this.migrateLegacySpaceCovers(normalized)
+    return cloneValue(expireSessionAssets(migrated))
+  }
+
+  private async persistSnapshot(snapshot: MemorySnapshot): Promise<MemorySnapshot> {
+    const committed = cloneValue(snapshot)
+    await this.storage.set(makeSampleStorageKey(committed.sampleMode), cloneValue(committed))
+    await this.storage.set(M0_ACTIVE_SAMPLE_MODE_KEY, committed.sampleMode)
+    // Keep the original key as a compatibility mirror for existing M0 data and
+    // older builds. It is never the source of truth once a mode snapshot exists.
+    await this.storage.set(M0_SNAPSHOT_KEY, cloneValue(committed))
+    return committed
   }
 
   private assetBelongsToSpace(asset: LocalAsset, spaceId: string, snap: MemorySnapshot): boolean {
@@ -499,6 +546,43 @@ export class LocalMemoryRepository implements MemoryRepository {
       return draft !== undefined && draft.spaceId === spaceId
     }
     return false
+  }
+
+  private async migrateLegacySpaceCovers(snapshot: MemorySnapshot): Promise<MemorySnapshot> {
+    if (!this.photoFileStorage) return snapshot
+
+    let migrated: MemorySnapshot | null = null
+    for (const asset of snapshot.assets) {
+      if (
+        asset.ownerType !== 'space' ||
+        asset.persistence !== 'session-only' ||
+        asset.availability !== 'available'
+      ) {
+        continue
+      }
+
+      const space = snapshot.spaces.find(s => s.id === asset.ownerId && s.coverAssetId === asset.id)
+      if (!space) continue
+
+      try {
+        const savedUri = await this.photoFileStorage.save(asset.uri)
+        if (!savedUri) continue
+
+        const base: MemorySnapshot = migrated ?? snapshot
+        migrated = {
+          ...base,
+          assets: base.assets.map(candidate =>
+            candidate.id === asset.id
+              ? { ...candidate, uri: savedUri, persistence: 'local' as const }
+              : candidate,
+          ),
+        }
+      } catch {
+        // A stale temporary path is handled by expireSessionAssets below.
+      }
+    }
+
+    return migrated ?? snapshot
   }
 }
 

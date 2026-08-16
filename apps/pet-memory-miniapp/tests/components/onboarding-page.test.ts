@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mount } from '@vue/test-utils'
@@ -57,14 +57,6 @@ function setReady(onboarding: boolean) {
     sampleMode: onboarding ? 'complete' : 'empty',
     hasCompletedOnboarding: onboarding,
   })
-}
-
-function triggerPageShow(): void {
-  const lifecycle = (globalThis as typeof globalThis & {
-    __uniLifecycle: { onShow: Array<() => void> }
-  }).__uniLifecycle
-
-  for (const callback of lifecycle.onShow) callback()
 }
 
 describe('Onboarding page (01)', () => {
@@ -135,7 +127,7 @@ describe('Onboarding page (01)', () => {
 
     expect(scene.exists()).toBe(true)
     expect(scene.element.tagName.toLowerCase()).toBe('image')
-    expect(scene.attributes('src')).toBe('/ui/onboarding-photo-album-hero-v2.png')
+    expect(scene.attributes('src')).toBe('/ui/onboarding-photo-album-hero-v3-sunlit.jpg')
     expect(copy.text()).toContain('宠物记忆')
     expect(wrapper.find('.onboarding__note').exists()).toBe(false)
     expect(footer.exists()).toBe(true)
@@ -156,6 +148,26 @@ describe('Onboarding page (01)', () => {
     expect(source).toMatch(/\.onboarding__body\s*\{[\s\S]*font-size:\s*30rpx[\s\S]*color:\s*#80583a/)
     expect(source).toMatch(/\.onboarding__copy\s*\{[\s\S]*top:\s*18%/)
     expect(source).toMatch(/\.onboarding__start[\s\S]*\.primary-button__label[\s\S]*font-size:\s*34rpx/)
+  })
+
+  it('reveals the full entry copy as one soft upward fade before the lower actions', () => {
+    const source = readFileSync(
+      resolve(__dirname, '../../src/pages/onboarding/index.vue'),
+      'utf-8',
+    )
+
+    expect(source).toMatch(/\.onboarding__copy\s*\{[\s\S]*animation:\s*onboarding-copy-in\s+1100ms[\s\S]*160ms/)
+    expect(source).toMatch(/\.onboarding__footer\s*\{[\s\S]*animation:\s*onboarding-footer-in\s+1400ms\s+cubic-bezier\(0\.25,\s*0\.1,\s*0\.25,\s*1\)\s+1500ms/)
+    expect(source).toMatch(/@keyframes onboarding-copy-in\s*\{[\s\S]*translateY\(12rpx\)/)
+    expect(source).not.toMatch(/\.onboarding__brand\s*\{[^}]*animation:/)
+    expect(source).not.toMatch(/\.onboarding__title\s*\{[^}]*animation:/)
+    expect(source).not.toMatch(/\.onboarding__body\s*\{[^}]*animation:/)
+    expect(source).toMatch(/@keyframes onboarding-footer-in\s*\{[\s\S]*opacity:\s*0[\s\S]*opacity:\s*1/)
+  })
+
+  it('does not keep the superseded onboarding hero in the shipped static assets', () => {
+    expect(existsSync(resolve(__dirname, '../../static/ui/onboarding-photo-album-hero-v2.png'))).toBe(false)
+    expect(existsSync(resolve(__dirname, '../../static/ui/onboarding-photo-album-hero-v3-sunlit.png'))).toBe(false)
   })
 
   it('places the underlined privacy action before the local-storage reassurance', () => {
@@ -207,10 +219,10 @@ describe('Onboarding page (01)', () => {
     await startBtn.trigger('click')
 
     expect(appStore.completeOnboarding).toHaveBeenCalled()
-    expect(nav.push).toHaveBeenCalledWith('/pages/space-create/index')
+    expect(nav.push).toHaveBeenCalledWith('/pages/space-create/index?source=onboarding')
   })
 
-  it('redirects to spaces when returning from space-create after onboarding', async () => {
+  it('marks the space-create route as coming from onboarding', async () => {
     const nav = mockNavigation()
     provideNavigation(nav)
     setReady(false)
@@ -225,13 +237,8 @@ describe('Onboarding page (01)', () => {
     const startBtn = wrapper.find('.onboarding__start button')
     await startBtn.trigger('click')
 
-    expect(nav.push).toHaveBeenCalledWith('/pages/space-create/index')
+    expect(nav.push).toHaveBeenCalledWith('/pages/space-create/index?source=onboarding')
     expect(nav.replace).not.toHaveBeenCalled()
-
-    triggerPageShow()
-    await wrapper.vm.$nextTick()
-
-    expect(nav.replace).toHaveBeenCalledWith('/pages/spaces/index')
   })
 
   it('T5B-M16: shows error message on completeOnboarding failure', async () => {

@@ -5,8 +5,10 @@ import { useAppStore } from '../../src/stores/app'
 import { useMemoryStore } from '../../src/stores/memory'
 import { provideNavigation, _resetNavigation } from '../../src/adapters/navigation-deps'
 import { providePhotoPicker, _resetPhotoPicker } from '../../src/adapters/photo-picker-deps'
+import { providePhotoFileStorage, _resetPhotoFileStorage } from '../../src/adapters/photo-file-storage-deps'
 import type { NavigationAdapter } from '../../src/adapters/navigation'
 import type { PhotoPicker, PickResult } from '../../src/adapters/photo-picker'
+import type { PhotoFileStorage } from '../../src/adapters/photo-file-storage'
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -25,6 +27,13 @@ function mockNavigation(overrides: Partial<NavigationAdapter> = {}): NavigationA
 function mockPhotoPicker(overrides: Partial<PhotoPicker> = {}): PhotoPicker {
   return {
     pick: vi.fn().mockResolvedValue({ kind: 'cancelled' } as PickResult),
+    ...overrides,
+  }
+}
+
+function mockPhotoFileStorage(overrides: Partial<PhotoFileStorage> = {}): PhotoFileStorage {
+  return {
+    save: vi.fn().mockImplementation(async (uri: string) => `/saved${uri}`),
     ...overrides,
   }
 }
@@ -54,6 +63,8 @@ describe('Task 5B journey (01 → 13 → 01 → 03 → 04)', () => {
     setActivePinia(createPinia())
     _resetNavigation()
     _resetPhotoPicker()
+    _resetPhotoFileStorage()
+    providePhotoFileStorage(mockPhotoFileStorage())
     vi.stubGlobal('uni', {
       getWindowInfo: () => ({ windowWidth: 390 }),
       getMenuButtonBoundingClientRect: () => ({
@@ -94,7 +105,7 @@ describe('Task 5B journey (01 → 13 → 01 → 03 → 04)', () => {
     await startBtn.trigger('click')
 
     expect(appStore.completeOnboarding).toHaveBeenCalled()
-    expect(nav.push).toHaveBeenCalledWith('/pages/space-create/index')
+    expect(nav.push).toHaveBeenCalledWith('/pages/space-create/index?source=onboarding')
   })
 
   // ---- J02: onboarding → privacy → back ----
@@ -204,7 +215,7 @@ describe('Task 5B journey (01 → 13 → 01 → 03 → 04)', () => {
     vi.spyOn(appStore, 'completeOnboarding').mockResolvedValue()
     const startBtn = onboardingWrapper.find('.onboarding__start button')
     await startBtn.trigger('click')
-    expect(nav.push).toHaveBeenCalledWith('/pages/space-create/index')
+    expect(nav.push).toHaveBeenCalledWith('/pages/space-create/index?source=onboarding')
 
     // === 03: space-create ===
     const newSpace = {
@@ -235,7 +246,7 @@ describe('Task 5B journey (01 → 13 → 01 → 03 → 04)', () => {
 
     expect(memStore.createSpace).toHaveBeenCalledWith({
       name: '豆豆',
-      coverPhoto: { uri: '/tmp/bean.jpg' },
+      coverPhoto: { uri: '/saved/tmp/bean.jpg', persistence: 'local' },
     })
     expect(nav.resetTo).toHaveBeenCalledWith({ page: 'space-home', spaceId: 's_j04' })
   })

@@ -158,6 +158,7 @@ import { useAppStore } from '../../stores/app'
 import { useMemoryStore } from '../../stores/memory'
 import { getNavigation } from '../../adapters/navigation-deps'
 import { getPhotoPicker } from '../../adapters/photo-picker-deps'
+import { getPhotoFileStorage } from '../../adapters/photo-file-storage-deps'
 import { validateSpaceName } from '../../features/spaces/space-form'
 import { parseSpaceSettingsRoute } from '../../features/routing/route-params'
 import { PAGE_URLS } from '../../adapters/navigation'
@@ -169,6 +170,7 @@ const appStore = useAppStore()
 const memStore = useMemoryStore()
 const nav = getNavigation()
 const photoPicker = getPhotoPicker()
+const photoFileStorage = getPhotoFileStorage()
 
 // ---- route ----
 const spaceId = ref<string | null>(null)
@@ -329,10 +331,19 @@ async function handleSave(): Promise<void> {
 
   isSaving.value = true
   try {
+    const persistedCoverChange = coverChange.value.kind === 'replace'
+      ? {
+          kind: 'replace' as const,
+          photo: {
+            uri: await photoFileStorage.save(coverChange.value.photo.uri),
+            persistence: 'local' as const,
+          },
+        }
+      : coverChange.value
     await memStore.updateSpace({
       spaceId: spaceId.value,
       name: validation.value,
-      coverPhotoChange: coverChange.value,
+      coverPhotoChange: persistedCoverChange,
     })
     // success — stay on page, reset change tracking
     coverChange.value = { kind: 'keep' }
@@ -611,8 +622,8 @@ defineExpose({ _setQueryForTest })
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-block: $pm-space-3;
-  min-height: $pm-hit-target-min;
+  padding-block: $pm-space-2;
+  min-height: $pm-control-height-compact;
 }
 
 .space-settings__row-text {
@@ -641,7 +652,7 @@ defineExpose({ _setQueryForTest })
 
 // ---- danger zone ----
 .space-settings__danger {
-  margin-top: $pm-space-10;
+  margin-top: $pm-space-4;
   padding-top: $pm-space-6;
   border-top: $pm-border-hairline solid $pm-color-line;
 }

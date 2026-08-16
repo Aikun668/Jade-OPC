@@ -5,8 +5,10 @@ import { useAppStore } from '../../src/stores/app'
 import { useMemoryStore } from '../../src/stores/memory'
 import { provideNavigation, _resetNavigation } from '../../src/adapters/navigation-deps'
 import { providePhotoPicker, _resetPhotoPicker } from '../../src/adapters/photo-picker-deps'
+import { providePhotoFileStorage, _resetPhotoFileStorage } from '../../src/adapters/photo-file-storage-deps'
 import type { NavigationAdapter } from '../../src/adapters/navigation'
 import type { PhotoPicker } from '../../src/adapters/photo-picker'
+import type { PhotoFileStorage } from '../../src/adapters/photo-file-storage'
 
 function mockNavigation(overrides: Partial<NavigationAdapter> = {}): NavigationAdapter {
   return {
@@ -21,6 +23,13 @@ function mockNavigation(overrides: Partial<NavigationAdapter> = {}): NavigationA
 function mockPhotoPicker(overrides: Partial<PhotoPicker> = {}): PhotoPicker {
   return {
     pick: vi.fn().mockResolvedValue({ kind: 'cancelled' }),
+    ...overrides,
+  }
+}
+
+function mockPhotoFileStorage(overrides: Partial<PhotoFileStorage> = {}): PhotoFileStorage {
+  return {
+    save: vi.fn().mockImplementation(async (uri: string) => `/saved${uri}`),
     ...overrides,
   }
 }
@@ -94,6 +103,8 @@ describe('Space-settings page (Task 9 Step 9-2)', () => {
     setActivePinia(createPinia())
     _resetNavigation()
     _resetPhotoPicker()
+    _resetPhotoFileStorage()
+    providePhotoFileStorage(mockPhotoFileStorage())
   })
 
   // ---- missing / not-found ----
@@ -343,7 +354,7 @@ describe('Space-settings page (Task 9 Step 9-2)', () => {
     expect(memStore.updateSpace).toHaveBeenCalledWith({
       spaceId: 's1',
       name: '团团',
-      coverPhotoChange: { kind: 'replace', photo: { uri: '/local/new-cover.png' } },
+      coverPhotoChange: { kind: 'replace', photo: { uri: '/saved/local/new-cover.png', persistence: 'local' } },
     })
   })
 

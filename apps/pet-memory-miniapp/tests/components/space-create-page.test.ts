@@ -5,8 +5,10 @@ import { useAppStore } from '../../src/stores/app'
 import { useMemoryStore } from '../../src/stores/memory'
 import { provideNavigation, _resetNavigation } from '../../src/adapters/navigation-deps'
 import { providePhotoPicker, _resetPhotoPicker } from '../../src/adapters/photo-picker-deps'
+import { providePhotoFileStorage, _resetPhotoFileStorage } from '../../src/adapters/photo-file-storage-deps'
 import type { NavigationAdapter } from '../../src/adapters/navigation'
 import type { PhotoPicker, PickResult } from '../../src/adapters/photo-picker'
+import type { PhotoFileStorage } from '../../src/adapters/photo-file-storage'
 import SpaceCreatePage from '../../src/pages/space-create/index.vue'
 
 // ---- helpers ----
@@ -28,6 +30,13 @@ function mockPhotoPicker(overrides: Partial<PhotoPicker> = {}): PhotoPicker {
   }
 }
 
+function mockPhotoFileStorage(overrides: Partial<PhotoFileStorage> = {}): PhotoFileStorage {
+  return {
+    save: vi.fn().mockImplementation(async (uri: string) => `/saved${uri}`),
+    ...overrides,
+  }
+}
+
 function mountPage() {
   return mount(SpaceCreatePage, {
     global: {
@@ -36,7 +45,7 @@ function mountPage() {
           template: `
             <view class="mock-pageshell">
               <view v-if="$attrs['show-back'] || $attrs.showBack" class="mock-back" @click="$emit('back')">back</view>
-              <view class="mock-keyboard">{{ $attrs.keyboardOpen ? 'kb-open' : 'kb-closed' }}</view>
+              <view class="mock-keyboard">{{ $attrs['keyboard-open'] || $attrs.keyboardOpen ? 'kb-open' : 'kb-closed' }}</view>
               <slot name="intro" />
               <slot />
               <slot name="actions" />
@@ -65,6 +74,11 @@ describe('Space-create page (03)', () => {
     setActivePinia(createPinia())
     _resetNavigation()
     _resetPhotoPicker()
+    _resetPhotoFileStorage()
+    providePhotoFileStorage(mockPhotoFileStorage())
+    ;(globalThis as typeof globalThis & {
+      __uniLifecycle: { nextLoadOptions?: Record<string, unknown> }
+    }).__uniLifecycle.nextLoadOptions = undefined
     vi.stubGlobal('uni', {
       getWindowInfo: () => ({ windowWidth: 390 }),
       getMenuButtonBoundingClientRect: () => ({
@@ -93,6 +107,18 @@ describe('Space-create page (03)', () => {
     const wrapper = mountPage()
     expect(wrapper.text()).toContain('最多 20 个字')
     expect(wrapper.find('.space-create__name-input').attributes('maxlength')).toBe('20')
+  })
+
+  it('keeps the action layout stable when the name input receives focus', async () => {
+    provideNavigation(mockNavigation())
+    providePhotoPicker(mockPhotoPicker())
+    setReady()
+    const wrapper = mountPage()
+
+    expect(wrapper.find('.mock-keyboard').text()).toBe('kb-closed')
+    await wrapper.find('.space-create__name-input').trigger('focus')
+
+    expect(wrapper.find('.mock-keyboard').text()).toBe('kb-closed')
   })
 
   it('shows photo picker placeholder initially', () => {
@@ -315,6 +341,23 @@ describe('Space-create page (03)', () => {
     await backBtn.trigger('click')
     expect(nav.back).toHaveBeenCalled()
     expect(wrapper.find('.confirm-dialog-root').exists()).toBe(false)
+  })
+
+  it('returns to spaces without navigateBack when opened from onboarding', async () => {
+    ;(globalThis as typeof globalThis & {
+      __uniLifecycle: { nextLoadOptions?: Record<string, unknown> }
+    }).__uniLifecycle.nextLoadOptions = { source: 'onboarding' }
+
+    const nav = mockNavigation()
+    provideNavigation(nav)
+    providePhotoPicker(mockPhotoPicker())
+    setReady()
+    const wrapper = mountPage()
+
+    await wrapper.find('.mock-back').trigger('click')
+
+    expect(nav.resetTo).toHaveBeenCalledWith({ page: 'spaces' })
+    expect(nav.back).not.toHaveBeenCalled()
   })
 
   // ---- submit ----

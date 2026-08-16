@@ -4,7 +4,7 @@ export type RecordEntry = 'daily' | 'photo' | 'meeting' | 'relationship'
 
 export type TextRecordEntry = RecordEntry
 
-export type AssetPersistence = 'session-only' | 'bundled'
+export type AssetPersistence = 'session-only' | 'local' | 'bundled'
 
 export interface MemorySpace {
   id: string
@@ -59,6 +59,8 @@ export interface MemorySnapshot {
 
 export interface NewSessionAssetInput {
   uri: string
+  /** Space covers may be copied to local persistent storage before saving. */
+  persistence?: Extract<AssetPersistence, 'session-only' | 'local'>
 }
 
 export type MemoryAssetInput =

@@ -5,11 +5,19 @@ import {
   parseMemoryDetailRoute,
   parseTextRecordRoute,
   parsePhotoRecordRoute,
+  parseSpaceCreateRoute,
   parseSpaceSettingsRoute,
   parsePrivacyRoute,
 } from '../../src/features/routing/route-params'
 import type { RouteParseResult } from '../../src/types/routes'
-import { isValidId, isValidEntry, MEMORY_DETAIL_SOURCES, VALID_ENTRIES, PRIVACY_SOURCES } from '../../src/types/routes'
+import {
+  isValidId,
+  isValidEntry,
+  MEMORY_DETAIL_SOURCES,
+  VALID_ENTRIES,
+  PRIVACY_SOURCES,
+  SPACE_CREATE_SOURCES,
+} from '../../src/types/routes'
 
 describe('Route types and constants', () => {
   it('T4A-M06: VALID_ENTRIES contains only daily/photo/meeting/relationship', () => {
@@ -206,6 +214,36 @@ describe('parsePhotoRecordRoute', () => {
 
   it('does not throw on missing param', () => {
     expect(() => parsePhotoRecordRoute({})).not.toThrow()
+  })
+})
+
+// ---- parseSpaceCreateRoute ----
+
+describe('parseSpaceCreateRoute', () => {
+  it('accepts the onboarding source used to return to the spaces root', () => {
+    expect(parseSpaceCreateRoute({ source: 'onboarding' })).toEqual({
+      kind: 'valid',
+      value: { source: 'onboarding' },
+    })
+  })
+
+  it('allows the normal space-list entry without a source', () => {
+    expect(parseSpaceCreateRoute({})).toEqual({
+      kind: 'valid',
+      value: { source: undefined },
+    })
+  })
+
+  it('rejects unknown space-create sources', () => {
+    expect(parseSpaceCreateRoute({ source: 'unknown' })).toEqual({
+      kind: 'invalid',
+      reason: 'invalid-source',
+      param: 'source',
+    })
+  })
+
+  it('keeps the source whitelist limited to onboarding', () => {
+    expect(Array.from(SPACE_CREATE_SOURCES)).toEqual(['onboarding'])
   })
 })
 

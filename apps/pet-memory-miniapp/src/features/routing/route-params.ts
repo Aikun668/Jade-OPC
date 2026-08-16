@@ -1,6 +1,17 @@
 import type { TextRecordEntry } from '../../types/domain'
-import type { MemoryDetailSource, PrivacySource, RouteParseResult } from '../../types/routes'
-import { isValidEntry, isValidId, MEMORY_DETAIL_SOURCES, PRIVACY_SOURCES } from '../../types/routes'
+import type {
+  MemoryDetailSource,
+  PrivacySource,
+  RouteParseResult,
+  SpaceCreateSource,
+} from '../../types/routes'
+import {
+  isValidEntry,
+  isValidId,
+  MEMORY_DETAIL_SOURCES,
+  PRIVACY_SOURCES,
+  SPACE_CREATE_SOURCES,
+} from '../../types/routes'
 
 type IdParam = 'spaceId' | 'memoryId'
 type InvalidReason = 'missing-param' | 'invalid-id' | 'invalid-entry'
@@ -85,6 +96,21 @@ export function parsePhotoRecordRoute(
   query: Record<string, unknown>,
 ): RouteParseResult<{ spaceId: string }> {
   return parseSpaceRoute(query)
+}
+
+export function parseSpaceCreateRoute(
+  query: Record<string, unknown>,
+): RouteParseResult<{ source?: SpaceCreateSource }> {
+  const raw = readStringParam(query, 'source')
+  if (raw === undefined) {
+    return { kind: 'valid', value: { source: undefined } }
+  }
+
+  if (typeof raw !== 'string' || !SPACE_CREATE_SOURCES.has(raw)) {
+    return { kind: 'invalid', reason: 'invalid-source', param: 'source' }
+  }
+
+  return { kind: 'valid', value: { source: raw as SpaceCreateSource } }
 }
 
 export function parseTextRecordRoute(

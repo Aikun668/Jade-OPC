@@ -285,6 +285,15 @@ describe('validateSnapshot', () => {
     expect(result.kind).toBe('invalid')
   })
 
+  it('accepts local AssetPersistence for a locally saved cover', () => {
+    const snapshot = makeValidCompleteSnapshot()
+    snapshot.assets = snapshot.assets.map(asset =>
+      asset.id === 'a1' ? { ...asset, persistence: 'local' as const } : asset,
+    )
+
+    expect(validateSnapshot(snapshot).kind).toBe('valid')
+  })
+
   it('rejects invalid availability value', () => {
     const snapshot = makeValidEmptySnapshot()
     snapshot.assets = [
@@ -319,6 +328,18 @@ describe('expireSessionAssets', () => {
     const snapshot = makeValidCompleteSnapshot()
     const result = expireSessionAssets(snapshot)
     const a1 = result.assets.find(a => a.id === 'a1')!
+    expect(a1.availability).toBe('available')
+  })
+
+  it('keeps locally persisted assets available', () => {
+    const snapshot = makeValidCompleteSnapshot()
+    snapshot.assets = snapshot.assets.map(asset =>
+      asset.id === 'a1' ? { ...asset, persistence: 'local' as const } : asset,
+    )
+
+    const result = expireSessionAssets(snapshot)
+    const a1 = result.assets.find(a => a.id === 'a1')!
+    expect(a1.persistence).toBe('local')
     expect(a1.availability).toBe('available')
   })
 

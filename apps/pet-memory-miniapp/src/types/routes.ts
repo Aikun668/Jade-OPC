@@ -32,6 +32,14 @@ export const PRIVACY_SOURCES: ReadonlySet<string> = new Set([
   'settings',
 ])
 
+// ---- Space-create source ----
+
+export type SpaceCreateSource = 'onboarding'
+
+export const SPACE_CREATE_SOURCES: ReadonlySet<string> = new Set([
+  'onboarding',
+])
+
 // ---- Entry white-list (shared with domain) ----
 
 export const VALID_ENTRIES: ReadonlySet<string> = new Set([

@@ -4,7 +4,7 @@ const CURRENT_SCHEMA_VERSION = 1
 
 const VALID_ENTRIES: ReadonlySet<string> = new Set<RecordEntry>(['daily', 'photo', 'meeting', 'relationship'])
 
-const VALID_PERSISTENCES: ReadonlySet<string> = new Set<AssetPersistence>(['session-only', 'bundled'])
+const VALID_PERSISTENCES: ReadonlySet<string> = new Set<AssetPersistence>(['session-only', 'local', 'bundled'])
 
 const VALID_AVAILABILITIES: ReadonlySet<string> = new Set(['available', 'expired'])
 
